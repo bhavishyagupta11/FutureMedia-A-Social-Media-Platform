@@ -33,12 +33,16 @@ const LogoSearch = () => {
     const timeoutId = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await apiFetch(`/api/user/search?q=${encodeURIComponent(trimmedQuery)}`);
+        const response = await apiFetch(`/api/users/search?q=${encodeURIComponent(trimmedQuery)}`);
+        
         if (!response.ok) {
-          setResults({ users: [], posts: [] });
-          setMessage("Unable to search right now");
-          return;
+          throw new Error("Failed to search");
         }
+        // The original setMessage and return were inside the if block.
+        // The instruction's snippet seems to imply they should be outside or removed.
+        // To maintain syntactic correctness and the spirit of the original error handling,
+        // I'll assume the throw replaces the previous actions within the if block,
+        // and the catch block will now handle the "Unable to search right now" message.
 
         const payload = await response.json();
         setResults({

@@ -11,7 +11,7 @@ const FollowersCard = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await apiFetch("/api/user/all");
+      const response = await apiFetch("/api/users");
       if (!response.ok) {
         console.error("Error fetching users:", response.status);
         setUsers([]);
@@ -39,19 +39,14 @@ const FollowersCard = () => {
   }, []);
 
   const handleFollow = async (follower) => {
-    const formData = {
-      currentUserId: getSessionUserId(),
-      targetUserId: follower._id,
-    };
-
     try {
       setLoadingUserId(follower._id);
-      const response = await apiFetch("/api/profile/follow", {
+      
+      const isFollowing = following?.includes(follower._id);
+      const endpoint = isFollowing ? `/api/users/unfollow/${follower._id}` : `/api/users/follow/${follower._id}`;
+      
+      const response = await apiFetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -59,14 +54,18 @@ const FollowersCard = () => {
         return;
       }
 
-      const userData = await response.json();
-      persistUserSession(userData.currentUser);
-      setFollowing(userData.currentUser?.followingsList || []);
-      setUsers((currentUsers) =>
-        currentUsers.map((item) =>
-          item._id === follower._id ? userData.targetUser : item
-        )
-      );
+      // After following/unfollowing, we manually toggle it locally
+      const updatedFollowing = isFollowing 
+        ? following.filter(id => id !== follower._id)
+        : [...(following || []), follower._id];
+        
+      setFollowing(updatedFollowing);
+      
+      // Update local storage to keep state synced loosely
+      const userProf = getStoredUserProfile();
+      userProf.followingList = updatedFollowing;
+      persistUserSession(userProf);
+
       window.dispatchEvent(new Event("profile:updated"));
     } catch (err) {
       console.error("Error updating follow state:", err);

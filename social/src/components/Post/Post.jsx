@@ -23,12 +23,12 @@ const Post = ({ data, attribute }) => {
     };
 
     try {
-      const response = await apiFetch("/api/profile/like", {
+      const response = await apiFetch(`/api/posts/like/${attribute._id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({}),
       });
 
       console.log("like response", response);

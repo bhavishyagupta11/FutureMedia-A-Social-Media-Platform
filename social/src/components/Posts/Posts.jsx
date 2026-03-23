@@ -18,7 +18,7 @@ const normalizePost = (post) => {
     _id: id,
     name: source.name || "FSM User",
     username: source.username || "fsm",
-    desc: source.desc || "",
+    desc: source.caption || source.desc || "",
     likes: Number(source.likes || 0),
     likedUser: Array.isArray(source.likedUser) ? source.likedUser : [],
     comments: Array.isArray(source.comments) ? source.comments : [],
@@ -67,7 +67,7 @@ const Posts = () => {
     }
 
     try {
-      const response = await apiFetch("/api/post/all");
+      const response = await apiFetch("/api/posts/feed");
       if (!response.ok) {
         setPosts(withDemoFallback([]));
         return;
@@ -128,15 +128,12 @@ const Posts = () => {
 
     try {
       setPendingActionId(`like-${post._id}`);
-      const response = await apiFetch("/api/profile/like", {
+      const response = await apiFetch(`/api/posts/like/${post._id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          _id: post._id,
-          userId,
-        }),
+        body: JSON.stringify({}),
       });
 
       if (response.ok) {
@@ -201,14 +198,12 @@ const Posts = () => {
 
     try {
       setPendingActionId(`comment-${post._id}`);
-      const response = await apiFetch("/api/profile/comment", {
+      const response = await apiFetch(`/api/posts/comment/${post._id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          _id: post._id,
-          userId: getSessionUserId(),
           text,
         }),
       });
@@ -264,15 +259,12 @@ const Posts = () => {
     try {
       setPendingActionId(`delete-comment-${comment._id}`);
       const response = await apiFetch(
-        `/api/profile/comment/${post._id}/${comment._id}?userId=${encodeURIComponent(currentUserId)}`,
+        `/api/posts/comment/${post._id}/${comment._id}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            userId: currentUserId,
-          }),
         }
       );
 
