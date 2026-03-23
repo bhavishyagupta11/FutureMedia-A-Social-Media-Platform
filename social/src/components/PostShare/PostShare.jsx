@@ -36,6 +36,7 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
     reader.onload = function (e) {
       setVideo(null);
       setImage({
+        file: file,
         previewUrl: URL.createObjectURL(file),
         base64String: e.target.result,
         fileName: file.name,
@@ -54,6 +55,7 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
     reader.onload = function (e) {
       setImage(null);
       setVideo({
+        file: file,
         previewUrl: URL.createObjectURL(file),
         base64String: e.target.result,
         fileName: file.name,
@@ -83,22 +85,13 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        images: selectedMedia.base64String,
-        name: localStorage.getItem("name") || "FSM User",
-        userId: userId,
-        desc: desc.trim(),
-        likes: 0,
-        liked: false,
-      };
+      const formData = new FormData();
+      formData.append("image", selectedMedia.file);
+      formData.append("caption", desc.trim());
 
-      const uploadPath = video ? "/api/post/upload/video" : "/api/post/upload";
-      const response = await apiFetch(uploadPath, {
+      const response = await apiFetch("/api/posts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       if (!response.ok) {

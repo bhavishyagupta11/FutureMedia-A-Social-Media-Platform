@@ -10,24 +10,21 @@ const ProfileCard = () => {
   const [storedProfile, setStoredProfile] = useState(getStoredUserProfile());
 
   const fetchInfo = async () => {
-    const formData = {
-      userId: getSessionUserId(),
-    };
-
     try {
-      const response = await apiFetch("/api/profile/info", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      const response = await apiFetch(`/api/users/${getSessionUserId()}`, {
+        method: "GET",
       });
 
       console.log("Fetching profile info response", response);
 
       if (response.ok) {
         const resp = await response.json();
-        setProfileData(resp);
+        setProfileData({
+          user: resp,
+          followers: resp.followers?.length || 0,
+          followings: resp.following?.length || 0,
+          posts: 0 // Simplification since backend doesn't aggregate posts here natively right now
+        });
       }
     } catch (error) {
       console.error("Failed to fetch profile info:", error);
