@@ -83,18 +83,22 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-      formData.append("images", selectedMedia.base64String);
-      formData.append("name", localStorage.getItem("name") || "FSM User");
-      formData.append("userId", userId);
-      formData.append("desc", desc.trim());
-      formData.append("likes", 0);
-      formData.append("liked", false);
+      const payload = {
+        images: selectedMedia.base64String,
+        name: localStorage.getItem("name") || "FSM User",
+        userId: userId,
+        desc: desc.trim(),
+        likes: 0,
+        liked: false,
+      };
 
       const uploadPath = video ? "/api/post/upload/video" : "/api/post/upload";
       const response = await apiFetch(uploadPath, {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
