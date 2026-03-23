@@ -29,16 +29,18 @@ const Settings = () => {
     setIsSaving(true);
 
     try {
-      const response = await apiFetch(`/api/user/${storedProfile.userId}/profile`, {
+      const formData = {
+        displayName: displayName.trim(),
+        bio: bio.trim(),
+        website: website.trim(),
+      };
+
+      const response = await apiFetch(`/api/users/${storedProfile.userId}/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          displayName: displayName.trim(),
-          bio: bio.trim(),
-          website: website.trim(),
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {

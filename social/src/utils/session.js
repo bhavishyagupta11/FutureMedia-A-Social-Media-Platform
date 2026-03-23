@@ -8,6 +8,7 @@ const USER_STORAGE_KEYS = [
   "bio",
   "website",
   "username",
+  "token",
 ];
 
 const safeJsonParse = (value, fallback = []) => {
@@ -57,6 +58,7 @@ export const persistUserSession = (user) => {
   localStorage.setItem("bio", user.bio || "");
   localStorage.setItem("website", user.website || "");
   localStorage.setItem("username", user.username || "");
+  localStorage.setItem("token", user.token || "");
 
   window.dispatchEvent(new CustomEvent("session:updated", { detail: user }));
 };

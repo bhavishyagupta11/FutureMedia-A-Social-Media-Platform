@@ -74,7 +74,7 @@ function LogIn() {
     };
 
     try {
-      const response = await apiFetch("/api/user/login", {
+      const response = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -165,8 +165,7 @@ const SignUp = () => {
 
 function Authenticate() {
   const [username, setUsername] = useState("");
-  const [lastname, setLastname] = useState("");
-  const [firstName, setFirstName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -178,13 +177,12 @@ function Authenticate() {
     setError("");
 
     const payload = {
-      firstName: firstName.trim(),
-      lastName: lastname.trim(),
+      email: email.trim(),
       username: username.trim(),
       password,
     };
 
-    if (!payload.firstName || !payload.lastName || !payload.username || !payload.password) {
+    if (!payload.email || !payload.username || !payload.password) {
       setError("All fields are required.");
       return;
     }
@@ -202,7 +200,7 @@ function Authenticate() {
     setIsSubmitting(true);
 
     try {
-      const response = await apiFetch("/api/user/signup", {
+      const response = await apiFetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -211,7 +209,7 @@ function Authenticate() {
       });
 
       if (response.ok) {
-        const loginResponse = await apiFetch("/api/user/login", {
+        const loginResponse = await apiFetch("/api/auth/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -256,31 +254,17 @@ function Authenticate() {
           <h3>Create Account</h3>
           <p className="authHint">Build your profile and start sharing in seconds.</p>
 
-          <div className="splitInput">
-            <div className="inputGroup">
-              <label htmlFor="signup-firstname">First Name</label>
-              <input
-                id="signup-firstname"
-                type="text"
-                placeholder="First Name"
-                className="infoInput"
-                name="firstName"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-            </div>
-            <div className="inputGroup">
-              <label htmlFor="signup-lastname">Last Name</label>
-              <input
-                id="signup-lastname"
-                type="text"
-                placeholder="Last Name"
-                className="infoInput"
-                name="lastName"
-                value={lastname}
-                onChange={(e) => setLastname(e.target.value)}
-              />
-            </div>
+          <div className="inputGroup">
+            <label htmlFor="signup-email">Email</label>
+            <input
+              id="signup-email"
+              type="email"
+              placeholder="Email address"
+              className="infoInput"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
           <div className="inputGroup">
