@@ -6,9 +6,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-const postApi = require("./routes/post");
-const userApi = require("./routes/user");
-const profileApi = require("./routes/profile");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+const postRoutes = require("./routes/postRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -88,11 +88,9 @@ app.use("/api", (req, res, next) => {
   }
 });
 
-app.use("/api/post", postApi);
-app.use("/api/posts", postApi);
-app.use("/api/user", userApi);
-app.use("/api/users", userApi);
-app.use("/api/profile", profileApi);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello from Express!");
