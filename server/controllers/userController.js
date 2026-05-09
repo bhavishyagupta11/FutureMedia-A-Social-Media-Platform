@@ -2,7 +2,10 @@ const User = require("../models/userModel");
 
 exports.getUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password -__v");
+    const user = await User.findById(req.params.id)
+      .select("-password -__v")
+      .populate("followers", "username displayName profilePicture")
+      .populate("following", "username displayName profilePicture");
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -23,21 +26,60 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+exports.getSuggestedUsers = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id).select("following");
+    const excludeIds = [...currentUser.following, req.user.id];
+
+    const suggested = await User.find({ _id: { $nin: excludeIds } })
+      .select("username displayName profilePicture bio")
+      .limit(6);
+
+    res.status(200).json(suggested);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error fetching suggested users" });
+  }
+};
+
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).select("-password");
+    const { displayName, bio, website } = req.body;
+    const updateData = {};
+
+    if (displayName !== undefined) updateData.displayName = displayName;
+    if (bio !== undefined) updateData.bio = bio;
+    if (website !== undefined) updateData.website = website;
+
+    // Handle profile picture upload via Cloudinary (from multer middleware)
+    if (req.file && req.file.path) {
+      updateData.profilePicture = req.file.path;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).select("-password -__v");
+
     res.status(200).json(user);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Server error updating user" });
+    res.status(500).json({ error: "Server error updating profile" });
   }
 };
 
 exports.searchUsers = async (req, res) => {
   try {
     const query = req.query.q || "";
-    const users = await User.find({ username: { $regex: query, $options: "i" } }).select("-password");
-    res.status(200).json({ users, posts: [] });
+    const users = await User.find({
+      $or: [
+        { username: { $regex: query, $options: "i" } },
+        { displayName: { $regex: query, $options: "i" } },
+      ],
+      _id: { $ne: req.user.id },
+    }).select("-password -__v").limit(10);
+    res.status(200).json({ users });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error searching users" });
