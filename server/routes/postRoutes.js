@@ -4,7 +4,15 @@ const postController = require("../controllers/postController");
 const auth = require("../middleware/auth");
 const { upload } = require("../config/cloudinary");
 
-router.post("/", auth, upload.single("image"), postController.createPost);
+router.post("/", auth, (req, res, next) => {
+  upload.single("image")(req, res, function (err) {
+    if (err) {
+      console.error("Cloudinary upload error:", err.message);
+      return res.status(500).json({ error: "Cloudinary upload error: " + err.message + ". Please verify your Cloudinary keys!" });
+    }
+    next();
+  });
+}, postController.createPost);
 router.get("/feed", auth, postController.getFeed);
 router.get("/user/:id", auth, postController.getUserPosts);
 router.post("/like/:id", auth, postController.likePost);

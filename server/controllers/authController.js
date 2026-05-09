@@ -49,7 +49,12 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: "Please provide valid credentials." });
     }
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({
+      $or: [
+        { username: { $regex: new RegExp("^" + username + "$", "i") } },
+        { email: { $regex: new RegExp("^" + username + "$", "i") } }
+      ]
+    });
 
     if (user && verifyPassword(password, user.password)) {
       res.json({

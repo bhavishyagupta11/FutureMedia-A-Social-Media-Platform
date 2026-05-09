@@ -84,7 +84,7 @@ function LogIn() {
 
       if (response.ok) {
         const resp = await response.json();
-        persistUserSession(resp.data);
+        persistUserSession(resp);
         navigate("/home");
       } else {
         let message = "Login failed. Please try again.";
@@ -222,7 +222,7 @@ function Authenticate() {
 
         if (loginResponse.ok) {
           const resp = await loginResponse.json();
-          persistUserSession(resp.data);
+          persistUserSession(resp);
           navigate("/home");
           return;
         }

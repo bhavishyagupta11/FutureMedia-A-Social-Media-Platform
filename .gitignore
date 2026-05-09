@@ -5,6 +5,8 @@ node_modules/
 
 # environment
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
@@ -15,9 +17,18 @@ coverage/
 
 # production
 build/
+dist/
+.next/
+out/
 
 # misc
 .DS_Store
+.codex-pids/
+*.pid
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# local uploads/runtime files
+uploads/
