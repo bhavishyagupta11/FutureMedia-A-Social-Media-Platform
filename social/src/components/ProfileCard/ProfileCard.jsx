@@ -76,11 +76,14 @@ const ProfileCard = () => {
       </div>
 
       <div className="followStatus">
+        <hr />
         <div>
           <div className="follow">
             <span>{profileData?.followings || 0}</span>
             <span className="textbased">Followings</span>
           </div>
+          
+          <div className="vl"></div>
 
           <div className="follow">
             <span>{profileData?.followers || 0}</span>
@@ -89,6 +92,7 @@ const ProfileCard = () => {
 
           {ProfilePage && (
             <>
+              <div className="vl"></div>
               <div className="follow">
                 <span>{profileData?.posts || 0}</span>
                 <span>Posts</span>
@@ -96,6 +100,7 @@ const ProfileCard = () => {
             </>
           )}
         </div>
+        <hr />
       </div>
 
       {ProfilePage ? "" : <span>My Profile</span>}

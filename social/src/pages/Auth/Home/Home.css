@@ -1,8 +1,8 @@
 .Home {
   position: relative;
   display: grid;
-  grid-template-columns: 18rem minmax(0, 1fr) 20rem;
-  gap: 1.5rem;
+  grid-template-columns: 20rem minmax(0, 1fr) 22rem; /* Adjusted column widths */
+  gap: 2rem; /* Increased gap for better breathing room */
   max-width: 1400px;
   margin: 0 auto;
   align-items: start;
@@ -11,5 +11,6 @@
 @media (max-width: 1200px) {
   .Home {
     grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
   }
 }
