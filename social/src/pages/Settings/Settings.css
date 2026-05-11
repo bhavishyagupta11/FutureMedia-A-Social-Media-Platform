@@ -24,12 +24,12 @@
 
 .settingsCard h2 {
   margin: 0;
-  color: #173650;
+  color: #f8fafc;
 }
 
 .settingsCard p {
   margin: 0.5rem 0 1.2rem;
-  color: #5c778e;
+  color: #94a3b8;
 }
 
 .settingsForm {
@@ -40,7 +40,7 @@
 
 .settingsForm label {
   font-size: 0.9rem;
-  color: #274f6e;
+  color: #e2e8f0;
   font-weight: 600;
 }
 
@@ -49,16 +49,16 @@
   border: 1px solid rgba(22, 91, 143, 0.18);
   border-radius: 12px;
   padding: 0.8rem 0.9rem;
-  background: #fff;
+  background: var(--cardColor);
   font-family: inherit;
-  color: #1f3d56;
+  color: #f8fafc;
   resize: vertical;
 }
 
 .settingsForm input:focus,
 .settingsForm textarea:focus {
   outline: none;
-  border-color: #2296d5;
+  border-color: #0ea5e9;
   box-shadow: 0 0 0 3px rgba(34, 150, 213, 0.15);
 }
 
@@ -66,7 +66,7 @@
   width: 180px;
   height: 44px;
   margin-top: 0.8rem;
-  background: linear-gradient(135deg, #1d94d4, #3ebdf0);
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
 }
 
 .settingsSaved {
