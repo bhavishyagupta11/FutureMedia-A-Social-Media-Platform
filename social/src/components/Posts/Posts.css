@@ -19,35 +19,80 @@
   gap: 0.7rem;
 }
 
+.postHeaderInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .postAvatar {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
   object-fit: cover;
+  transition: opacity 0.2s;
 }
+
+.postAvatar:hover { opacity: 0.85; }
 
 .postName {
   display: block;
   font-weight: 700;
-  color: #1d3850;
+  color: var(--white, #1d3850);
 }
+
+.postName:hover { text-decoration: underline; }
 
 .postUser {
   display: block;
   font-size: 0.82rem;
-  color: #5d7a90;
+  color: var(--gray, #5d7a90);
+}
+
+.postDeleteBtn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--gray, #5d7a90);
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.4rem;
+  transition: color 0.2s, background 0.2s;
+}
+
+.postDeleteBtn:hover { color: #e05555; background: rgba(224, 85, 85, 0.1); }
+
+.postImage {
+  width: 100%;
+  border-radius: 0.75rem;
+  object-fit: cover;
+  max-height: 500px;
 }
 
 .postDesc {
   margin: 0;
   font-size: 0.95rem;
-  color: #2e4b62;
+  color: var(--white, #2e4b62);
 }
 
-.postLikes {
-  color: var(--gray);
-  font-size: 12px;
+.postReact {
+  display: flex;
+  gap: 1rem;
+  padding: 0.4rem 0;
 }
+
+.reactItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  color: var(--gray, #5d7a90);
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.reactItem:hover { color: var(--orange, #f7782a); }
+.reactItem img { width: 1.4rem; height: 1.4rem; }
 
 .postVideo {
   width: 100%;
@@ -61,8 +106,8 @@
   justify-content: center;
   min-height: 12rem;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, rgba(231, 242, 250, 0.95), rgba(214, 232, 245, 0.9));
-  color: #49677f;
+  background: var(--hrline, rgba(231, 242, 250, 0.95));
+  color: var(--gray, #49677f);
   font-weight: 600;
   text-align: center;
   padding: 1rem;
@@ -74,12 +119,17 @@
   gap: 0.75rem;
 }
 
+.postLikes {
+  color: var(--gray);
+  font-size: 12px;
+}
+
 .postComments {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   padding-top: 0.35rem;
-  border-top: 1px solid rgba(20, 70, 110, 0.09);
+  border-top: 1px solid var(--hrline, rgba(20, 70, 110, 0.09));
 }
 
 .commentComposer {
@@ -90,14 +140,16 @@
 .commentComposer input {
   flex: 1;
   min-width: 0;
-  border: 1px solid rgba(22, 91, 143, 0.18);
+  border: 1px solid var(--hrline, rgba(22, 91, 143, 0.18));
   border-radius: 999px;
-  padding: 0.75rem 0.95rem;
+  padding: 0.65rem 0.95rem;
   outline: none;
+  background: var(--inputColor, #fff);
+  color: var(--white, #1d3850);
 }
 
 .commentButton {
-  min-width: 6.5rem;
+  min-width: 5rem;
 }
 
 .commentList {
@@ -108,19 +160,40 @@
 
 .commentItem {
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  background: rgba(244, 249, 252, 0.95);
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: var(--commentBg, rgba(244, 249, 252, 0.95));
   border-radius: 0.9rem;
-  padding: 0.7rem 0.85rem;
-  color: #29475f;
+  padding: 0.6rem 0.85rem;
 }
 
-.commentItemTop {
+.commentAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.commentBody {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.commentBody strong {
+  font-size: 0.85rem;
+  color: var(--white, #29475f);
+  cursor: pointer;
+}
+
+.commentBody strong:hover { text-decoration: underline; }
+
+.commentBody span {
+  font-size: 0.9rem;
+  color: var(--white, #29475f);
 }
 
 .commentDeleteButton {
@@ -129,16 +202,16 @@
   color: #b45059;
   font-weight: 700;
   cursor: pointer;
-  padding: 0;
-  font-size: 0.82rem;
+  padding: 0.1rem 0.4rem;
+  font-size: 1rem;
+  border-radius: 0.4rem;
+  transition: background 0.2s;
 }
 
-.commentDeleteButton:disabled {
-  cursor: wait;
-  opacity: 0.7;
-}
+.commentDeleteButton:hover { background: rgba(180, 80, 89, 0.12); }
+.commentDeleteButton:disabled { cursor: wait; opacity: 0.7; }
 
 .emptyComments {
-  color: #5f7b91;
+  color: var(--gray, #5f7b91);
   font-size: 0.9rem;
 }

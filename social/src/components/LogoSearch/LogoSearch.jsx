@@ -3,6 +3,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ProfileImage from "../../img/profileImg.jpg";
 import "./LogoSearch.css";
 import { apiFetch } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -19,6 +20,7 @@ const LogoSearch = () => {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState({ users: [], posts: [] });
   const [message, setMessage] = useState("Search people or posts");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const trimmedQuery = query.trim();
@@ -113,7 +115,7 @@ const LogoSearch = () => {
             <div className="searchList">
               {results.users.length > 0 ? (
                 results.users.map((user) => (
-                  <div className="searchResultItem" key={user._id}>
+                  <div className="searchResultItem" key={user._id} style={{ cursor: "pointer" }} onClick={() => navigate(`/profile/${user._id}`)}>
                     <img
                       src={user.img || ProfileImage}
                       alt={user.displayName || user.username}
