@@ -2,115 +2,76 @@ import React, { useEffect, useState } from "react";
 import "./FollowersCard.css";
 import { apiFetch } from "../../utils/api";
 import ProfileImage from "../../img/profileImg.jpg";
-import { getSessionUserId, getStoredUserProfile, persistUserSession } from "../../utils/session";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const FollowersCard = () => {
   const [users, setUsers] = useState([]);
-  const [following, setFollowing] = useState(getStoredUserProfile().followingList);
   const [loadingUserId, setLoadingUserId] = useState("");
-
-  const fetchUsers = async () => {
-    try {
-      const response = await apiFetch("/api/users");
-      if (!response.ok) {
-        console.error("Error fetching users:", response.status);
-        setUsers([]);
-        return;
-      }
-      const converted = await response.json();
-      setUsers(converted);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-    }
-  };
+  const [followedIds, setFollowedIds] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUsers();
+    apiFetch("/api/users/suggestions")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setUsers(Array.isArray(data) ? data : []))
+      .catch(() => setUsers([]));
   }, []);
 
-  useEffect(() => {
-    const syncSession = () => setFollowing(getStoredUserProfile().followingList);
-    window.addEventListener("session:updated", syncSession);
-    window.addEventListener("profile:updated", syncSession);
-    return () => {
-      window.removeEventListener("session:updated", syncSession);
-      window.removeEventListener("profile:updated", syncSession);
-    };
-  }, []);
-
-  const handleFollow = async (follower) => {
+  const handleFollow = async (user) => {
     try {
-      setLoadingUserId(follower._id);
-      
-      const isFollowing = following?.includes(follower._id);
-      const endpoint = isFollowing ? `/api/users/unfollow/${follower._id}` : `/api/users/follow/${follower._id}`;
-      
-      const response = await apiFetch(endpoint, {
-        method: "POST",
-      });
+      setLoadingUserId(user._id);
+      const isFollowing = followedIds.includes(user._id);
+      const endpoint = isFollowing
+        ? `/api/users/unfollow/${user._id}`
+        : `/api/users/follow/${user._id}`;
 
-      if (!response.ok) {
-        console.error("Error updating follow state:", response.status);
-        return;
+      const response = await apiFetch(endpoint, { method: "POST" });
+      if (!response.ok) { toast.error("Could not update follow"); return; }
+
+      if (isFollowing) {
+        setFollowedIds((cur) => cur.filter((id) => id !== user._id));
+        toast(`Unfollowed @${user.username}`, { autoClose: 1200 });
+      } else {
+        setFollowedIds((cur) => [...cur, user._id]);
+        toast.success(`Following @${user.username}! 🎉`, { autoClose: 1500 });
       }
-
-      // After following/unfollowing, we manually toggle it locally
-      const updatedFollowing = isFollowing 
-        ? following.filter(id => id !== follower._id)
-        : [...(following || []), follower._id];
-        
-      setFollowing(updatedFollowing);
-      
-      // Update local storage to keep state synced loosely
-      const userProf = getStoredUserProfile();
-      userProf.followingList = updatedFollowing;
-      persistUserSession(userProf);
-
       window.dispatchEvent(new Event("profile:updated"));
-    } catch (err) {
-      console.error("Error updating follow state:", err);
-    } finally {
-      setLoadingUserId("");
-    }
+    } catch { toast.error("Network error"); }
+    finally { setLoadingUserId(""); }
   };
 
-  const currentUserId = getSessionUserId();
+  if (users.length === 0) return null;
 
   return (
     <div className="FollowersCard">
-      <h3>People you may follow</h3>
-
-      {users.length > 0
-        ? users
-            .filter((item) => item._id !== currentUserId)
-            .map((follower) => (
-              <div className="follower" key={follower._id}>
-                <div>
-                  <img
-                    src={follower.img || ProfileImage}
-                    alt={follower.username}
-                    className="followerImage"
-                  />
-                  <div className="name">
-                    <span>{follower.firstName}</span>
-                    <span>@{follower.username}</span>
-                  </div>
-                </div>
-
-                <button
-                  className="button fc-button"
-                  onClick={() => handleFollow(follower)}
-                  disabled={loadingUserId === follower._id}
-                >
-                  {loadingUserId === follower._id
-                    ? "Saving..."
-                    : following?.includes(follower._id)
-                      ? "Unfollow"
-                      : "Follow"}
-                </button>
+      <h3>Suggested for you</h3>
+      {users.map((user) => {
+        const isFollowing = followedIds.includes(user._id);
+        return (
+          <div className="follower" key={user._id}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flex: 1, cursor: "pointer" }}
+              onClick={() => navigate(`/profile/${user._id}`)}>
+              <img
+                src={user.profilePicture || ProfileImage}
+                alt={user.username}
+                className="followerImage"
+              />
+              <div className="name">
+                <span>{user.displayName || user.username}</span>
+                <span>@{user.username}</span>
               </div>
-            ))
-        : null}
+            </div>
+            <button
+              className={`button fc-button${isFollowing ? " following" : ""}`}
+              onClick={() => handleFollow(user)}
+              disabled={loadingUserId === user._id}
+            >
+              {loadingUserId === user._id ? "…" : isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 };
