@@ -20,7 +20,7 @@ export const PostsData = [
     _id: "demo-2",
     name: "Bhavishya Gupta",
     username: "bhavishya",
-    desc: "Building Future Social Media one pixel at a time.",
+    desc: "Building Future Media - A Social Media Platform one pixel at a time.",
     likes: 244,
     likedUser: [],
     format: "image",

@@ -20,7 +20,7 @@ const AuthBrand = ({ title, subtitle }) => {
         <img src={BirdLogo} alt="FSM bird logo" className="authBirdLogo" />
         <div>
           <h1>FSM</h1>
-          <p>Future Social Media</p>
+          <p>Future Media - A Social Media Platform</p>
         </div>
       </div>
       <h2>{title}</h2>

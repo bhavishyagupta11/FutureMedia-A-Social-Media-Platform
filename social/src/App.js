@@ -32,7 +32,7 @@ const AppTopBar = () => {
       <div className="fsmBrandBadge" onClick={() => navigate(isLoggedIn ? "/home" : "/")} style={{ cursor: "pointer" }}>
         <img src={TechLogo} alt="FSM tech logo" />
         <div className="fsmBrandCopy">
-          <strong>Future Social Media</strong>
+          <strong>Future Media - A Social Media Platform</strong>
           <span>Connected feeds. Faster signals. Smarter sharing.</span>
         </div>
         <div className="fsmBrandTag">FSM</div>
