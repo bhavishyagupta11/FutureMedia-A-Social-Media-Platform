@@ -134,7 +134,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/chat", chatRoutes);
 
-app.get("/", (req, res) => res.send("FutureMedia API running!"));
+app.get("/", (req, res) => res.send("Future Media - A Social Media Platform API running!"));
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 server.listen(PORT, async () => {

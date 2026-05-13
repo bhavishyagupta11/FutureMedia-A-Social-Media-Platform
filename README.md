@@ -1,4 +1,4 @@
-# FutureMedia Social Platform
+# Future Media - A Social Media Platform
 
 > A full-stack social media web application with real-time messaging, image hosting, and a dark glassmorphism UI — built with React, Node.js/Express, MongoDB, and Socket.IO.
 
@@ -36,7 +36,7 @@
 
 ## Overview
 
-FutureMedia (FSM) is a production-oriented social networking platform that solves the common need for a self-hostable, full-stack social application with real-time capabilities. Users can register, publish image posts, interact with content through likes and comments, build a social graph via follows, and communicate privately through a live chat system — all within a polished dark-themed interface.
+Future Media - A Social Media Platform (FSM) is a production-oriented social networking platform that solves the common need for a self-hostable, full-stack social application with real-time capabilities. Users can register, publish image posts, interact with content through likes and comments, build a social graph via follows, and communicate privately through a live chat system — all within a polished dark-themed interface.
 
 The project demonstrates a complete, end-to-end implementation of a social platform using the MERN stack, including stateless JWT authentication, cloud media management via Cloudinary, WebSocket-based real-time messaging, and a resilient server that gracefully degrades when the primary database is unavailable.
 
@@ -195,7 +195,7 @@ On startup, the server attempts to connect to MongoDB Atlas. If the connection f
 ## Project Structure
 
 ```
-FutureMedia Social Platform/
+Future Media - A Social Media Platform/
 │
 ├── server/                          # Express REST API + Socket.IO server
 │   ├── config/
