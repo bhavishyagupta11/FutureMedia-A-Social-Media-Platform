@@ -1,139 +1,40 @@
-const User = require("../models/userModel");
+const userService = require("../services/user.service");
+const asyncHandler = require("../utils/asyncHandler");
+const { successResponse } = require("../utils/responseHandler");
 
-exports.getUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id)
-      .select("-password -__v")
-      .populate("followers", "username displayName profilePicture")
-      .populate("following", "username displayName profilePicture");
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    res.status(200).json(user);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error fetching user" });
-  }
-};
+exports.getProfile = asyncHandler(async (req, res) => {
+  const userId = (!req.params.id || req.params.id === "me") ? req.user.id : req.params.id;
+  const result = await userService.getUser(userId);
+  return successResponse(res, 200, "Profile fetched", result);
+});
 
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find().select("-password -__v");
-    res.status(200).json(users);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error fetching users" });
-  }
-};
+exports.updateProfile = asyncHandler(async (req, res) => {
+  const result = await userService.updateProfile(req.user.id, req.body);
+  return successResponse(res, 200, "Profile updated", result);
+});
 
-exports.getSuggestedUsers = async (req, res) => {
-  try {
-    const currentUser = await User.findById(req.user.id).select("following");
-    const excludeIds = [...currentUser.following, req.user.id];
+exports.searchUsers = asyncHandler(async (req, res) => {
+  const { query } = req.query;
+  const result = await userService.searchUsers(query, req.user ? req.user.id : null);
+  return successResponse(res, 200, "Search results", result);
+});
 
-    const suggested = await User.find({ _id: { $nin: excludeIds } })
-      .select("username displayName profilePicture bio")
-      .limit(6);
+exports.getSuggestedUsers = asyncHandler(async (req, res) => {
+  const result = await userService.getSuggestedUsers(req.user.id);
+  return successResponse(res, 200, "Suggested users", result);
+});
 
-    res.status(200).json(suggested);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error fetching suggested users" });
-  }
-};
+exports.followUser = asyncHandler(async (req, res) => {
+  const result = await userService.followUser(req.params.id, req.user.id);
+  return successResponse(res, 200, "Follow action completed", result);
+});
 
-exports.updateProfile = async (req, res) => {
-  try {
-    const { displayName, bio, website } = req.body;
-    const updateData = {};
+exports.unfollowUser = asyncHandler(async (req, res) => {
+  const result = await userService.unfollowUser(req.params.id, req.user.id);
+  return successResponse(res, 200, "Unfollow action completed", result);
+});
 
-    if (displayName !== undefined) updateData.displayName = displayName;
-    if (bio !== undefined) updateData.bio = bio;
-    if (website !== undefined) updateData.website = website;
-
-    // Handle profile picture upload via Cloudinary (from multer middleware)
-    if (req.file && req.file.path) {
-      updateData.profilePicture = req.file.path;
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    ).select("-password -__v");
-
-    res.status(200).json(user);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error updating profile" });
-  }
-};
-
-exports.searchUsers = async (req, res) => {
-  try {
-    const query = req.query.q || "";
-    const users = await User.find({
-      $or: [
-        { username: { $regex: query, $options: "i" } },
-        { displayName: { $regex: query, $options: "i" } },
-      ],
-      _id: { $ne: req.user.id },
-    }).select("-password -__v").limit(10);
-    res.status(200).json({ users });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error searching users" });
-  }
-};
-
-exports.followUser = async (req, res) => {
-  try {
-    if (req.params.id === req.user.id) {
-      return res.status(400).json({ error: "You cannot follow yourself" });
-    }
-
-    const targetUser = await User.findById(req.params.id);
-    const currentUser = await User.findById(req.user.id);
-
-    if (!targetUser || !currentUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    if (!currentUser.following.includes(req.params.id)) {
-      await currentUser.updateOne({ $push: { following: req.params.id } });
-      await targetUser.updateOne({ $push: { followers: req.user.id } });
-      res.status(200).json({ message: "User followed successfully" });
-    } else {
-      res.status(400).json({ error: "You are already following this user" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error following user" });
-  }
-};
-
-exports.unfollowUser = async (req, res) => {
-  try {
-    if (req.params.id === req.user.id) {
-      return res.status(400).json({ error: "You cannot unfollow yourself" });
-    }
-
-    const targetUser = await User.findById(req.params.id);
-    const currentUser = await User.findById(req.user.id);
-
-    if (!targetUser || !currentUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    if (currentUser.following.includes(req.params.id)) {
-      await currentUser.updateOne({ $pull: { following: req.params.id } });
-      await targetUser.updateOne({ $pull: { followers: req.user.id } });
-      res.status(200).json({ message: "User unfollowed successfully" });
-    } else {
-      res.status(400).json({ error: "You are not following this user" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error unfollowing user" });
-  }
-};
+exports.getAllUsers = asyncHandler(async (req, res) => {
+  const result = await userService.getAllUsers();
+  return successResponse(res, 200, "All users fetched", result);
+});
