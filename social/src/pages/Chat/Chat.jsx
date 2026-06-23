@@ -6,6 +6,8 @@ import { getSessionUserId } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Send, Paperclip, X, MessageSquare, MoreVertical, Smile, Mic } from "lucide-react";
 
 const ENDPOINT = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 let socket;
@@ -169,43 +171,62 @@ const Chat = () => {
   };
 
   return (
-    <div className="ChatPage">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.4 }}
+      className="ChatPage"
+    >
       {/* Left panel — chat list */}
       <div className="chatList">
         <div className="chatListHeader">
           <h3>Messages</h3>
-          <input
-            type="text"
-            placeholder="Search people..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="chatSearch"
-          />
-          {searchResults.length > 0 && (
-            <div className="chatSearchResults">
-              {searchResults.map((u) => (
-                <div key={u._id} className="chatSearchItem" onClick={() => { openChatWith(u._id); setSearchQuery(""); setSearchResults([]); }}>
-                  <img src={u.profilePicture || ProfileImage} alt={u.username} />
-                  <div>
-                    <strong>{u.displayName || u.username}</strong>
-                    <span>@{u.username}</span>
+          <div className="chatSearchWrapper">
+            <Search className="chatSearchIcon" size={18} />
+            <input
+              type="text"
+              placeholder="Search people..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="chatSearch"
+            />
+          </div>
+          <AnimatePresence>
+            {searchResults.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="chatSearchResults"
+              >
+                {searchResults.map((u) => (
+                  <div key={u._id} className="chatSearchItem" onClick={() => { openChatWith(u._id); setSearchQuery(""); setSearchResults([]); }}>
+                    <img src={u.profilePicture || ProfileImage} alt={u.username} />
+                    <div>
+                      <strong>{u.displayName || u.username}</strong>
+                      <span>@{u.username}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="chatListItems">
           {chats.length === 0 ? (
             <p className="chatEmpty">No conversations yet.<br />Search above to start chatting!</p>
           ) : (
-            chats.map((chat) => {
+            chats.map((chat, i) => {
               const other = getOtherParticipant(chat);
               if (!other) return null;
               const isActive = activeChat?._id === chat._id;
               return (
-                <div
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
                   key={chat._id}
                   className={`chatItem ${isActive ? "activeChatItem" : ""}`}
                   onClick={() => selectChat(chat)}
@@ -218,7 +239,7 @@ const Chat = () => {
                   {chat.latestMessage && (
                     <span className="chatItemTime">{formatTime(chat.latestMessage.createdAt)}</span>
                   )}
-                </div>
+                </motion.div>
               );
             })
           )}
@@ -228,10 +249,15 @@ const Chat = () => {
       {/* Right panel — active chat */}
       <div className="chatWindow">
         {!activeChat ? (
-          <div className="chatPlaceholder">
-            <div className="chatPlaceholderIcon">💬</div>
-            <h3>Select a conversation</h3>
-            <p>Search for someone to start messaging</p>
+          <div className="chatPremiumPlaceholder">
+            <div className="chatPremiumPlaceholderIconWrapper">
+              <MessageSquare size={64} className="chatPlaceholderIcon" />
+            </div>
+            <h2>Start Chatting</h2>
+            <p>Connect with your friends, share photos, and stay in touch.</p>
+            <button className="primaryCTA" onClick={() => document.querySelector('.chatSearch').focus()}>
+              Send Message
+            </button>
           </div>
         ) : (
           <>
@@ -241,24 +267,37 @@ const Chat = () => {
                 return other ? (
                   <>
                     <img src={other.profilePicture || ProfileImage} alt={other.username} className="chatHeaderAvatar" />
-                    <div>
+                    <div className="chatHeaderInfo">
                       <strong>{other.displayName || other.username}</strong>
                       <span>@{other.username}</span>
                     </div>
                   </>
                 ) : null;
               })()}
-              <button className="chatCloseBtn" onClick={() => setActiveChat(null)}>✕</button>
+              <div className="chatActions">
+                <button className="chatActionBtn">
+                  <MoreVertical size={20} />
+                </button>
+                <button className="chatActionBtn chatCloseBtn" onClick={() => setActiveChat(null)}>
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="chatMessages">
               {loadingMessages ? (
                 <div className="chatMessagesLoading">Loading messages...</div>
               ) : (
-                messages.map((msg) => {
+                messages.map((msg, index) => {
                   const isMine = String(msg.sender?._id || msg.sender) === String(currentUserId);
                   return (
-                    <div key={msg._id} className={`chatBubbleWrapper ${isMine ? "mine" : "theirs"}`}>
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(index * 0.02, 0.5) }}
+                      key={msg._id} 
+                      className={`chatBubbleWrapper ${isMine ? "mine" : "theirs"}`}
+                    >
                       {!isMine && (
                         <img
                           src={msg.sender?.profilePicture || ProfileImage}
@@ -270,37 +309,59 @@ const Chat = () => {
                         <p>{msg.content}</p>
                         <span className="chatBubbleTime">{formatTime(msg.createdAt)}</span>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })
               )}
               {isTyping && (
-                <div className="chatBubbleWrapper theirs">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="chatBubbleWrapper theirs"
+                >
                   <div className="chatBubble typingBubble">
                     <span className="dot" /><span className="dot" /><span className="dot" />
                   </div>
-                </div>
+                </motion.div>
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="chatInputRow">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                value={newMessage}
-                onChange={handleTyping}
-                onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
-                className="chatInput"
-              />
-              <button className="button chatSendBtn" onClick={sendMessage} disabled={!newMessage.trim()}>
-                Send ✈️
-              </button>
+            <div className="chatInputContainer">
+              <div className="chatInputRow">
+                <button className="chatAttachBtn">
+                  <Smile size={20} />
+                </button>
+                <input
+                  type="text"
+                  placeholder="Message..."
+                  value={newMessage}
+                  onChange={handleTyping}
+                  onKeyDown={(e) => { if (e.key === "Enter") sendMessage(); }}
+                  className="chatInput"
+                />
+                <div className="chatInputActions">
+                  {newMessage.trim() ? (
+                    <button className="chatSendBtn" onClick={sendMessage}>
+                      <Send size={18} />
+                    </button>
+                  ) : (
+                    <>
+                      <button className="chatAttachBtn">
+                        <Paperclip size={20} />
+                      </button>
+                      <button className="chatAttachBtn">
+                        <Mic size={20} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
