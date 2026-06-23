@@ -1,7 +1,7 @@
 .ExplorePage {
-  max-width: 1200px;
+  width: 100%;
   margin: 2rem auto;
-  padding: 0 1rem 6rem;
+  padding: 0 4rem 6rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -194,6 +194,85 @@
   padding: 4rem;
   color: var(--color-text-muted);
   font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.explorePremiumEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 65vh;
+  width: 100%;
+  text-align: center;
+  color: var(--color-text);
+  background: transparent;
+  margin-top: 2rem;
+  grid-column: 1 / -1;
+}
+
+.emptyStateIcon {
+  color: var(--color-primary);
+  opacity: 1;
+  margin-bottom: 2rem;
+}
+
+.explorePremiumEmptyState h2 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  font-weight: 800;
+}
+
+.explorePremiumEmptyState p {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.emptyStateSuggestions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.suggestionBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-input);
+  border-radius: var(--radius-button);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-weight: 600;
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.suggestionBox:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.primaryCTA {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: var(--radius-button);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-glow);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.primaryCTA:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary-hover);
 }
 
 @media (max-width: 768px) {

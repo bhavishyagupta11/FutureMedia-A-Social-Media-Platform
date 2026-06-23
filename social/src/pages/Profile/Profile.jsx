@@ -5,6 +5,8 @@ import { apiFetch } from "../../utils/api";
 import { getSessionUserId } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
+import { Edit3, UserPlus, UserMinus, MessageCircle, Heart, MessageSquare, Link as LinkIcon, Grid, Users } from "lucide-react";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -80,24 +82,44 @@ const ProfilePage = () => {
     : ProfileImage;
 
   return (
-    <div className="ProfilePage">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="ProfilePage"
+    >
       {/* Cover + Avatar */}
-      <div className="profileCover">
+      <motion.div 
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="profileCover"
+      >
         <div className="profileCoverGradient" />
         <div className="profileAvatarWrapper">
-          <img src={avatarUrl} alt={user.username} className="profileAvatar" />
+          <motion.img 
+            whileHover={{ scale: 1.05 }}
+            src={avatarUrl} 
+            alt={user.username} 
+            className="profileAvatar" 
+          />
         </div>
-      </div>
+      </motion.div>
 
       {/* Info */}
-      <div className="profileInfo">
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+        className="profileInfo"
+      >
         <div className="profileNames">
           <h2>{user.displayName || user.username}</h2>
           <span className="profileUsername">@{user.username}</span>
           {user.bio && <p className="profileBio">{user.bio}</p>}
           {user.website && (
             <a href={user.website} target="_blank" rel="noreferrer" className="profileWebsite">
-              🔗 {user.website}
+              <LinkIcon size={16} /> {user.website}
             </a>
           )}
         </div>
@@ -119,100 +141,162 @@ const ProfilePage = () => {
 
         <div className="profileActions">
           {isOwnProfile ? (
-            <button className="button profileBtn editBtn" onClick={() => navigate("/profile/edit")}>
-              ✏️ Edit Profile
+            <button className="profileBtn editBtn" onClick={() => navigate("/profile/edit")}>
+              <Edit3 size={18} /> Edit Profile
             </button>
           ) : (
             <button
-              className={`button profileBtn ${isFollowing ? "unfollowBtn" : "followBtn"}`}
+              className={`profileBtn ${isFollowing ? "unfollowBtn" : "followBtn"}`}
               onClick={handleFollow}
               disabled={loadingFollow}
             >
-              {loadingFollow ? "…" : isFollowing ? "Unfollow" : "Follow"}
+              {loadingFollow ? "..." : isFollowing ? <><UserMinus size={18} /> Unfollow</> : <><UserPlus size={18} /> Follow</>}
             </button>
           )}
           {!isOwnProfile && (
-            <button className="button profileBtn messageBtn" onClick={() => navigate("/chat", { state: { startChatWith: profileId } })}>
-              💬 Message
+            <button className="profileBtn messageBtn" onClick={() => navigate("/messages", { state: { startChatWith: profileId } })}>
+              <MessageCircle size={18} /> Message
             </button>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Tabs */}
       <div className="profileTabs">
-        <button className={`tab ${tab === "posts" ? "activeTab" : ""}`} onClick={() => setTab("posts")}>Posts</button>
-        <button className={`tab ${tab === "followers" ? "activeTab" : ""}`} onClick={() => setTab("followers")}>Followers</button>
-        <button className={`tab ${tab === "following" ? "activeTab" : ""}`} onClick={() => setTab("following")}>Following</button>
+        {[
+          { id: "posts", icon: <Grid size={18} />, label: "Posts" },
+          { id: "reels", icon: <Heart size={18} />, label: "Reels" }, /* Using Heart since Play is not imported, let's just use Grid/Heart/Users */
+          { id: "tagged", icon: <Users size={18} />, label: "Tagged" },
+          { id: "saved", icon: <Heart size={18} />, label: "Saved" }
+        ].map((t) => (
+          <button 
+            key={t.id}
+            className={`tab ${tab === t.id ? "activeTab" : ""}`} 
+            onClick={() => setTab(t.id)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {t.icon} {t.label}
+            </div>
+            {tab === t.id && (
+              <motion.div layoutId="activeTabIndicator" className="activeTabIndicator" />
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Tab content */}
       <div className="profileTabContent">
-        {tab === "posts" && (
-          <div className="profilePostsGrid">
-            {posts.length === 0 ? (
-              <p className="profileEmpty">No posts yet.</p>
-            ) : (
-              posts.map((post) => (
-                <div className="profilePostThumb" key={post._id}>
-                  <img src={post.imageUrl} alt={post.caption || "post"} />
-                  <div className="profilePostOverlay">
-                    <span>❤️ {post.likes?.length || 0}</span>
-                    <span>💬 {post.comments?.length || 0}</span>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {tab === "posts" && (
+              <div className="profilePostsGrid">
+                {posts.length === 0 ? (
+                  <div className="profileEmptyState">
+                    <Grid size={64} className="emptyStateIcon" />
+                    <h2>No posts yet</h2>
+                    <p>When this user shares photos or videos, they will appear here.</p>
                   </div>
-                </div>
-              ))
+                ) : (
+                  posts.map((post, i) => (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="profilePostThumb" 
+                      key={post._id}
+                    >
+                      <img src={post.imageUrl} alt={post.caption || "post"} />
+                      <div className="profilePostOverlay">
+                        <div className="overlayItem">
+                          <Heart size={20} fill="#fff" /> {post.likes?.length || 0}
+                        </div>
+                        <div className="overlayItem">
+                          <MessageSquare size={20} fill="#fff" /> {post.comments?.length || 0}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
             )}
-          </div>
-        )}
 
-        {tab === "followers" && (
-          <div className="profilePeopleList">
-            {(user.followers || []).length === 0 ? (
-              <p className="profileEmpty">No followers yet.</p>
-            ) : (
-              user.followers.map((f) => {
-                const fid = f._id || f;
-                const fname = f.displayName || f.username || "User";
-                const favatar = f.profilePicture || ProfileImage;
-                return (
-                  <div className="profilePersonRow" key={String(fid)} onClick={() => navigate(`/profile/${fid}`)}>
-                    <img src={favatar} alt={fname} />
-                    <div>
-                      <strong>{fname}</strong>
-                      {f.username && <span>@{f.username}</span>}
-                    </div>
+            {tab === "followers" && (
+              <div className="profilePeopleList">
+                {(user.followers || []).length === 0 ? (
+                  <div className="profileEmptyState">
+                    <Users size={64} className="emptyStateIcon" />
+                    <h2>No followers yet</h2>
+                    <p>Once people start following this user, they'll show up here.</p>
                   </div>
-                );
-              })
+                ) : (
+                  user.followers.map((f, i) => {
+                    const fid = f._id || f;
+                    const fname = f.displayName || f.username || "User";
+                    const favatar = f.profilePicture || ProfileImage;
+                    return (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="profilePersonRow" 
+                        key={String(fid)} 
+                        onClick={() => navigate(`/profile/${fid}`)}
+                      >
+                        <img src={favatar} alt={fname} />
+                        <div>
+                          <strong>{fname}</strong>
+                          {f.username && <span>@{f.username}</span>}
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                )}
+              </div>
             )}
-          </div>
-        )}
 
-        {tab === "following" && (
-          <div className="profilePeopleList">
-            {(user.following || []).length === 0 ? (
-              <p className="profileEmpty">Not following anyone yet.</p>
-            ) : (
-              user.following.map((f) => {
-                const fid = f._id || f;
-                const fname = f.displayName || f.username || "User";
-                const favatar = f.profilePicture || ProfileImage;
-                return (
-                  <div className="profilePersonRow" key={String(fid)} onClick={() => navigate(`/profile/${fid}`)}>
-                    <img src={favatar} alt={fname} />
-                    <div>
-                      <strong>{fname}</strong>
-                      {f.username && <span>@{f.username}</span>}
-                    </div>
+            {tab === "following" && (
+              <div className="profilePeopleList">
+                {(user.following || []).length === 0 ? (
+                  <div className="profileEmptyState">
+                    <UserPlus size={64} className="emptyStateIcon" />
+                    <h2>Not following anyone</h2>
+                    <p>Once this user starts following others, they'll show up here.</p>
                   </div>
-                );
-              })
+                ) : (
+                  user.following.map((f, i) => {
+                    const fid = f._id || f;
+                    const fname = f.displayName || f.username || "User";
+                    const favatar = f.profilePicture || ProfileImage;
+                    return (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="profilePersonRow" 
+                        key={String(fid)} 
+                        onClick={() => navigate(`/profile/${fid}`)}
+                      >
+                        <img src={favatar} alt={fname} />
+                        <div>
+                          <strong>{fname}</strong>
+                          {f.username && <span>@{f.username}</span>}
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                )}
+              </div>
             )}
-          </div>
-        )}
+          </motion.div>
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
