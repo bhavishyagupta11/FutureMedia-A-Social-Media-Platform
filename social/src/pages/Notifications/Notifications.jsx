@@ -116,9 +116,28 @@ const Notifications = () => {
 
         <div className="notificationsItems">
           {loading ? (
-            <div className="notificationsEmpty">Loading...</div>
+            <div className="notificationsEmptyState">
+              <h2>Loading...</h2>
+            </div>
           ) : notifications.length === 0 ? (
-            <div className="notificationsEmpty">No new notifications.</div>
+            <div className="notificationsEmptyState">
+              <Bell size={64} className="emptyStateIcon" />
+              <h2>You're all caught up!</h2>
+              <p>When you interact with others or they interact with you, your notifications will appear here.</p>
+              
+              <div className="emptyStateSuggestions">
+                <div className="suggestionBox">
+                  <UserPlus size={24} />
+                  <span>Find Friends</span>
+                </div>
+                <div className="suggestionBox">
+                  <Star size={24} />
+                  <span>Trending Posts</span>
+                </div>
+              </div>
+
+              <button className="primaryCTA">Explore FutureMedia</button>
+            </div>
           ) : (
             notifications.map((group, gIndex) => (
               <div key={gIndex} className="notificationGroup">
