@@ -6,9 +6,9 @@ import ProfileImg from "../img/profileImg.jpg";
 export const PostsData = [
   {
     _id: "demo-1",
-    name: "FSM Team",
-    username: "futuremedia",
-    desc: "First look at the new FSM social vibe.",
+    name: "SL Team",
+    username: "FutureMedia",
+    desc: "First look at the new SL social vibe.",
     likes: 178,
     likedUser: [],
     format: "image",
@@ -20,7 +20,7 @@ export const PostsData = [
     _id: "demo-2",
     name: "Bhavishya Gupta",
     username: "bhavishya",
-    desc: "Building Future Media - A Social Media Platform one pixel at a time.",
+    desc: "Building FutureMedia one pixel at a time.",
     likes: 244,
     likedUser: [],
     format: "image",
@@ -30,8 +30,8 @@ export const PostsData = [
   },
   {
     _id: "demo-3",
-    name: "FSM Creator",
-    username: "fsmcreator",
+    name: "SL Creator",
+    username: "slcreator",
     desc: "Post, connect, and grow your audience.",
     likes: 129,
     likedUser: [],
