@@ -2,8 +2,12 @@ import React, { useEffect, useState } from "react";
 import "./Auth.css";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
-import BirdLogo from "../../img/fsm-bird.svg";
 import { clearUserSession, persistUserSession } from "../../utils/session";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { motion } from "framer-motion";
+import Logo from "../../components/Logo/Logo";
 
 const Auth = () => {
   return (
@@ -15,20 +19,21 @@ const Auth = () => {
 
 const AuthBrand = ({ title, subtitle }) => {
   return (
-    <div className="authBrandCard">
-      <div className="brandTop">
-        <img src={BirdLogo} alt="FSM bird logo" className="authBirdLogo" />
-        <div>
-          <h1>FSM</h1>
-          <p>Future Media - A Social Media Platform</p>
-        </div>
+    <motion.div 
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+      className="authBrandCard"
+    >
+      <div className="brandTop" style={{ marginBottom: "1rem" }}>
+        <Logo size="large" />
       </div>
       <h2>{title}</h2>
       <p className="brandSubtitle">{subtitle}</p>
       <div className="authStats">
         <div>
           <strong>2M+</strong>
-          <span>Daily Vibes</span>
+          <span>Daily Loops</span>
         </div>
         <div>
           <strong>860K+</strong>
@@ -39,15 +44,13 @@ const AuthBrand = ({ title, subtitle }) => {
           <span>Countries</span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 function LogIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,49 +59,37 @@ function LogIn() {
     }
   }, []);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    const normalizedUsername = username.trim();
-    if (!normalizedUsername || !password) {
-      setError("Username and password are required.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const formData = {
-      username: normalizedUsername,
-      password,
-    };
-
-    try {
-      const response = await apiFetch("/api/auth/login", {
+  const loginMutation = useMutation({
+    mutationFn: async (formData) => {
+      const response = await apiFetch("/api/v1/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
-      if (response.ok) {
-        const resp = await response.json();
-        persistUserSession(resp);
-        navigate("/home");
-      } else {
-        let message = "Login failed. Please try again.";
-        try {
-          const errorData = await response.json();
-          message = errorData?.error || message;
-        } catch (_) {}
-        setError(message);
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Login failed");
       }
-    } catch (apiError) {
-      setError("Unable to reach server. Please check backend connection.");
-    } finally {
-      setIsSubmitting(false);
+      return data;
+    },
+    onSuccess: (data) => {
+      persistUserSession(data.data || data);
+      toast.success("Welcome back!");
+      navigate("/home");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const normalizedUsername = username.trim();
+    if (!normalizedUsername || !password) {
+      toast.warn("Username and password are required.");
+      return;
     }
+    loginMutation.mutate({ username: normalizedUsername, password });
   };
 
   return (
@@ -107,13 +98,18 @@ function LogIn() {
         title="Welcome Back"
         subtitle="Catch up with your network, share your story, and keep your world in motion."
       />
-      <div className="a-right">
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="a-right"
+      >
         <form className="infoForm authForm" onSubmit={handleLogin}>
           <h3>Log In</h3>
-          <p className="authHint">Log in to continue your FSM journey.</p>
+          <p className="authHint">Log in to continue your FM journey.</p>
 
           <div className="inputGroup">
-            <label htmlFor="login-username">Username</label>
+            <label htmlFor="login-username">Username or Email</label>
             <input
               id="login-username"
               type="text"
@@ -140,15 +136,17 @@ function LogIn() {
 
           <div className="authFooterRow">
             <span className="switchAuthText">
-              New on FSM? <Link to={"/signup"}>Create account</Link>
+              New on FM? <Link to={"/signup"}>Create account</Link>
             </span>
-            <button className="button infoButton" disabled={isSubmitting}>
-              {isSubmitting ? "Logging in..." : "Login"}
+            <span className="switchAuthText">
+              <Link to={"/forgot-password"}>Forgot password?</Link>
+            </span>
+            <button className="infoButton" disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? "Logging in..." : "Login"}
             </button>
           </div>
-          {error ? <div className="authError">{error}</div> : null}
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -160,7 +158,11 @@ const SignUp = () => {
     }
   }, []);
 
-  return <Authenticate />;
+  return (
+    <div className="Auth">
+      <Authenticate />
+    </div>
+  );
 };
 
 function Authenticate() {
@@ -168,13 +170,59 @@ function Authenticate() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
 
-  const handleSignup = async (event) => {
+  const signupMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await apiFetch("/api/v1/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      
+      if (!response.ok || !data.success) {
+        if (data.errors && Array.isArray(data.errors)) {
+          const formattedErrors = {};
+          data.errors.forEach(err => { formattedErrors[err.field] = err.message; });
+          const err = new Error(data.message);
+          err.isValidation = true;
+          err.errors = formattedErrors;
+          throw err;
+        }
+        throw new Error(data.message || "Registration failed");
+      }
+      return { payload, data };
+    },
+    onSuccess: async ({ payload }) => {
+      toast.success("Account created successfully!");
+      const loginResp = await apiFetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: payload.username, password: payload.password }),
+      });
+      if (loginResp.ok) {
+        const loginData = await loginResp.json();
+        persistUserSession(loginData.data || loginData);
+        navigate("/home");
+      } else {
+        navigate("/");
+      }
+    },
+    onError: (error) => {
+      if (error.isValidation) {
+        setFieldErrors(error.errors);
+        toast.error(error.message || "Please fix the validation errors.");
+      } else {
+        toast.error(error.message || "Network or server error.");
+      }
+    },
+  });
+
+  const handleSignup = (event) => {
     event.preventDefault();
-    setError("");
+    setFieldErrors({});
 
     const payload = {
       email: email.trim(),
@@ -182,65 +230,12 @@ function Authenticate() {
       password,
     };
 
-    if (!payload.email || !payload.username || !payload.password) {
-      setError("All fields are required.");
+    if (password !== confirmPassword) {
+      setFieldErrors({ confirmPassword: "Passwords do not match." });
       return;
     }
 
-    if (payload.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
-
-    if (payload.password !== confirmPassword) {
-      setError("Password and confirm password do not match.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await apiFetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const loginResponse = await apiFetch("/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: payload.username,
-            password: payload.password,
-          }),
-        });
-
-        if (loginResponse.ok) {
-          const resp = await loginResponse.json();
-          persistUserSession(resp);
-          navigate("/home");
-          return;
-        }
-
-        navigate("/");
-      } else {
-        let message = "Signup failed. Please try again.";
-        try {
-          const errorData = await response.json();
-          message = errorData?.error || message;
-        } catch (_) {}
-        setError(message);
-      }
-    } catch (apiError) {
-      setError("Unable to reach server. Please check backend connection.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    signupMutation.mutate(payload);
   };
 
   return (
@@ -249,7 +244,12 @@ function Authenticate() {
         title="Start Your Story"
         subtitle="Join creators, friends, and communities that make every day feel alive."
       />
-      <div className="a-right">
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="a-right"
+      >
         <form className="infoForm authForm" onSubmit={handleSignup}>
           <h3>Create Account</h3>
           <p className="authHint">Build your profile and start sharing in seconds.</p>
@@ -265,6 +265,7 @@ function Authenticate() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            {fieldErrors.email && <span className="inlineError" style={{color:"var(--color-error)", fontSize:"0.8rem"}}>{fieldErrors.email}</span>}
           </div>
 
           <div className="inputGroup">
@@ -278,6 +279,7 @@ function Authenticate() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
+            {fieldErrors.username && <span className="inlineError" style={{color:"var(--color-error)", fontSize:"0.8rem"}}>{fieldErrors.username}</span>}
           </div>
 
           <div className="splitInput">
@@ -288,10 +290,11 @@ function Authenticate() {
                 type="password"
                 className="infoInput"
                 name="password"
-                placeholder="At least 6 characters"
+                placeholder="At least 8 chars"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              {fieldErrors.password && <span className="inlineError" style={{color:"var(--color-error)", fontSize:"0.8rem"}}>{fieldErrors.password}</span>}
             </div>
             <div className="inputGroup">
               <label htmlFor="signup-confirm-password">Confirm Password</label>
@@ -300,26 +303,139 @@ function Authenticate() {
                 type="password"
                 className="infoInput"
                 name="confirmPassword"
-                placeholder="Repeat password"
+                placeholder="Repeat"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
+              {fieldErrors.confirmPassword && <span className="inlineError" style={{color:"var(--color-error)", fontSize:"0.8rem"}}>{fieldErrors.confirmPassword}</span>}
             </div>
           </div>
 
           <div className="authFooterRow">
             <span className="switchAuthText">
-              Already on FSM? <Link to={"/"}>Log in</Link>
+              Already on FM? <Link to={"/"}>Log in</Link>
             </span>
-            <button className="button infoButton" disabled={isSubmitting}>
-              {isSubmitting ? "Signing up..." : "Sign up"}
+            <button className="infoButton" disabled={signupMutation.isPending}>
+              {signupMutation.isPending ? "Signing up..." : "Sign up"}
             </button>
           </div>
-          {error ? <div className="authError">{error}</div> : null}
         </form>
+      </motion.div>
+    </div>
+  );
+}
+
+function ForgotPassword() {
+  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+
+  const forgotMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await apiFetch("/api/v1/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to send reset email");
+      }
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Password reset email sent! Check your inbox.");
+      navigate("/");
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  return (
+    <div className="Auth">
+      <div className="authShell">
+        <AuthBrand title="Reset Password" subtitle="Get back into your account securely." />
+        <motion.div className="a-right" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+          <form className="infoForm authForm" onSubmit={(e) => { e.preventDefault(); forgotMutation.mutate({ email }); }}>
+            <h3>Forgot Password</h3>
+            <p className="authHint">Enter your email address and we'll send you a link to reset your password.</p>
+            <div className="inputGroup">
+              <label>Email</label>
+              <input type="email" className="infoInput" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="authFooterRow" style={{ marginTop: "1rem" }}>
+              <span className="switchAuthText"><Link to="/">Back to Login</Link></span>
+              <button className="infoButton" disabled={forgotMutation.isPending}>
+                {forgotMutation.isPending ? "Sending..." : "Send Link"}
+              </button>
+            </div>
+          </form>
+        </motion.div>
       </div>
     </div>
   );
 }
 
-export { Auth, SignUp };
+function ResetPassword() {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+  // Assume token is passed in URL like /reset-password/:token
+  const token = window.location.pathname.split("/").pop();
+
+  const resetMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await apiFetch("/api/v1/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to reset password");
+      }
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Password reset successful! Please log in.");
+      navigate("/");
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const handleReset = (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    resetMutation.mutate({ token, newPassword: password });
+  };
+
+  return (
+    <div className="Auth">
+      <div className="authShell">
+        <AuthBrand title="New Password" subtitle="Choose a strong password." />
+        <motion.div className="a-right" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+          <form className="infoForm authForm" onSubmit={handleReset}>
+            <h3>Reset Password</h3>
+            <div className="inputGroup">
+              <label>New Password</label>
+              <input type="password" className="infoInput" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+            </div>
+            <div className="inputGroup">
+              <label>Confirm Password</label>
+              <input type="password" className="infoInput" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} />
+            </div>
+            <div className="authFooterRow" style={{ marginTop: "1rem" }}>
+              <span className="switchAuthText"><Link to="/">Back to Login</Link></span>
+              <button className="infoButton" disabled={resetMutation.isPending}>
+                {resetMutation.isPending ? "Resetting..." : "Reset"}
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+export { Auth, SignUp, ForgotPassword, ResetPassword };
