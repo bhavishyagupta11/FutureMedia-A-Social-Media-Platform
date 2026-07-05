@@ -9,6 +9,9 @@ exports.getProfile = asyncHandler(async (req, res) => {
 });
 
 exports.updateProfile = asyncHandler(async (req, res) => {
+  if (req.file) {
+    req.body.profilePicture = req.file.path && req.file.path.startsWith("http") ? req.file.path : `/uploads/${req.file.filename}`;
+  }
   const result = await userService.updateProfile(req.user.id, req.body);
   return successResponse(res, 200, "Profile updated", result);
 });
@@ -37,4 +40,20 @@ exports.unfollowUser = asyncHandler(async (req, res) => {
 exports.getAllUsers = asyncHandler(async (req, res) => {
   const result = await userService.getAllUsers();
   return successResponse(res, 200, "All users fetched", result);
+});
+
+exports.updateSettings = asyncHandler(async (req, res) => {
+  const result = await userService.updateSettings(req.user.id, req.body);
+  return successResponse(res, 200, "Settings updated", result);
+});
+
+exports.changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const result = await userService.changePassword(req.user.id, currentPassword, newPassword);
+  return successResponse(res, 200, "Password updated", result);
+});
+
+exports.deleteAccount = asyncHandler(async (req, res) => {
+  const result = await userService.deleteAccount(req.user.id);
+  return successResponse(res, 200, "Account deleted", result);
 });
