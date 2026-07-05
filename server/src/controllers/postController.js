@@ -3,7 +3,17 @@ const asyncHandler = require("../utils/asyncHandler");
 const { successResponse } = require("../utils/responseHandler");
 
 exports.createPost = asyncHandler(async (req, res) => {
-  const result = await postService.createPost(req.user.id, req.body);
+  let media = [];
+  if (req.files && req.files.length > 0) {
+    media = req.files.map(file => ({
+      url: file.path && file.path.startsWith("http") ? file.path : `/uploads/${file.filename}`,
+      type: file.mimetype.startsWith('video') ? 'video' : 'image',
+      provider: file.path && file.path.startsWith("http") ? "cloudinary" : "local"
+    }));
+  }
+  
+  const postData = { ...req.body, media };
+  const result = await postService.createPost(req.user.id, postData);
   return successResponse(res, 201, "Post created", result);
 });
 
@@ -44,4 +54,25 @@ exports.searchPosts = asyncHandler(async (req, res) => {
   const { query } = req.query;
   const result = await postService.searchPosts(query);
   return successResponse(res, 200, "Posts search results", result);
+});
+
+exports.updatePost = asyncHandler(async (req, res) => {
+  const result = await postService.updatePost(req.params.id, req.user.id, req.body);
+  return successResponse(res, 200, "Post updated", result);
+});
+
+exports.savePost = asyncHandler(async (req, res) => {
+  const result = await postService.savePost(req.params.id, req.user.id);
+  return successResponse(res, 200, "Post saved/unsaved", result);
+});
+
+exports.editComment = asyncHandler(async (req, res) => {
+  const { text } = req.body;
+  const result = await postService.editComment(req.params.id, req.params.commentId, req.user.id, text);
+  return successResponse(res, 200, "Comment updated", result);
+});
+
+exports.deleteComment = asyncHandler(async (req, res) => {
+  const result = await postService.deleteComment(req.params.id, req.params.commentId, req.user.id);
+  return successResponse(res, 200, "Comment deleted", result);
 });
