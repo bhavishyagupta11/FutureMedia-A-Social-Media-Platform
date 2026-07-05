@@ -54,7 +54,7 @@
 }
 
 .notificationItem:hover {
-  background-color: var(--color-card-hover);
+  background-color: var(--bg-hover-light);
 }
 
 .notificationItem.unread {
