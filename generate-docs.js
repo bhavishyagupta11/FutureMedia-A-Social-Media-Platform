@@ -13,7 +13,7 @@ categories.forEach(cat => {
 
 const docs = {
   // Architecture
-  "architecture/SYSTEM_DESIGN.md": "# System Design\n\nSocialLoop is a scalable MERN stack social network designed to handle high concurrency, leveraging caching, CDNs, and Socket.io for real-time engagement.",
+  "architecture/SYSTEM_DESIGN.md": "# System Design\n\nFutureMedia is a scalable MERN stack social network designed to handle high concurrency, leveraging caching, CDNs, and Socket.io for real-time engagement.",
   "architecture/SOFTWARE_ARCHITECTURE.md": "# Software Architecture\n\nThe backend employs a robust Controller -> Service -> Model pattern. The frontend utilizes React with React Query and Context API for global state management.",
   "architecture/ENGINEERING_SUMMARY.md": "# Engineering Summary\n\nPhase 2C completes the foundation. Code quality improved, API standardized to `{success, message, data, errors}`, Jest testing integrated.",
   
@@ -39,7 +39,7 @@ const docs = {
   "reports/TEST_REPORT.md": "# Test Report\n\nJest and Supertest test suites scaffolded with 100% pass rate on Auth and Feed core flows.",
   "reports/FRONTEND_AUDIT.md": "# Frontend Audit\n\nUI components strictly typed and separated. CSS Modules/Emotion isolate styles.",
   "reports/BACKEND_AUDIT.md": "# Backend Audit\n\nMongoose indexes fully synched. Error handling centralized in global middleware.",
-  "reports/FULL_PROJECT_AUDIT.md": "# Full Project Audit\n\nSocialLoop is verified scalable, maintainable, and secure. Zero regression detected.",
+  "reports/FULL_PROJECT_AUDIT.md": "# Full Project Audit\n\nFutureMedia is verified scalable, maintainable, and secure. Zero regression detected.",
   "reports/TESTING_SUMMARY.md": "# Testing Summary\n\nUnit tests validate services. Integration tests hit REST boundaries. End-to-end (Playwright) planned.",
   
   // Management
@@ -52,7 +52,7 @@ const docs = {
   "reports/PRODUCTION_READINESS_REPORT.md": "# Production Readiness Report\n\nThe app is ready for V1 staging. All security, performance, and accessibility metrics are green.",
   "deployment/DEPLOYMENT_GUIDE.md": "# Deployment Guide\n\nTarget platforms: AWS / Vercel. Docker containers not yet implemented but env files are separated cleanly.",
   "deployment/RELEASE_CHECKLIST.md": "# Release Checklist\n\n- [x] Run Tests\n- [x] Audit Security\n- [x] Verify API standard\n- [x] Check Responsive UI",
-  "deployment/RELEASE_NOTES_V1.md": "# Release Notes V1\n\nSocialLoop V1 officially ready. Features real-time chat, algorithmic feeds, and advanced profiles.",
+  "deployment/RELEASE_NOTES_V1.md": "# Release Notes V1\n\nFutureMedia V1 officially ready. Features real-time chat, algorithmic feeds, and advanced profiles.",
   
   // Developer
   "CONTRIBUTING.md": "# Contributing Guide\n\nPlease branch from `main`, run ESLint, and write Jest tests for any new PR.",
@@ -69,9 +69,9 @@ for (const [filepath, content] of Object.entries(docs)) {
 
 // Create root README.md
 const readme = `
-# SocialLoop
+# FutureMedia
 
-SocialLoop is an intelligent, scalable MERN social networking platform. 
+FutureMedia is an intelligent, scalable MERN social networking platform. 
 
 ## Documentation
 All documentation has been moved to the \`/docs\` folder.
