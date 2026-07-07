@@ -19,7 +19,7 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (!currentUserId) { navigate("/"); return; }
-    apiFetch(`/api/users/${currentUserId}`)
+    apiFetch(`/api/v1/users/${currentUserId}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (!data) return;
@@ -55,7 +55,7 @@ const EditProfile = () => {
       formData.append("website", form.website);
       if (selectedFile) formData.append("profilePicture", selectedFile);
 
-      const response = await apiFetch(`/api/users/${currentUserId}/profile`, {
+      const response = await apiFetch(`/api/v1/users/${currentUserId}/profile`, {
         method: "PUT",
         body: formData,
       });
