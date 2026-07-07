@@ -1,16 +1,23 @@
 .Home {
-  position: relative;
-  display: grid;
-  grid-template-columns: 20rem minmax(0, 1fr) 22rem; /* Adjusted column widths */
-  gap: 2rem; /* Increased gap for better breathing room */
-  max-width: 1400px;
-  margin: 0 auto;
-  align-items: start;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4) 0;
 }
 
-@media (max-width: 1200px) {
+.home-content {
+  width: 100%;
+  max-width: 630px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (max-width: 768px) {
   .Home {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
+    padding: var(--space-2) 0;
+  }
+  .home-content {
+    gap: var(--space-3);
   }
 }
