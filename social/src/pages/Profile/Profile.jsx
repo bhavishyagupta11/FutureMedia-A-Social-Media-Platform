@@ -24,7 +24,7 @@ const ProfilePage = () => {
     if (!currentUserId) { navigate("/"); return; }
     if (!profileId) return;
 
-    apiFetch(`/api/users/${profileId}`)
+    apiFetch(`/api/v1/users/${profileId}`)
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
         if (!data) return;
@@ -38,7 +38,7 @@ const ProfilePage = () => {
       })
       .catch(console.error);
 
-    apiFetch(`/api/posts/user/${profileId}`)
+    apiFetch(`/api/v1/posts/user/${profileId}`)
       .then((r) => r.ok ? r.json() : [])
       .then((data) => setPosts(Array.isArray(data) ? data : []))
       .catch(console.error);
@@ -48,8 +48,8 @@ const ProfilePage = () => {
     try {
       setLoadingFollow(true);
       const endpoint = isFollowing
-        ? `/api/users/unfollow/${profileId}`
-        : `/api/users/follow/${profileId}`;
+        ? `/api/v1/users/${profileId}/unfollow`
+        : `/api/v1/users/${profileId}/follow`;
       const response = await apiFetch(endpoint, { method: "POST" });
       if (!response.ok) { toast.error("Could not update follow"); return; }
 
@@ -88,78 +88,70 @@ const ProfilePage = () => {
       exit={{ opacity: 0 }}
       className="ProfilePage"
     >
-      {/* Cover + Avatar */}
-      <motion.div 
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="profileCover"
-      >
-        <div className="profileCoverGradient" />
-        <div className="profileAvatarWrapper">
-          <motion.img 
-            whileHover={{ scale: 1.05 }}
-            src={avatarUrl} 
-            alt={user.username} 
-            className="profileAvatar" 
-          />
-        </div>
-      </motion.div>
+      {/* Header */}
+      <div className="profileHeader">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="profileAvatarWrapper"
+        >
+          <img src={avatarUrl} alt={user.username} className="profileAvatar" />
+        </motion.div>
 
-      {/* Info */}
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-        className="profileInfo"
-      >
-        <div className="profileNames">
-          <h2>{user.displayName || user.username}</h2>
-          <span className="profileUsername">@{user.username}</span>
-          {user.bio && <p className="profileBio">{user.bio}</p>}
-          {user.website && (
-            <a href={user.website} target="_blank" rel="noreferrer" className="profileWebsite">
-              <LinkIcon size={16} /> {user.website}
-            </a>
-          )}
-        </div>
+        <motion.div 
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="profileInfo"
+        >
+          <div className="profileHeaderTop">
+            <span className="profileUsername">@{user.username}</span>
+            <div className="profileActions">
+              {isOwnProfile ? (
+                <button className="profileBtn editBtn" onClick={() => navigate("/profile/edit")}>
+                  Edit profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    className={`profileBtn ${isFollowing ? "unfollowBtn" : "followBtn"}`}
+                    onClick={handleFollow}
+                    disabled={loadingFollow}
+                  >
+                    {loadingFollow ? "..." : isFollowing ? "Following" : "Follow"}
+                  </button>
+                  <button className="profileBtn messageBtn" onClick={() => navigate("/messages", { state: { startChatWith: profileId } })}>
+                    Message
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
 
-        <div className="profileStats">
-          <div className="statItem">
-            <strong>{posts.length}</strong>
-            <span>Posts</span>
+          <div className="profileStats">
+            <div className="statItem">
+              <strong>{posts.length}</strong> posts
+            </div>
+            <div className="statItem" onClick={() => setTab("followers")} style={{ cursor: "pointer" }}>
+              <strong>{user.followers?.length || 0}</strong> followers
+            </div>
+            <div className="statItem" onClick={() => setTab("following")} style={{ cursor: "pointer" }}>
+              <strong>{user.following?.length || 0}</strong> following
+            </div>
           </div>
-          <div className="statItem" onClick={() => setTab("followers")} style={{ cursor: "pointer" }}>
-            <strong>{user.followers?.length || 0}</strong>
-            <span>Followers</span>
-          </div>
-          <div className="statItem" onClick={() => setTab("following")} style={{ cursor: "pointer" }}>
-            <strong>{user.following?.length || 0}</strong>
-            <span>Following</span>
-          </div>
-        </div>
 
-        <div className="profileActions">
-          {isOwnProfile ? (
-            <button className="profileBtn editBtn" onClick={() => navigate("/profile/edit")}>
-              <Edit3 size={18} /> Edit Profile
-            </button>
-          ) : (
-            <button
-              className={`profileBtn ${isFollowing ? "unfollowBtn" : "followBtn"}`}
-              onClick={handleFollow}
-              disabled={loadingFollow}
-            >
-              {loadingFollow ? "..." : isFollowing ? <><UserMinus size={18} /> Unfollow</> : <><UserPlus size={18} /> Follow</>}
-            </button>
-          )}
-          {!isOwnProfile && (
-            <button className="profileBtn messageBtn" onClick={() => navigate("/messages", { state: { startChatWith: profileId } })}>
-              <MessageCircle size={18} /> Message
-            </button>
-          )}
-        </div>
-      </motion.div>
+          <div className="profileBioSection">
+            <h2 className="profileDisplayName">{user.displayName || user.username}</h2>
+            {user.bio && <p className="profileBio">{user.bio}</p>}
+            {user.website && (
+              <a href={user.website} target="_blank" rel="noreferrer" className="profileWebsite">
+                <LinkIcon size={14} /> {user.website}
+              </a>
+            )}
+          </div>
+        </motion.div>
+      </div>
 
       {/* Tabs */}
       <div className="profileTabs">
