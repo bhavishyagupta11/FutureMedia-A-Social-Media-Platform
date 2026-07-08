@@ -1,90 +1,299 @@
 .SettingsPage {
-  position: relative;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 0 2rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.settingsHeader {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.settingsHeader h1 {
+  font-size: 2rem;
+  color: var(--color-text);
+  margin: 0 0 0.5rem;
+  font-weight: 800;
+}
+
+.settingsHeader p {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.settingsLayout {
   display: grid;
-  grid-template-columns: 18rem minmax(0, 1fr) 20rem;
-  gap: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  grid-template-columns: 260px 1fr;
+  gap: 4rem;
   align-items: start;
 }
 
-.SettingsCenter {
+.settingsSidebar {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: sticky;
+  top: 100px;
 }
 
-.settingsCard {
-  width: min(760px, 100%);
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(17, 62, 96, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 14px 40px rgba(22, 56, 92, 0.12);
-  padding: 2rem;
+.settingsTab {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  transition: var(--transition-smooth);
 }
 
-.settingsCard h2 {
-  margin: 0;
-  color: #f8fafc;
+.settingsTab:hover {
+  background: var(--bg-hover-light);
+  color: var(--color-text);
 }
 
-.settingsCard p {
-  margin: 0.5rem 0 1.2rem;
-  color: #94a3b8;
+.settingsTab.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.settingsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.settingsSection {
+  background: transparent;
+  padding: 0;
+}
+
+.settingsSection h2 {
+  font-size: 1.8rem;
+  color: var(--color-text);
+  margin: 0 0 2.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
 }
 
 .settingsForm {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1.5rem;
 }
 
-.settingsForm label {
-  font-size: 0.9rem;
-  color: #e2e8f0;
+.settingsField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settingsField label {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
 .settingsForm input,
 .settingsForm textarea {
-  border: 1px solid rgba(22, 91, 143, 0.18);
-  border-radius: 12px;
-  padding: 0.8rem 0.9rem;
-  background: var(--cardColor);
-  font-family: inherit;
-  color: #f8fafc;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text);
+  font-size: 1.05rem;
   resize: vertical;
+  transition: var(--transition-smooth);
+  outline: none;
+  width: 100%;
 }
 
 .settingsForm input:focus,
 .settingsForm textarea:focus {
-  outline: none;
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(34, 150, 213, 0.15);
+  border-color: var(--color-text-muted);
+}
+
+.settingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settingsRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.settingsRowInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.settingsRowInfo strong {
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.settingsRowInfo span {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+/* Custom Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-border);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: var(--shadow-soft);
+}
+
+input:checked + .slider {
+  background: var(--color-primary);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
 }
 
 .settingsSaveButton {
-  width: 180px;
-  height: 44px;
-  margin-top: 0.8rem;
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  margin-top: 1rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--radius-button);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  align-self: flex-start;
+}
+
+.settingsSaveButton:hover:not(:disabled) {
+  background: var(--color-secondary);
+}
+
+.settingsSaveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .settingsSaved {
-  color: #1c9e69;
+  color: var(--color-primary);
   font-weight: 600;
-  margin-top: 0.4rem;
-  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .settingsError {
-  color: #c34453;
+  color: var(--color-error);
   font-weight: 600;
-  margin-top: 0.4rem;
-  font-size: 0.9rem;
+  margin-top: 1rem;
+  font-size: 0.95rem;
 }
 
-@media (max-width: 1200px) {
-  .SettingsPage {
-    grid-template-columns: minmax(0, 1fr);
+.dangerZone {
+  margin-top: 4rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--color-border);
+  width: 100%;
+}
+
+.dangerZone h3 {
+  color: var(--color-error);
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.dangerZone p {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  margin: 0 0 2rem;
+  line-height: 1.6;
+}
+
+.dangerBtn {
+  background: rgba(var(--color-error-rgb), 0.1);
+  color: var(--color-error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--radius-button);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.dangerBtn:hover {
+  background: var(--color-error);
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .settingsLayout {
+    grid-template-columns: 1fr;
+  }
+  
+  .settingsSidebar {
+    flex-direction: row;
+    overflow-x: auto;
+    position: static;
+    padding-bottom: 0.5rem;
+  }
+  
+  .settingsTab {
+    white-space: nowrap;
+    padding: 0.8rem 1rem;
   }
 }
