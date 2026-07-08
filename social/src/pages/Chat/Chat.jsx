@@ -62,7 +62,7 @@ const Chat = () => {
 
   // Fetch existing chats
   const fetchChats = useCallback(() => {
-    apiFetch("/api/chat")
+    apiFetch("/api/v1/chat")
       .then((r) => r.ok ? r.json() : [])
       .then((data) => setChats(Array.isArray(data) ? data : []))
       .catch(console.error);
@@ -78,7 +78,7 @@ const Chat = () => {
 
   const openChatWith = async (userId) => {
     try {
-      const r = await apiFetch("/api/chat/access", {
+      const r = await apiFetch("/api/v1/chat/access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
@@ -89,13 +89,14 @@ const Chat = () => {
       loadMessages(chat._id);
       fetchChats();
       socket.emit("join chat", chat._id);
+      apiFetch(`/api/v1/chat/${chat._id}/read`, { method: "PUT" }).catch(console.error);
     } catch (e) { console.error(e); }
   };
 
   const loadMessages = async (chatId) => {
     setLoadingMessages(true);
     try {
-      const r = await apiFetch(`/api/chat/messages/${chatId}`);
+      const r = await apiFetch(`/api/v1/chat/messages/${chatId}`);
       if (!r.ok) return;
       const data = await r.json();
       setMessages(Array.isArray(data) ? data : []);
@@ -108,6 +109,7 @@ const Chat = () => {
     loadMessages(chat._id);
     socket.emit("join chat", chat._id);
     setIsTyping(false);
+    apiFetch(`/api/v1/chat/${chat._id}/read`, { method: "PUT" }).catch(console.error);
   };
 
   const sendMessage = async () => {
@@ -118,7 +120,7 @@ const Chat = () => {
     setNewMessage("");
 
     try {
-      const r = await apiFetch("/api/chat/message", {
+      const r = await apiFetch("/api/v1/chat/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chatId: activeChat._id, content }),
@@ -148,7 +150,7 @@ const Chat = () => {
   useEffect(() => {
     if (!searchQuery.trim()) { setSearchResults([]); return; }
     const timer = setTimeout(() => {
-      apiFetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`)
+      apiFetch(`/api/v1/users/search?query=${encodeURIComponent(searchQuery)}`)
         .then((r) => r.ok ? r.json() : {})
         .then((data) => setSearchResults(data.users || []))
         .catch(() => setSearchResults([]));
@@ -275,7 +277,23 @@ const Chat = () => {
                 ) : null;
               })()}
               <div className="chatActions">
-                <button className="chatActionBtn">
+                <button 
+                  className="chatActionBtn" 
+                  onClick={async () => {
+                    if (window.confirm("Delete this conversation?")) {
+                      // Backend route doesn't exist yet but let's wire it assuming it will
+                      try {
+                        const res = await apiFetch(`/api/v1/chat/${activeChat._id}`, { method: 'DELETE' });
+                        if (res.ok) {
+                          setActiveChat(null);
+                          fetchChats();
+                        }
+                      } catch (e) {
+                        toast.error("Failed to delete chat");
+                      }
+                    }
+                  }}
+                >
                   <MoreVertical size={20} />
                 </button>
                 <button className="chatActionBtn chatCloseBtn" onClick={() => setActiveChat(null)}>
@@ -307,7 +325,14 @@ const Chat = () => {
                       )}
                       <div className="chatBubble">
                         <p>{msg.content}</p>
-                        <span className="chatBubbleTime">{formatTime(msg.createdAt)}</span>
+                        <span className="chatBubbleTime">
+                          {formatTime(msg.createdAt)}
+                          {isMine && (
+                            <span className="readReceipt" style={{ marginLeft: "4px", fontSize: "10px", color: (msg.status === "read" || (msg.readBy && msg.readBy.length > 0)) ? "#4db8ff" : "inherit" }}>
+                              {(msg.status === "read" || (msg.readBy && msg.readBy.length > 0)) ? "✓✓" : "✓"}
+                            </span>
+                          )}
+                        </span>
                       </div>
                     </motion.div>
                   );
