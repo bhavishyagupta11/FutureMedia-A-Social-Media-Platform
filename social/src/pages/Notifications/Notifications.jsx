@@ -3,70 +3,36 @@ import "./Notifications.css";
 import { motion } from "framer-motion";
 import { Bell, Heart, MessageCircle, UserPlus, Star } from "lucide-react";
 import ProfileImage from "../../img/profileImg.jpg";
+import { apiFetch } from "../../utils/api";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mocking grouped notifications
-    const mockNotifications = [
-      {
-        group: "Today",
-        items: [
-          {
-            id: "1",
-            type: "like",
-            user: { name: "Sarah Connor", handle: "sarahc", avatar: ProfileImage },
-            message: "liked your recent post about technology.",
-            time: "2 mins ago",
-            unread: true,
-            postImage: "https://via.placeholder.com/150",
-          },
-          {
-            id: "2",
-            type: "comment",
-            user: { name: "John Doe", handle: "johndoe", avatar: ProfileImage },
-            message: "commented: 'This is an amazing insight!'",
-            time: "1 hour ago",
-            unread: true,
-            postImage: "https://via.placeholder.com/150",
-          }
-        ]
-      },
-      {
-        group: "Yesterday",
-        items: [
-          {
-            id: "3",
-            type: "follow",
-            user: { name: "Alice Smith", handle: "alice_s", avatar: ProfileImage },
-            message: "started following you.",
-            time: "1d",
-            unread: false,
-          }
-        ]
-      },
-      {
-        group: "This Week",
-        items: [
-          {
-            id: "4",
-            type: "mention",
-            user: { name: "Tech Weekly", handle: "techweekly", avatar: ProfileImage },
-            message: "mentioned you in a post.",
-            time: "3d",
-            unread: false,
-            postImage: "https://via.placeholder.com/150",
-          }
-        ]
+    const fetchNotifications = async () => {
+      try {
+        const response = await apiFetch("/api/v1/notifications");
+        if (response.ok) {
+          const data = await response.json();
+          // Group them simply as "Recent"
+          setNotifications([{ group: "Recent", items: data.map(n => ({
+            id: n._id,
+            type: n.type.toLowerCase(),
+            user: { name: n.sender?.displayName || n.sender?.username, handle: n.sender?.username, avatar: n.sender?.profilePicture || ProfileImage },
+            message: n.body,
+            time: new Date(n.createdAt).toLocaleDateString(),
+            unread: !n.read,
+            link: n.deepLink
+          })) }]);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
-    ];
-
-    setTimeout(() => {
-      setNotifications(mockNotifications);
-      setLoading(false);
-    }, 500);
+    };
+    fetchNotifications();
   }, []);
 
   const getIconForType = (type) => {
@@ -89,16 +55,21 @@ const Notifications = () => {
     }
   };
 
-  const markAsRead = (groupId, notifId) => {
-    setNotifications(notifications.map(group => {
-      if (group.group === groupId) {
-        return {
-          ...group,
-          items: group.items.map(n => n.id === notifId ? { ...n, unread: false } : n)
-        };
+  const markAsRead = async (groupId, notifId) => {
+    try {
+      const res = await apiFetch(`/api/v1/notifications/${notifId}/read`, { method: "PUT" });
+      if (res.ok) {
+        setNotifications(notifications.map(group => {
+          if (group.group === groupId) {
+            return {
+              ...group,
+              items: group.items.map(n => n.id === notifId ? { ...n, unread: false } : n)
+            };
+          }
+          return group;
+        }));
       }
-      return group;
-    }));
+    } catch (e) { console.error(e); }
   };
 
   return (
@@ -110,8 +81,25 @@ const Notifications = () => {
       className="NotificationsPage"
     >
       <div className="notifications-timeline">
-        <div className="notificationsHeader">
+        <div className="notificationsHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1>Notifications</h1>
+          <button 
+            className="primaryCTA" 
+            style={{ padding: "8px 16px", fontSize: "14px" }}
+            onClick={async () => {
+              try {
+                const res = await apiFetch("/api/v1/notifications/read-all", { method: "PUT" });
+                if (res.ok) {
+                  setNotifications(notifications.map(group => ({
+                    ...group,
+                    items: group.items.map(n => ({ ...n, unread: false }))
+                  })));
+                }
+              } catch (e) { console.error(e); }
+            }}
+          >
+            Mark all as read
+          </button>
         </div>
 
         <div className="notificationsItems">
