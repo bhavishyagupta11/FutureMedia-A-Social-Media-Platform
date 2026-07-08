@@ -1,117 +1,46 @@
 .PostShare {
   display: flex;
-  gap: 0.9rem;
-  background-color: var(--cardColor);
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(16, 79, 124, 0.08);
-  box-shadow: 0 12px 28px rgba(18, 62, 97, 0.1);
+  gap: 1.2rem;
+  background: transparent;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: var(--transition-smooth);
 }
 
 .PostShareCompact {
-  margin-bottom: 0.2rem;
+  margin-bottom: 0;
 }
 
 .PostShare > img {
   border-radius: 50%;
-  width: 2.9rem;
-  height: 2.9rem;
+  width: 3.2rem;
+  height: 3.2rem;
   object-fit: cover;
+  box-shadow: var(--shadow-soft);
+  border: 2px solid var(--color-bg);
 }
 
 .PostShare > div {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 0.85rem;
-}
-
-.postOptions {
-  display: flex;
-  justify-content: flex-start;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.option {
-  border: 0;
-  background: rgba(56, 156, 211, 0.08);
-  padding: 0.45rem 0.7rem;
-  border-radius: 0.7rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: background 120ms ease-out;
-}
-
-.option:hover {
-  cursor: pointer;
-  background: rgba(56, 156, 211, 0.1);
-}
-
-.optionPhoto {
-  color: var(--photo);
-}
-
-.optionVideo {
-  color: var(--video);
-}
-
-.previewImage {
-  position: relative;
-}
-
-.previewImage > svg {
-  position: absolute;
-  right: 0.8rem;
-  top: 0.6rem;
-  cursor: pointer;
-  color: #fff;
-}
-
-.previewImage > img {
-  width: 100%;
-  max-height: 20rem;
-  object-fit: cover;
-  border-radius: 0.8rem;
-}
-
-.button-share {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  border: none;
-  padding: 0.55rem 1.2rem;
-  font-size: 0.96rem;
-  font-weight: 600;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #2096d6, #39b9ef);
-  transition: all 120ms ease-out;
-}
-
-.button-share:hover {
-  cursor: pointer;
-  filter: brightness(1.03);
-}
-
-.button-share:disabled {
-  opacity: 0.72;
-  cursor: not-allowed;
+  gap: 1rem;
 }
 
 .InputContainer {
   width: 100%;
-  height: 50px;
+  min-height: 54px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: #f0f8ff;
-  border-radius: 30px;
-  overflow: hidden;
-  border: 1px solid rgba(43, 137, 197, 0.16);
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  transition: var(--transition-smooth);
+}
+
+.InputContainer:focus-within {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .input {
@@ -119,53 +48,176 @@
   height: 100%;
   border: none;
   outline: none;
-  background-color: transparent;
-  border-radius: 30px;
-  padding: 0 0.9rem;
-  letter-spacing: 0.3px;
-  color: rgb(19, 19, 19);
+  background: transparent;
+  padding: 0.5rem 0;
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.postOptions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.optionGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iconOption {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.iconOption:hover {
+  background: var(--bg-hover-light);
+  color: var(--color-primary);
+}
+
+.audienceSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-button);
+  transition: var(--transition-smooth);
+}
+
+.audienceSelector:hover {
+  background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.previewImage {
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+.previewImage > svg {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  cursor: pointer;
+  color: #fff;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  padding: 0.2rem;
+  backdrop-filter: blur(4px);
+  transition: var(--transition-smooth);
+}
+
+.previewImage > svg:hover {
+  transform: scale(1.1);
+  background: var(--color-error);
+}
+
+.previewImage > img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.previewVideo {
+  width: 100%;
+  max-height: 400px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.button-share {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.2rem;
   font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-button);
+  background: var(--color-primary);
+  transition: var(--transition-smooth);
+}
+
+.button-share:hover:not(:disabled) {
+  cursor: pointer;
+  background: var(--color-secondary);
+}
+
+.button-share:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .selectedMediaPill {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
-  border: 1px solid rgba(39, 116, 162, 0.16);
-  background: rgba(255, 255, 255, 0.86);
-  border-radius: 10px;
-  padding: 0.45rem 0.65rem;
-  color: #245371;
-  font-size: 0.85rem;
+  gap: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--bg-input);
+  border-radius: var(--radius-button);
+  padding: 0.8rem 1rem;
+  color: var(--color-text);
+  font-size: 0.95rem;
 }
 
 .selectedMediaPill button {
   border: 0;
-  background: rgba(25, 121, 173, 0.12);
-  color: #1f6a96;
-  border-radius: 999px;
-  padding: 0.22rem 0.65rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border-radius: var(--radius-button);
+  padding: 0.4rem 0.8rem;
   cursor: pointer;
   font-weight: 600;
+  transition: var(--transition-smooth);
 }
 
-.previewVideo {
-  width: 100%;
-  max-height: 20rem;
-  border-radius: 0.8rem;
+.selectedMediaPill button:hover {
+  background: rgba(239, 68, 68, 0.2);
 }
 
 .shareStatus {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
+  padding: 0.5rem 0;
 }
 
 .shareStatus.success {
-  color: #1f9460;
+  color: var(--color-primary);
 }
 
 .shareStatus.error {
-  color: #d24452;
+  color: var(--color-error);
 }
