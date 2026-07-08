@@ -19,29 +19,12 @@
   position: relative;
   border-radius: var(--radius-card);
   padding: var(--space-4);
-  background: var(--color-card);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
-  border: 1px solid var(--color-border);
+  background: transparent;
   color: var(--color-text);
   overflow: hidden;
-  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-
-/* Subtle gradient orb behind text */
-.authBrandCard::before {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.2) 0%, rgba(var(--color-primary-rgb), 0) 70%);
-  top: -100px;
-  left: -100px;
 }
 
 .brandTop {
@@ -53,22 +36,19 @@
 }
 
 .authBirdLogo {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   padding: 12px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  box-shadow: var(--shadow-glow);
+  background: var(--color-primary);
 }
 
 .brandTop h1 {
   margin: 0;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 800;
   line-height: 1;
-  background: linear-gradient(to right, #fff, var(--color-text-muted));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-text);
 }
 
 .brandTop p {
@@ -123,10 +103,7 @@
 .a-right {
   border-radius: var(--radius-card);
   background: var(--color-card);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,12 +152,12 @@
 
 .infoInput {
   border: 1px solid var(--color-border);
-  background: var(--bg-input);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--color-text);
   outline: none;
   border-radius: var(--radius-button);
-  padding: 1rem 1.2rem;
-  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
   transition: var(--transition-smooth);
 }
 
@@ -190,8 +167,7 @@
 
 .infoInput:focus {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-focus);
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .authFooterRow {
@@ -219,25 +195,20 @@
 }
 
 .infoButton {
-  height: 48px;
+  height: 44px;
   min-width: 140px;
   border-radius: var(--radius-button);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  box-shadow: var(--shadow-glow);
+  background: var(--color-primary);
   border: none;
   color: #fff;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: var(--transition-smooth);
 }
 
 .infoButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.infoButton:active:not(:disabled) {
-  transform: translateY(0);
+  background: var(--color-secondary);
 }
 
 .infoButton:disabled {
