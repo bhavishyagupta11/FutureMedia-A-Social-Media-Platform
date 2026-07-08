@@ -22,87 +22,89 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.profileCover {
-  position: relative;
-  height: 300px;
-  border-radius: var(--radius-card);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  overflow: visible;
-  margin-bottom: 90px;
-  box-shadow: var(--shadow-glow);
-}
-
-.profileCoverGradient {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
-  border-radius: var(--radius-card);
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 6rem;
+  margin-bottom: 3rem;
+  padding: 2rem 2rem 0;
 }
 
 .profileAvatarWrapper {
-  position: absolute;
-  bottom: -75px;
-  left: 3rem;
-  z-index: 2;
+  flex-shrink: 0;
 }
 
 .profileAvatar {
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  border: 6px solid var(--color-bg);
   object-fit: cover;
-  box-shadow: var(--shadow-soft);
-  background: var(--color-card);
 }
 
 .profileInfo {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 1.5rem;
-  align-items: flex-start;
-  padding: 0 0.5rem;
-  margin-bottom: 2rem;
-}
-
-.profileNames {
   flex: 1;
 }
 
-.profileNames h2 {
-  margin: 0 0 0.2rem;
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--color-text);
+.profileHeaderTop {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .profileUsername {
-  color: var(--color-text-muted);
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.profileBio {
-  margin: 1rem 0 0;
+  font-size: 1.25rem;
   color: var(--color-text);
-  font-size: 1rem;
-  line-height: 1.5;
 }
 
-.profileWebsite {
-  display: inline-flex;
+.profileActions {
+  display: flex;
+  gap: 0.5rem;
   align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.8rem;
-  color: var(--color-primary);
+}
+
+.profileBtn {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-button);
   font-size: 0.95rem;
-  text-decoration: none;
   font-weight: 600;
+  cursor: pointer;
+  border: none;
   transition: var(--transition-smooth);
 }
 
-.profileWebsite:hover {
-  color: var(--color-secondary);
+.editBtn {
+  background: var(--bg-hover-light);
+  color: var(--color-text);
+}
+.editBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.followBtn {
+  background: var(--color-primary);
+  color: #fff;
+}
+.followBtn:hover {
+  background: var(--color-secondary);
+}
+
+.unfollowBtn {
+  background: var(--bg-hover-light);
+  color: var(--color-text);
+}
+.unfollowBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.messageBtn {
+  background: var(--bg-hover-light);
+  color: var(--color-text);
+}
+.messageBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .profileStats {
@@ -112,85 +114,41 @@
 }
 
 .statItem {
-  text-align: center;
-  transition: var(--transition-smooth);
-}
-
-.statItem:hover {
-  transform: translateY(-2px);
+  font-size: 1.05rem;
+  color: var(--color-text);
 }
 
 .statItem strong {
-  display: block;
-  font-size: 1.5rem;
-  color: var(--color-text);
-  font-weight: 800;
+  font-weight: 700;
 }
 
-.statItem span {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.profileActions {
+.profileBioSection {
   display: flex;
-  gap: 0.8rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-.profileBtn {
-  padding: 0.6rem 1.4rem;
-  border-radius: var(--radius-button);
-  font-size: 0.95rem;
+.profileDisplayName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.profileBio {
+  font-size: 1rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.profileWebsite {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-primary);
+  font-size: 1rem;
+  text-decoration: none;
   font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: var(--transition-smooth);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.editBtn {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-.editBtn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: var(--color-primary);
-}
-
-.followBtn {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: #fff;
-  box-shadow: var(--shadow-glow);
-}
-.followBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-primary-hover);
-}
-
-.unfollowBtn {
-  background: transparent;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-.unfollowBtn:hover {
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
-
-.messageBtn {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-.messageBtn:hover {
-  border-color: var(--color-primary);
 }
 
 /* Tabs */
@@ -475,7 +433,7 @@
 
 .saveBtn {
   flex: 2;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: var(--color-primary);
   color: #fff;
   border: none;
   padding: 1rem;
@@ -484,16 +442,14 @@
   font-weight: 700;
   font-size: 1rem;
   transition: var(--transition-smooth);
-  box-shadow: var(--shadow-glow);
 }
 
 .saveBtn:hover:not(:disabled) {
-  transform: translateY(-2px);
+  background: var(--color-secondary);
 }
 .saveBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 @media (max-width: 768px) {
