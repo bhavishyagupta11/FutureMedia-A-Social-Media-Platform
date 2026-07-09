@@ -1,0 +1,149 @@
+.story-viewer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.story-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  color: white;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.story-viewer-content {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 80vh;
+  background: #111;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.story-progress-container {
+  display: flex;
+  gap: 4px;
+  padding: 10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 5;
+}
+
+.story-progress-bg {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.story-progress-fill {
+  height: 100%;
+  background: white;
+  transition: width 0.05s linear;
+}
+
+.story-header {
+  position: absolute;
+  top: 20px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 5;
+  color: white;
+}
+
+.story-viewer-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.story-viewer-username {
+  font-weight: 600;
+  font-size: 14px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.story-viewer-time {
+  font-size: 12px;
+  opacity: 0.8;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.story-media-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.story-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-nav {
+  position: absolute;
+  top: 0;
+  width: 30%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 2;
+}
+
+.story-nav:hover {
+  opacity: 1;
+}
+
+.story-nav.left {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: 10px;
+}
+
+.story-nav.right {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.story-views {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  z-index: 5;
+  background: rgba(0,0,0,0.5);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
