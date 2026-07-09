@@ -1,8 +1,9 @@
 import React, { useRef, useState } from "react";
 import "./PostShare.css";
-import { UilScenery, UilPlayCircle, UilTimes } from "@iconscout/react-unicons";
+import { Image as ImageIcon, Video, X, Smile, Globe } from "lucide-react";
 import { apiFetch } from "../../utils/api";
 import ProfileImage from "../../img/profileImg.jpg";
+import { motion, AnimatePresence } from "framer-motion";
 
 const PostShare = ({ onPostCreated, isCompact = true }) => {
   const [image, setImage] = useState(null);
@@ -29,50 +30,36 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
   };
 
   const onImageChange = (event) => {
-    if (!(event.target.files && event.target.files[0])) return;
-    const file = event.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-      setVideo(null);
-      setImage({
-        file: file,
-        previewUrl: URL.createObjectURL(file),
-        base64String: e.target.result,
-        fileName: file.name,
-      });
-      setStatus("", "");
-    };
-
-    reader.readAsDataURL(file);
+    if (!(event.target.files && event.target.files.length > 0)) return;
+    const files = Array.from(event.target.files);
+    setVideo(null);
+    const newImages = files.map(file => ({
+      file: file,
+      previewUrl: URL.createObjectURL(file),
+      fileName: file.name,
+    }));
+    setImage(newImages);
+    setStatus("", "");
   };
 
   const onVideoChange = (event) => {
     if (!(event.target.files && event.target.files[0])) return;
     const file = event.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-      setImage(null);
-      setVideo({
-        file: file,
-        previewUrl: URL.createObjectURL(file),
-        base64String: e.target.result,
-        fileName: file.name,
-      });
-      setStatus("", "");
-    };
-
-    reader.readAsDataURL(file);
+    setImage(null);
+    setVideo({
+      file: file,
+      previewUrl: URL.createObjectURL(file),
+      fileName: file.name,
+    });
+    setStatus("", "");
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setStatus("", "");
 
-    const selectedMedia = image || video;
-    if (!selectedMedia) {
-      setStatus("error", "Please select a photo or video before sharing.");
+    if (!image && !video && !desc.trim()) {
+      setStatus("error", "Please add some content to share.");
       return;
     }
 
@@ -86,10 +73,14 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
 
     try {
       const formData = new FormData();
-      formData.append("image", selectedMedia.file);
+      if (image) {
+        image.forEach(img => formData.append("media", img.file));
+      } else if (video) {
+        formData.append("media", video.file);
+      }
       formData.append("caption", desc.trim());
 
-      const response = await apiFetch("/api/posts", {
+      const response = await apiFetch("/api/v1/posts", {
         method: "POST",
         body: formData,
       });
@@ -124,12 +115,18 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
   };
 
   return (
-    <form className={`PostShare ${isCompact ? "PostShareCompact" : ""}`} onSubmit={handleSubmit}>
+    <motion.form 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className={`PostShare ${isCompact ? "PostShareCompact" : ""}`} 
+      onSubmit={handleSubmit}
+    >
       <img src={localStorage.getItem("image") || ProfileImage} alt="profile" />
       <div>
         <div className="InputContainer">
           <input
-            placeholder="What's happening?"
+            placeholder="Start a thread or share a post..."
             type="text"
             className="input"
             value={desc}
@@ -138,27 +135,43 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
         </div>
 
         <div className="postOptions">
-          <button
-            type="button"
-            className="option optionPhoto"
-            onClick={() => imageRef.current && imageRef.current.click()}
-          >
-            <UilScenery style={{ marginRight: 5 }} />
-            Photo
-          </button>
+          <div className="optionGroup">
+            <button
+              type="button"
+              className="iconOption"
+              onClick={() => imageRef.current && imageRef.current.click()}
+              title="Add Image"
+            >
+              <ImageIcon size={20} />
+            </button>
 
-          <button
-            type="button"
-            className="option optionVideo"
-            onClick={() => videoRef.current && videoRef.current.click()}
-          >
-            <UilPlayCircle style={{ marginRight: 5 }} />
-            Video
-          </button>
+            <button
+              type="button"
+              className="iconOption"
+              onClick={() => videoRef.current && videoRef.current.click()}
+              title="Add Video"
+            >
+              <Video size={20} />
+            </button>
+            
+            <button
+              type="button"
+              className="iconOption"
+              title="Add Emoji"
+            >
+              <Smile size={20} />
+            </button>
+          </div>
 
-          <button type="submit" className="button-share" disabled={isSubmitting}>
-            {isSubmitting ? "Uploading..." : "Share Post"}
-          </button>
+          <div className="actionGroup">
+            <div className="audienceSelector" title="Everyone can reply">
+              <Globe size={14} />
+              <span>Everyone</span>
+            </div>
+            <button type="submit" className="button-share" disabled={isSubmitting || (!desc.trim() && !image && !video)}>
+              {isSubmitting ? "Posting..." : "Post"}
+            </button>
+          </div>
 
           <div style={{ display: "none" }}>
             <input
@@ -166,6 +179,7 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
               name="file"
               ref={imageRef}
               accept="image/*"
+              multiple
               onChange={onImageChange}
             />
             <input
@@ -178,41 +192,69 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
           </div>
         </div>
 
-        {(image || video) && (
-          <div className="selectedMediaPill">
-            <span>{image ? image.fileName : video.fileName}</span>
-            <button
-              type="button"
-              onClick={() => {
-                setImage(null);
-                setVideo(null);
-                setStatus("", "");
-              }}
+        <AnimatePresence>
+          {(image || video) && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="selectedMediaPill"
             >
-              Remove
-            </button>
-          </div>
-        )}
+              <span>{image ? `${image.length} image(s) selected` : video.fileName}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setImage(null);
+                  setVideo(null);
+                  setStatus("", "");
+                }}
+              >
+                Remove
+              </button>
+            </motion.div>
+          )}
 
-        {image && (
-          <div className="previewImage">
-            <UilTimes onClick={() => setImage(null)} />
-            <img src={image.previewUrl} alt="preview" />
-          </div>
-        )}
+          {image && image.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="previewImage"
+              style={{ display: "flex", gap: "8px", overflowX: "auto" }}
+            >
+              <X size={24} onClick={() => setImage(null)} />
+              {image.map((img, idx) => (
+                <img key={idx} src={img.previewUrl} alt={`preview ${idx}`} style={{ maxHeight: "200px", objectFit: "cover", borderRadius: "8px" }} />
+              ))}
+            </motion.div>
+          )}
 
-        {video && (
-          <div className="previewImage">
-            <UilTimes onClick={() => setVideo(null)} />
-            <video src={video.previewUrl} controls className="previewVideo">
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        )}
+          {video && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="previewImage"
+            >
+              <X size={24} onClick={() => setVideo(null)} />
+              <video src={video.previewUrl} controls className="previewVideo">
+                Your browser does not support the video tag.
+              </video>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {statusMessage ? <p className={`shareStatus ${statusType}`}>{statusMessage}</p> : null}
+        {statusMessage && (
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={`shareStatus ${statusType}`}
+          >
+            {statusMessage}
+          </motion.p>
+        )}
       </div>
-    </form>
+    </motion.form>
   );
 };
 
