@@ -3,6 +3,7 @@ import { Search as SearchIcon, Hash, UserPlus, TrendingUp, Clock } from 'lucide-
 import { motion, AnimatePresence } from 'framer-motion';
 import './Search.css';
 import ProfileImage from '../../img/profileImg.jpg';
+import { apiFetch } from '../../utils/api';
 
 const Search = () => {
   const [query, setQuery] = useState('');
