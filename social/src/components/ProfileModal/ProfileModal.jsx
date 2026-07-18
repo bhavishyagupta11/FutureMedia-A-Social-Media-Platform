@@ -19,7 +19,7 @@ const ProfileModal = ({ modalOpened, setModalOpened }) => {
     setError("");
 
     try {
-      const response = await apiFetch(`/api/users/${storedProfile.userId}/profile`, {
+      const response = await apiFetch(`/api/v1/users/${storedProfile.userId}/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
