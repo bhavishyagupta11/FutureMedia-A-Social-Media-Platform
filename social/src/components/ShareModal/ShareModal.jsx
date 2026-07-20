@@ -19,11 +19,7 @@ const ShareModal = ({ modalOpened, setModalOpened, onPostCreated }) => {
           </button>
         </div>
 
-        <div className="shareModalTips">
-          <span>Choose post type:</span>
-          <span>Photo</span>
-          <span>Video</span>
-        </div>
+        <p className="shareModalTips">Share what's on your mind.</p>
 
         <PostShare
           isCompact={false}
