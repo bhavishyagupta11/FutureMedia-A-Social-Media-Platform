@@ -366,7 +366,40 @@ const Settings = () => {
               </motion.div>
             )}
 
-            {activeTab !== "account" && activeTab !== "privacy" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "data" && (
+            {activeTab === "appearance" && (
+              <motion.div
+                key="appearance"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="settingsSection"
+              >
+                <h2><Eye size={24} /> Appearance</h2>
+                <div className="settingsRow">
+                  <div className="settingsRowInfo">
+                    <strong>Dark Mode</strong>
+                    <span>Toggle between light and dark themes.</span>
+                  </div>
+                  <label className="switch">
+                    <input 
+                      type="checkbox" 
+                      checked={document.body.getAttribute('data-theme') === 'dark' || !document.body.hasAttribute('data-theme')} 
+                      onChange={(e) => {
+                        const newTheme = e.target.checked ? 'dark' : 'light';
+                        document.body.setAttribute('data-theme', newTheme);
+                        localStorage.setItem('theme', newTheme);
+                        // Force re-render of this component
+                        setSaved(prev => !prev);
+                      }} 
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab !== "account" && activeTab !== "privacy" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "data" && activeTab !== "appearance" && (
               <motion.div
                 key="placeholder"
                 initial={{ opacity: 0, x: 20 }}
