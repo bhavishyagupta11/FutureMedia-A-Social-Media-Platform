@@ -195,20 +195,22 @@
 }
 
 .infoButton {
-  height: 44px;
+  height: 48px;
   min-width: 140px;
   border-radius: var(--radius-button);
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   border: none;
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-smooth);
+  box-shadow: var(--shadow-glow);
 }
 
 .infoButton:hover:not(:disabled) {
-  background: var(--color-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary-hover);
 }
 
 .infoButton:disabled {
