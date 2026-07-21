@@ -4,8 +4,10 @@ import { motion } from "framer-motion";
 import { Bell, Heart, MessageCircle, UserPlus, Star } from "lucide-react";
 import ProfileImage from "../../img/profileImg.jpg";
 import { apiFetch } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,17 +16,22 @@ const Notifications = () => {
       try {
         const response = await apiFetch("/api/v1/notifications");
         if (response.ok) {
-          const data = await response.json();
-          // Group them simply as "Recent"
-          setNotifications([{ group: "Recent", items: data.map(n => ({
-            id: n._id,
-            type: n.type.toLowerCase(),
-            user: { name: n.sender?.displayName || n.sender?.username, handle: n.sender?.username, avatar: n.sender?.profilePicture || ProfileImage },
-            message: n.body,
-            time: new Date(n.createdAt).toLocaleDateString(),
-            unread: !n.read,
-            link: n.deepLink
-          })) }]);
+          const payload = await response.json();
+          const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
+          if (data.length > 0) {
+            // Group them simply as "Recent"
+            setNotifications([{ group: "Recent", items: data.map(n => ({
+              id: n._id,
+              type: n.type.toLowerCase(),
+              user: { name: n.sender?.displayName || n.sender?.username, handle: n.sender?.username, avatar: n.sender?.profilePicture || ProfileImage },
+              message: n.body,
+              time: new Date(n.createdAt).toLocaleDateString(),
+              unread: !n.read,
+              link: n.deepLink
+            })) }]);
+          } else {
+            setNotifications([]);
+          }
         }
       } catch (e) {
         console.error(e);
@@ -114,17 +121,17 @@ const Notifications = () => {
               <p>When you interact with others or they interact with you, your notifications will appear here.</p>
               
               <div className="emptyStateSuggestions">
-                <div className="suggestionBox">
+                <div className="suggestionBox" onClick={() => navigate('/search')}>
                   <UserPlus size={24} />
                   <span>Find Friends</span>
                 </div>
-                <div className="suggestionBox">
+                <div className="suggestionBox" onClick={() => navigate('/explore')}>
                   <Star size={24} />
                   <span>Trending Posts</span>
                 </div>
               </div>
 
-              <button className="primaryCTA">Explore FutureMedia</button>
+              <button className="primaryCTA" onClick={() => navigate('/explore')}>Explore FutureMedia</button>
             </div>
           ) : (
             notifications.map((group, gIndex) => (
