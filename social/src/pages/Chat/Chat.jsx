@@ -7,7 +7,7 @@ import ProfileImage from "../../img/profileImg.jpg";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Send, Paperclip, X, MessageSquare, MoreVertical, Smile, Mic } from "lucide-react";
+import { Search, Send, Paperclip, X, MessageCircleMore, MoreVertical, Smile, Mic } from "lucide-react";
 
 const ENDPOINT = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 let socket;
@@ -253,7 +253,7 @@ const Chat = () => {
         {!activeChat ? (
           <div className="chatPremiumPlaceholder">
             <div className="chatPremiumPlaceholderIconWrapper">
-              <MessageSquare size={64} className="chatPlaceholderIcon" />
+              <MessageCircleMore size={64} className="chatPlaceholderIcon" />
             </div>
             <h2>Start Chatting</h2>
             <p>Connect with your friends, share photos, and stay in touch.</p>
