@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearUserSession } from "../utils/session";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -24,6 +25,14 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    if (error.response && error.response.status === 401) {
+      // Token is invalid or expired
+      clearUserSession();
+      // Force reload to kick user back to login page safely
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
+    }
     return Promise.reject(error);
   }
 );
@@ -33,12 +42,25 @@ export const apiFetch = async (path, options = {}) => {
   if (normalizedPath.startsWith("/api/") && !normalizedPath.startsWith("/api/v1/")) {
     normalizedPath = normalizedPath.replace("/api/", "/api/v1/");
   }
+
+  let parsedData;
+  if (options.body instanceof FormData) {
+    parsedData = options.body;
+  } else if (typeof options.body === "string") {
+    try {
+      parsedData = JSON.parse(options.body);
+    } catch (e) {
+      parsedData = options.body;
+    }
+  } else {
+    parsedData = options.body;
+  }
   
   try {
     const response = await api({
       url: normalizedPath,
       method: options.method || "GET",
-      data: options.body ? JSON.parse(options.body) : undefined,
+      data: parsedData,
       headers: options.headers,
     });
     return {
