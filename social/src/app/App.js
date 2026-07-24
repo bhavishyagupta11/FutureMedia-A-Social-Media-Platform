@@ -7,7 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "../components/Navigation/AppLayout";
 
 // Lazy load routes for performance
-const { Auth, SignUp, ForgotPassword, ResetPassword } = require("../pages/Auth/Auth");
+import { Auth, SignUp, ForgotPassword, ResetPassword } from "../pages/Auth/Auth";
+const VerifyEmail = lazy(() => import("../pages/Auth/VerifyEmail"));
 const Home = lazy(() => import("../pages/Auth/Home/Home"));
 const Profile = lazy(() => import("../pages/Profile/Profile"));
 const EditProfile = lazy(() => import("../pages/Profile/EditProfile"));
@@ -16,6 +17,7 @@ const Chat = lazy(() => import("../pages/Chat/Chat"));
 const Explore = lazy(() => import("../pages/Explore/Explore"));
 const Notifications = lazy(() => import("../pages/Notifications/Notifications"));
 const Search = lazy(() => import("../pages/Search/Search"));
+const SinglePost = lazy(() => import("../pages/SinglePost/SinglePost"));
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify/:token" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             
@@ -55,6 +58,7 @@ function App() {
             <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
             <Route path="/profile/edit" element={<AppLayout><EditProfile /></AppLayout>} />
             <Route path="/profile/:id" element={<AppLayout><Profile /></AppLayout>} />
+            <Route path="/post/:id" element={<AppLayout><SinglePost /></AppLayout>} />
             <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
             <Route path="/messages" element={<AppLayout><Chat /></AppLayout>} />
             <Route path="/chat" element={<Navigate to="/messages" replace />} />
