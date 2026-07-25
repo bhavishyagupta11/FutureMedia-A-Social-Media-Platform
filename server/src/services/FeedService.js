@@ -41,8 +41,21 @@ class FeedService {
   }
 
   async getExploreFeed(userId, limit = 20) {
-    // Return newest popular public posts
-    const posts = await Post.find({ visibility: "public", status: "published" })
+    const currentUser = await User.findById(userId).select("following");
+    
+    // Find users who are private and NOT followed by currentUser
+    const privateUsers = await User.find({
+      isPrivate: true,
+      _id: { $nin: [...currentUser.following, currentUser._id] }
+    }).select("_id");
+    
+    const privateUserIds = privateUsers.map(u => u._id);
+
+    const posts = await Post.find({ 
+      visibility: "public", 
+      status: "published",
+      userId: { $nin: privateUserIds }
+    })
       .sort({ createdAt: -1, likeCount: -1 })
       .limit(limit)
       .populate("userId", "username displayName profilePicture isVerified");
