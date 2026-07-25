@@ -1,18 +1,22 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const env = require("../config/env");
 
-module.exports = (req, res, next) => {
+const protect = (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
     
     if (!token) {
-      return res.status(401).json({ error: "Authentication token missing" });
+      res.status(401);
+      throw new Error("Authentication token missing");
     }
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret");
+    const decoded = jwt.verify(token, env.JWT_SECRET || "default_secret");
     req.user = decoded;
     next();
   } catch (error) {
-    console.error("Auth Middleware Error:", error);
-    return res.status(401).json({ error: "Invalid or expired token" });
+    res.status(401);
+    throw new Error("Invalid or expired token");
   }
 };
+
+module.exports = { protect };
