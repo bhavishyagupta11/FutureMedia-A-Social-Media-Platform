@@ -52,10 +52,19 @@
   transition: background-color 0.2s ease, transform 0.1s ease;
   text-decoration: none;
   background: transparent;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
 }
 
 .nav-item:hover {
   background-color: var(--color-card-hover);
+}
+
+.nav-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .nav-item:active {
@@ -90,22 +99,6 @@
 
 @media (max-width: 1024px) {
   .sidebar {
-    width: 80px;
-    padding: var(--space-4) var(--space-1);
-    align-items: center;
-  }
-
-  .nav-label {
-    display: none;
-  }
-
-  .sidebar-logo h2 {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    display: none; /* Replaced by BottomNav on mobile */
+    display: none; /* Replaced by BottomNav on tablet and mobile */
   }
 }
