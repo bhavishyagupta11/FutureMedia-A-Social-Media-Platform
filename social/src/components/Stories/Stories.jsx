@@ -21,8 +21,8 @@ const Stories = () => {
     try {
       const res = await apiFetch('/api/v1/stories');
       if (res.ok) {
-        const data = await res.json();
-        setStoryGroups(data);
+        const payload = await res.json();
+        setStoryGroups(Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []));
       }
     } catch (e) {
       console.error(e);
