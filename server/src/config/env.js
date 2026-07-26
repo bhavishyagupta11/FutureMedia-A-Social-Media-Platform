@@ -41,7 +41,8 @@ module.exports = {
   SMTP_PORT: process.env.SMTP_PORT || 2525,
   SMTP_USER: process.env.SMTP_USER,
   SMTP_PASS: process.env.SMTP_PASS,
-  FROM_EMAIL: process.env.FROM_EMAIL || "noreply@FutureMedia.com",
+  FROM_EMAIL: process.env.FROM_EMAIL || "noreply@futuremedia.bullishpath.in",
   FROM_NAME: process.env.FROM_NAME || "FutureMedia",
+  EMAIL_MODE: process.env.EMAIL_MODE || (process.env.SMTP_HOST ? "resend" : "console"),
   features
 };
