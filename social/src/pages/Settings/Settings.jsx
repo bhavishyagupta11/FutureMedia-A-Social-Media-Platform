@@ -18,7 +18,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
 
   // Mocked states for UI demonstration
-  const [privateAccount, setPrivateAccount] = useState(false);
+  const [privateAccount, setPrivateAccount] = useState(getStoredUserProfile().isPrivate ?? false);
   const [activityStatus, setActivityStatus] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -28,6 +28,47 @@ const Settings = () => {
       navigate("/");
     }
   }, [navigate]);
+
+  useEffect(() => {
+    const userId = storedProfile.userId;
+    if (!userId) return;
+    apiFetch(`/api/v1/users/${userId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(payload => {
+        if (!payload) return;
+        const userData = payload.data || payload;
+        if (typeof userData.isPrivate === "boolean") {
+          setPrivateAccount(userData.isPrivate);
+          localStorage.setItem("isPrivate", String(userData.isPrivate));
+        }
+        if (typeof userData.settings?.notifications?.push === "boolean") {
+          setPushNotifications(userData.settings.notifications.push);
+        }
+        if (typeof userData.settings?.notifications?.email === "boolean") {
+          setEmailNotifications(userData.settings.notifications.email);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  const handlePrivacyToggle = async (newValue) => {
+    setPrivateAccount(newValue);
+    try {
+      const res = await apiFetch(`/api/v1/users/${storedProfile.userId}/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPrivate: newValue, privacy: { profileVisibility: newValue ? "private" : "public" } })
+      });
+      if (res.ok) {
+        localStorage.setItem("isPrivate", String(newValue));
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      setPrivateAccount(!newValue); // Revert on failure
+    }
+  };
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -285,7 +326,7 @@ const Settings = () => {
                     <span>Only approved followers can see your posts.</span>
                   </div>
                   <label className="switch">
-                    <input type="checkbox" checked={privateAccount} onChange={(e) => setPrivateAccount(e.target.checked)} />
+                    <input type="checkbox" checked={privateAccount} onChange={(e) => handlePrivacyToggle(e.target.checked)} />
                     <span className="slider"></span>
                   </label>
                 </div>
