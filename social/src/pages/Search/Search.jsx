@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search as SearchIcon, Hash, UserPlus, TrendingUp, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Search.css';
@@ -6,6 +7,7 @@ import ProfileImage from '../../img/profileImg.jpg';
 import { apiFetch } from '../../utils/api';
 
 const Search = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -24,14 +26,16 @@ const Search = () => {
         ]);
 
         if (usersRes.ok) {
-          const users = await usersRes.json();
+          const payload = await usersRes.json();
+          const users = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
           setSuggestedUsers(users.map(u => ({ id: u._id, name: u.displayName || u.username, handle: u.username, avatar: u.profilePicture || ProfileImage })));
         }
 
         if (postsRes.ok) {
-          const posts = await postsRes.json();
+          const payload = await postsRes.json();
+          const posts = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
           const tagCount = {};
-          posts.forEach(p => p.hashtags.forEach(tag => {
+          posts.forEach(p => p.hashtags && p.hashtags.forEach(tag => {
             tagCount[tag] = (tagCount[tag] || 0) + 1;
           }));
           const sortedTags = Object.entries(tagCount).sort((a,b) => b[1] - a[1]).slice(0, 5).map(t => t[0]);
@@ -81,22 +85,26 @@ const Search = () => {
         let combined = [];
 
         if (userRes.ok) {
-          const users = await userRes.json();
+          const payload = await userRes.json();
+          const users = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
           combined = [...combined, ...users.map(u => ({
             type: 'user', id: u._id, name: u.displayName || u.username, handle: u.username, avatar: u.profilePicture || ProfileImage
           }))];
         }
 
         if (postRes.ok) {
-          const posts = await postRes.json();
+          const payload = await postRes.json();
+          const posts = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
           // just taking the first few hashtags or matching hashtags
           const tags = new Set();
           posts.forEach(p => {
-            p.hashtags.forEach(tag => {
-              if (tag.toLowerCase().includes(debouncedQuery.toLowerCase())) {
-                tags.add(tag);
-              }
-            });
+            if (p.hashtags) {
+              p.hashtags.forEach(tag => {
+                if (tag.toLowerCase().includes(debouncedQuery.toLowerCase())) {
+                  tags.add(tag);
+                }
+              });
+            }
           });
           combined = [...combined, ...Array.from(tags).slice(0, 5).map(t => ({
             type: 'tag', name: t.startsWith('#') ? t : `#${t}`
@@ -162,7 +170,12 @@ const Search = () => {
                     <p className="search-meta">No results found.</p>
                   ) : (
                     results.map((r, i) => (
-                      <div key={i} className="search-result-item">
+                      <div 
+                        key={i} 
+                        className="search-result-item"
+                        onClick={() => r.type === 'user' && navigate(`/profile/${r.handle || r.id}`)}
+                        style={{ cursor: r.type === 'user' ? 'pointer' : 'default' }}
+                      >
                         {r.type === 'user' ? (
                           <>
                             <img src={r.avatar} alt={r.name} className="result-avatar" />
@@ -170,7 +183,15 @@ const Search = () => {
                               <strong>{r.name}</strong>
                               <span>@{r.handle}</span>
                             </div>
-                            <button className="result-action-btn">View</button>
+                            <button 
+                              className="result-action-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/profile/${r.handle || r.id}`);
+                              }}
+                            >
+                              View
+                            </button>
                           </>
                         ) : (
                           <>
@@ -220,13 +241,26 @@ const Search = () => {
                   <h3 className="section-title"><UserPlus size={18} /> Suggested for you</h3>
                   <div className="suggested-users">
                     {suggestedUsers.map(user => (
-                      <div key={user.id} className="suggested-user-card">
+                      <div 
+                        key={user.id} 
+                        className="suggested-user-card"
+                        onClick={() => navigate(`/profile/${user.handle || user.id}`)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <img src={user.avatar} alt={user.name} />
                         <div className="suggested-user-info">
                           <strong>{user.name}</strong>
                           <span>@{user.handle}</span>
                         </div>
-                        <button className="follow-sm-btn">Follow</button>
+                        <button 
+                          className="follow-sm-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/profile/${user.handle || user.id}`);
+                          }}
+                        >
+                          View Profile
+                        </button>
                       </div>
                     ))}
                   </div>
