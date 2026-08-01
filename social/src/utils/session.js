@@ -9,6 +9,7 @@ const USER_STORAGE_KEYS = [
   "website",
   "username",
   "token",
+  "isPrivate",
 ];
 
 const safeJsonParse = (value, fallback = []) => {
@@ -35,12 +36,15 @@ export const getStoredUserProfile = () => ({
   website: localStorage.getItem("website") || "",
   followersList: safeJsonParse(localStorage.getItem("followersList")),
   followingList: safeJsonParse(localStorage.getItem("followingList")),
+  isPrivate: localStorage.getItem("isPrivate") === "true",
 });
 
-export const persistUserSession = (user) => {
-  if (!user) {
+export const persistUserSession = (rawUser) => {
+  if (!rawUser) {
     return;
   }
+  
+  const user = rawUser.data ? rawUser.data : rawUser;
 
   if (user._id) {
     localStorage.setItem("userId", user._id);
@@ -59,6 +63,7 @@ export const persistUserSession = (user) => {
   localStorage.setItem("website", user.website || "");
   localStorage.setItem("username", user.username || "");
   localStorage.setItem("token", user.token || "");
+  localStorage.setItem("isPrivate", String(user.isPrivate === true));
 
   window.dispatchEvent(new CustomEvent("session:updated", { detail: user }));
 };
