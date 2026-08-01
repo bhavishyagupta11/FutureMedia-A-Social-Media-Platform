@@ -1,9 +1,11 @@
 import React, { useRef, useState } from "react";
 import "./PostShare.css";
-import { Image as ImageIcon, Video, X, Smile, Globe } from "lucide-react";
+import { ImagePlus as ImageIcon, Video, X, Globe } from "lucide-react";
 import { apiFetch } from "../../utils/api";
 import ProfileImage from "../../img/profileImg.jpg";
 import { motion, AnimatePresence } from "framer-motion";
+
+import { getSessionUserId, getStoredUserProfile } from "../../utils/session";
 
 const PostShare = ({ onPostCreated, isCompact = true }) => {
   const [image, setImage] = useState(null);
@@ -15,6 +17,9 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
 
   const imageRef = useRef(null);
   const videoRef = useRef(null);
+  
+  const currentUserId = getSessionUserId();
+  const profileImage = getStoredUserProfile().image;
 
   const resetComposer = () => {
     if (imageRef.current) imageRef.current.value = null;
@@ -30,16 +35,51 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
   };
 
   const onImageChange = (event) => {
-    if (!(event.target.files && event.target.files.length > 0)) return;
-    const files = Array.from(event.target.files);
-    setVideo(null);
-    const newImages = files.map(file => ({
-      file: file,
-      previewUrl: URL.createObjectURL(file),
-      fileName: file.name,
-    }));
-    setImage(newImages);
-    setStatus("", "");
+    let files;
+    if (event.dataTransfer && event.dataTransfer.files) {
+      files = Array.from(event.dataTransfer.files);
+    } else if (event.target && event.target.files) {
+      files = Array.from(event.target.files);
+    } else {
+      return;
+    }
+    
+    if (!files || files.length === 0) return;
+    
+    // Separate videos from images
+    const videoFiles = files.filter(f => f.type.startsWith('video/'));
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+
+    if (videoFiles.length > 0) {
+      // Just take the first video
+      setImage(null);
+      setVideo({
+        file: videoFiles[0],
+        previewUrl: URL.createObjectURL(videoFiles[0]),
+        fileName: videoFiles[0].name,
+      });
+      setStatus("", "");
+    } else if (imageFiles.length > 0) {
+      setVideo(null);
+      const newImages = imageFiles.map(file => ({
+        file: file,
+        previewUrl: URL.createObjectURL(file),
+        fileName: file.name,
+      }));
+      setImage(newImages);
+      setStatus("", "");
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onImageChange(e);
   };
 
   const onVideoChange = (event) => {
@@ -63,8 +103,7 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
       return;
     }
 
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    if (!currentUserId) {
       setStatus("error", "Session expired. Please log in again.");
       return;
     }
@@ -94,7 +133,8 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
         return;
       }
 
-      const createdPost = await response.json().catch(() => null);
+      const payload = await response.json().catch(() => null);
+      const createdPost = payload?.data || payload;
 
       setStatus("success", "Post shared successfully.");
       resetComposer();
@@ -121,8 +161,10 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
       transition={{ duration: 0.4 }}
       className={`PostShare ${isCompact ? "PostShareCompact" : ""}`} 
       onSubmit={handleSubmit}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
-      <img src={localStorage.getItem("image") || ProfileImage} alt="profile" />
+      <img src={profileImage || ProfileImage} alt="profile" />
       <div>
         <div className="InputContainer">
           <input
@@ -153,20 +195,12 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
             >
               <Video size={20} />
             </button>
-            
-            <button
-              type="button"
-              className="iconOption"
-              title="Add Emoji"
-            >
-              <Smile size={20} />
-            </button>
           </div>
 
           <div className="actionGroup">
-            <div className="audienceSelector" title="Everyone can reply">
+            <div className="audienceLabel" title="Visible to everyone" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-text-muted)', fontSize: '0.85rem', fontWeight: 600, cursor: 'default' }}>
               <Globe size={14} />
-              <span>Everyone</span>
+              <span>Public</span>
             </div>
             <button type="submit" className="button-share" disabled={isSubmitting || (!desc.trim() && !image && !video)}>
               {isSubmitting ? "Posting..." : "Post"}

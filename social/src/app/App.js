@@ -57,7 +57,7 @@ function App() {
             <Route path="/notifications" element={<AppLayout><Notifications /></AppLayout>} />
             <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
             <Route path="/profile/edit" element={<AppLayout><EditProfile /></AppLayout>} />
-            <Route path="/profile/:id" element={<AppLayout><Profile /></AppLayout>} />
+            <Route path="/profile/:username" element={<AppLayout><Profile /></AppLayout>} />
             <Route path="/post/:id" element={<AppLayout><SinglePost /></AppLayout>} />
             <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
             <Route path="/messages" element={<AppLayout><Chat /></AppLayout>} />

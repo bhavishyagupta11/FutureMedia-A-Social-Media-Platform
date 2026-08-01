@@ -3,8 +3,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const { successResponse } = require("../utils/responseHandler");
 
 exports.getProfile = asyncHandler(async (req, res) => {
-  const userId = (!req.params.id || req.params.id === "me") ? req.user.id : req.params.id;
-  const result = await userService.getUser(userId);
+  const identifier = (!req.params.id || req.params.id === "me") ? req.user.id : req.params.id;
+  const result = await userService.getUser(identifier);
   return successResponse(res, 200, "Profile fetched", result);
 });
 
@@ -35,6 +35,16 @@ exports.followUser = asyncHandler(async (req, res) => {
 exports.unfollowUser = asyncHandler(async (req, res) => {
   const result = await userService.unfollowUser(req.params.id, req.user.id);
   return successResponse(res, 200, "Unfollow action completed", result);
+});
+
+exports.acceptFollowRequest = asyncHandler(async (req, res) => {
+  const result = await userService.acceptFollowRequest(req.params.requesterId, req.user.id);
+  return successResponse(res, 200, "Follow request accepted", result);
+});
+
+exports.rejectFollowRequest = asyncHandler(async (req, res) => {
+  const result = await userService.rejectFollowRequest(req.params.requesterId, req.user.id);
+  return successResponse(res, 200, "Follow request rejected", result);
 });
 
 exports.getAllUsers = asyncHandler(async (req, res) => {

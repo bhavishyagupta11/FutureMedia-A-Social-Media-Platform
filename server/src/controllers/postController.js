@@ -20,12 +20,12 @@ exports.createPost = asyncHandler(async (req, res) => {
 exports.getAllPosts = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit, 10) || 20;
   const skip = parseInt(req.query.skip, 10) || 0;
-  const result = await postService.getAllPosts(limit, skip);
+  const result = await postService.getAllPosts(req.user.id, limit, skip);
   return successResponse(res, 200, "Posts fetched", result);
 });
 
 exports.getPostById = asyncHandler(async (req, res) => {
-  const result = await postService.getPostById(req.params.id);
+  const result = await postService.getPostById(req.params.id, req.user.id);
   return successResponse(res, 200, "Post fetched", result);
 });
 
@@ -46,13 +46,13 @@ exports.addComment = asyncHandler(async (req, res) => {
 });
 
 exports.getUserPosts = asyncHandler(async (req, res) => {
-  const result = await postService.getPostsByUser(req.params.userId);
+  const result = await postService.getPostsByUser(req.params.userId, req.user ? req.user.id : null);
   return successResponse(res, 200, "User posts fetched", result);
 });
 
 exports.searchPosts = asyncHandler(async (req, res) => {
   const { query } = req.query;
-  const result = await postService.searchPosts(query);
+  const result = await postService.searchPosts(query, req.user.id);
   return successResponse(res, 200, "Posts search results", result);
 });
 

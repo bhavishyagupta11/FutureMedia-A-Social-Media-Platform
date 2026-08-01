@@ -14,14 +14,15 @@
 
 @media (max-width: 1024px) {
   .app-main-content {
-    margin-left: 80px; /* Collapsed sidebar width */
+    margin-left: 0;
+    padding-bottom: 80px; /* Floating BottomNav space */
   }
 }
 
 @media (max-width: 768px) {
   .app-main-content {
     margin-left: 0;
-    padding-bottom: 60px; /* BottomNav height */
+    padding-bottom: 60px; /* Fixed BottomNav height */
   }
 }
 

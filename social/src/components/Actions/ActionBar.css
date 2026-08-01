@@ -1,0 +1,11 @@
+.ActionBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  width: 100%;
+}
+
+.action-bar-spacer {
+  margin-left: auto;
+}

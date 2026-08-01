@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "start": "node server/src/index.js",
+    "e2e": "node scripts/e2e/runner.mjs",
+    "e2e:auth": "node scripts/e2e/runner.mjs"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "puppeteer": "^25.1.0"
+  }
+}

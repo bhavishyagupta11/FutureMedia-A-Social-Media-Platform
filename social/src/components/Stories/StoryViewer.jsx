@@ -36,6 +36,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose }) => {
       }, (story.mediaType === 'video' ? 150 : 50)); // video gives more time, ideally use video events
     }
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentGroupIndex, currentStoryIndex, isPaused, story]);
 
   const handleNext = () => {

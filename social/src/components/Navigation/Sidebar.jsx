@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { House, Compass, Search, MessageCircleMore, Bell, SquarePlus, User, Settings, LogOut } from 'lucide-react';
-import { getSessionUserId, clearUserSession } from '../../utils/session';
+import { getStoredUserProfile, clearUserSession } from '../../utils/session';
 import { apiFetch } from '../../api/axios';
 import Logo from '../Logo/Logo';
 import './Sidebar.css';
 
 const Sidebar = ({ onOpenCreateModal }) => {
   const navigate = useNavigate();
-  const userId = getSessionUserId();
+  const { userId, username } = getStoredUserProfile();
 
   const handleLogout = async () => {
     try {
@@ -57,7 +57,7 @@ const Sidebar = ({ onOpenCreateModal }) => {
           <span className="nav-label">Create</span>
         </button>
 
-        <NavLink to={`/profile/${userId}`} className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+        <NavLink to={`/profile/${username || userId}`} className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
           <User className="nav-icon" size={24} />
           <span className="nav-label">Profile</span>
         </NavLink>

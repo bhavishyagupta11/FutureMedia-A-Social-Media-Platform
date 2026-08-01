@@ -17,8 +17,21 @@ exports.login = asyncHandler(async (req, res) => {
   const deviceInfo = req.headers["user-agent"] || "Unknown Device";
   const ipAddress = req.ip;
 
-  const result = await authService.loginUser({ username, password, deviceInfo, ipAddress });
-  return successResponse(res, 200, "Login successful", result);
+  try {
+    const result = await authService.loginUser({ username, password, deviceInfo, ipAddress });
+    return successResponse(res, 200, "Login successful", result);
+  } catch (err) {
+    if (err.code === "EMAIL_NOT_VERIFIED") {
+      return res.status(403).json({
+        success: false,
+        code: "EMAIL_NOT_VERIFIED",
+        message: err.message,
+        canResend: true,
+        nextAction: "RESEND_VERIFICATION"
+      });
+    }
+    throw err;
+  }
 });
 
 exports.logout = asyncHandler(async (req, res) => {
@@ -46,6 +59,39 @@ exports.resetPassword = asyncHandler(async (req, res) => {
 
 exports.verifyEmail = asyncHandler(async (req, res) => {
   const { token } = req.params;
-  const result = await authService.verifyEmail(token);
-  return successResponse(res, 200, "Email verified successfully", result);
+  try {
+    const result = await authService.verifyEmail(token);
+    return res.status(200).json({
+      success: true,
+      code: result.code || "EMAIL_VERIFIED_SUCCESS",
+      message: result.message,
+      data: result
+    });
+  } catch (err) {
+    return res.status(err.status || 400).json({
+      success: false,
+      code: err.code || "TOKEN_INVALID",
+      message: err.message,
+      canResend: err.canResend || false
+    });
+  }
+});
+
+exports.resendVerification = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  try {
+    const result = await authService.resendVerification(email);
+    return res.status(200).json({
+      success: true,
+      code: result.code || "RESEND_SUCCESS",
+      message: result.message,
+      data: result
+    });
+  } catch (err) {
+    return res.status(err.status || 400).json({
+      success: false,
+      code: err.code || "RESEND_FAILED",
+      message: err.message
+    });
+  }
 });

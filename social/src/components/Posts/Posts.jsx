@@ -2,15 +2,13 @@ import React, { useCallback, useEffect, useState } from "react";
 import "./Posts.css";
 import "../Post/Post.css";
 import { PostsData } from "../../Data/PostsData";
-import Comment from "../../img/comment.png";
-import Share from "../../img/share.png";
-import Heart from "../../img/like.png";
-import NotLike from "../../img/notlike.png";
 import ProfileImage from "../../img/profileImg.jpg";
 import { apiFetch } from "../../utils/api";
 import { getSessionUserId } from "../../utils/session";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { Heart, Pencil, Trash2 } from "lucide-react";
+import ActionBar from "../Actions/ActionBar";
 
 const normalizePost = (post) => {
   const source = post || {};
@@ -55,7 +53,7 @@ const withDemoFallback = (realPosts) => {
   return normalized;
 };
 
-const Posts = () => {
+const Posts = ({ singlePostId }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [commentDrafts, setCommentDrafts] = useState({});
@@ -69,17 +67,24 @@ const Posts = () => {
   const fetchPosts = useCallback(async ({ showLoader = false } = {}) => {
     if (showLoader) setLoading(true);
     try {
-      const response = await apiFetch("/api/v1/posts/feed");
+      const url = singlePostId ? `/api/v1/posts/${singlePostId}` : "/api/v1/posts/feed";
+      const response = await apiFetch(url);
       if (!response.ok) { setPosts(withDemoFallback([])); return; }
-      const data = await response.json();
-      if (!Array.isArray(data) || data.length === 0) { setPosts(withDemoFallback([])); return; }
-      setPosts(withDemoFallback(data.map(normalizePost)));
+      const payload = await response.json();
+      const data = payload.data || payload;
+      
+      let postsArray = [];
+      if (Array.isArray(data)) postsArray = data;
+      else if (data && typeof data === 'object') postsArray = [data];
+
+      if (postsArray.length === 0) { setPosts(withDemoFallback([])); return; }
+      setPosts(withDemoFallback(postsArray.map(normalizePost)));
     } catch {
       setPosts(withDemoFallback([]));
     } finally {
       if (showLoader) setLoading(false);
     }
-  }, []);
+  }, [singlePostId]);
 
   useEffect(() => { fetchPosts({ showLoader: true }); }, [fetchPosts]);
 
@@ -106,16 +111,21 @@ const Posts = () => {
       setPendingActionId(`like-${post._id}`);
       const response = await apiFetch(`/api/v1/posts/${post._id}/like`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
       if (response.ok) {
-        const data = await response.json();
-        const liked = data.liked;
+        const payload = await response.json();
+        const data = payload.data || payload;
+        const msg = data.message || payload.message || "";
+        const isLiked = msg === "Post liked" || (msg.includes("liked") && !msg.includes("unliked") && msg !== "Post liked/unliked");
+        
         setPosts((cur) => cur.map((p) => {
-          if (p._id !== post._id) return p;
-          const newLikes = liked
-            ? [...p.likes.filter((id) => id !== currentUserId), currentUserId]
-            : p.likes.filter((id) => id !== currentUserId);
+          if (String(p._id) !== String(post._id)) return p;
+          
+          const newLikes = isLiked
+            ? [...p.likes.filter((id) => String(typeof id === 'object' ? id?._id || id : id) !== String(currentUserId)), currentUserId]
+            : p.likes.filter((id) => String(typeof id === 'object' ? id?._id || id : id) !== String(currentUserId));
+            
           return { ...p, likes: newLikes };
         }));
-        toast(liked ? "❤️ Post liked!" : "Post unliked", { autoClose: 1000 });
+        toast(isLiked ? "❤️ Post liked!" : "Post unliked", { autoClose: 1000 });
       }
     } catch { toast.error("Failed to update like"); }
     finally { setPendingActionId(""); }
@@ -157,9 +167,14 @@ const Posts = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!response.ok) { toast.error("Could not post comment"); return; }
-      const updatedPost = await response.json();
-      setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, comments: updatedPost.comments || p.comments } : p));
+      if (!response.ok) { 
+        const errData = await response.json();
+        toast.error(errData?.message || "Could not post comment"); 
+        return; 
+      }
+      const payload = await response.json();
+      const newComment = payload.data || payload;
+      setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, comments: [...p.comments, newComment] } : p));
       setCommentDrafts((cur) => ({ ...cur, [post._id]: "" }));
       setOpenComments((cur) => ({ ...cur, [post._id]: true }));
       toast.success("Comment posted");
@@ -176,8 +191,13 @@ const Posts = () => {
     try {
       setPendingActionId(`del-comment-${comment._id}`);
       const response = await apiFetch(`/api/v1/posts/comment/${post._id}/${comment._id}`, { method: "DELETE" });
-      if (!response.ok) { toast.error("Could not remove comment"); return; }
-      const updated = await response.json();
+      if (!response.ok) { 
+        const errData = await response.json();
+        toast.error(errData?.message || "Could not remove comment"); 
+        return; 
+      }
+      const payload = await response.json();
+      const updated = payload.data || payload;
       setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, comments: updated.comments || p.comments } : p));
       toast("Comment removed", { autoClose: 1200 });
     } catch { toast.error("Failed to remove comment"); }
@@ -203,12 +223,75 @@ const Posts = () => {
     return `${Math.floor(hrs / 24)}d ago`;
   };
 
-  if (loading) return <div className="Posts"><div className="postsLoader">Loading your feed...</div></div>;
+  if (loading) {
+    return (
+      <div className="Posts">
+        {[1, 2, 3].map(n => (
+          <div className="Post" key={n} style={{ padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.1)', animation: 'pulse 1.5s infinite' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ width: '120px', height: '14px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px', marginBottom: '0.5rem', animation: 'pulse 1.5s infinite' }} />
+                <div style={{ width: '80px', height: '10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', animation: 'pulse 1.5s infinite' }} />
+              </div>
+            </div>
+            <div style={{ width: '100%', height: '300px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', animation: 'pulse 1.5s infinite' }} />
+          </div>
+        ))}
+        <style>{`
+          @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="Posts">
-      {posts.map((post) => {
-        const isLiked = post.likes.includes(currentUserId);
+      {posts.map((post) => (
+        <PostItem 
+          key={post._id}
+          post={post}
+          currentUserId={currentUserId}
+          openComments={openComments}
+          commentDrafts={commentDrafts}
+          brokenMediaIds={brokenMediaIds}
+          pendingActionId={pendingActionId}
+          doubleClickLikeId={doubleClickLikeId}
+          handleLikes={handleLikes}
+          handleDeletePost={handleDeletePost}
+          handleCommentSubmit={handleCommentSubmit}
+          handleCommentDelete={handleCommentDelete}
+          handleShare={handleShare}
+          setPosts={setPosts}
+          setCommentDrafts={setCommentDrafts}
+          setOpenComments={setOpenComments}
+          setDoubleClickLikeId={setDoubleClickLikeId}
+          setBrokenMediaIds={setBrokenMediaIds}
+          timeAgo={timeAgo}
+          navigate={navigate}
+          ProfileImage={ProfileImage}
+          toast={toast}
+          apiFetch={apiFetch}
+        />
+      ))}
+    </div>
+  );
+};
+
+
+const PostItem = React.memo(({ 
+  post, currentUserId, openComments, commentDrafts, brokenMediaIds, 
+  pendingActionId, doubleClickLikeId, handleLikes, handleDeletePost, 
+  handleCommentSubmit, handleCommentDelete, handleShare, setPosts,
+  setCommentDrafts, setOpenComments, setDoubleClickLikeId, setBrokenMediaIds, 
+  timeAgo, navigate, ProfileImage, toast, apiFetch 
+}) => {
+  
+        const isLiked = Array.isArray(post.likes) && post.likes.some((id) => String(typeof id === 'object' ? id?._id || id : id) === String(currentUserId));
         const isCommentOpen = Boolean(openComments[post._id]);
         const commentCount = post.comments?.length || 0;
         const isOwner = String(post.ownerId) === String(currentUserId);
@@ -262,7 +345,7 @@ const Posts = () => {
                       }
                     }}
                   >
-                    ✏️
+                    <Pencil size={18} />
                   </button>
                   <button
                     className="postDeleteBtn"
@@ -270,7 +353,7 @@ const Posts = () => {
                     disabled={isDeleting}
                     onClick={() => handleDeletePost(post)}
                   >
-                    {isDeleting ? "…" : "🗑"}
+                    {isDeleting ? "…" : <Trash2 size={18} />}
                   </button>
                 </div>
               )}
@@ -298,11 +381,12 @@ const Posts = () => {
                         className="postImage"
                         style={{ width: "100%", objectFit: "cover" }}
                         onError={() => setBrokenMediaIds((cur) => ({ ...cur, [post._id]: true }))}
+                        loading="lazy"
                       />
                     )}
                     {doubleClickLikeId === post._id && (
                       <div className="heartOverlay">
-                        <img src={Heart} alt="heart" />
+                        <Heart size={80} fill="white" color="white" />
                       </div>
                     )}
                   </div>
@@ -313,25 +397,21 @@ const Posts = () => {
               <div className="postMediaFallback">Media could not be loaded.</div>
             )}
 
-            <div className="postReact">
-              <div className="reactItem" onClick={() => handleLikes(post)}>
-                <img src={isLiked ? Heart : NotLike} alt="like" />
-              </div>
-              <div className="reactItem" onClick={() => setOpenComments((cur) => ({ ...cur, [post._id]: !isCommentOpen }))}>
-                <img src={Comment} alt="comment" />
-              </div>
-              <div className="reactItem" onClick={() => handleShare(post)}>
-                <img src={Share} alt="share" />
-              </div>
-              <div className="reactItem" onClick={async () => {
-                if (post.isDemo) return;
-                try {
-                  const res = await apiFetch(`/api/v1/posts/${post._id}/save`, { method: "PUT" });
-                  if (res.ok) toast.success("Post saved!");
-                } catch { toast.error("Failed to save post"); }
-              }}>
-                <span style={{ fontSize: "24px", lineHeight: "1" }}>🔖</span>
-              </div>
+            <div className="postReact" style={{ padding: "0 1rem" }}>
+              <ActionBar 
+                isLiked={isLiked}
+                onLike={() => handleLikes(post)}
+                onCommentToggle={() => setOpenComments((cur) => ({ ...cur, [post._id]: !isCommentOpen }))}
+                onShare={() => handleShare(post)}
+                isSaved={false} // Would come from user state, keeping dummy for now or fetching real
+                onSave={async () => {
+                  if (post.isDemo) return;
+                  try {
+                    const res = await apiFetch(`/api/v1/posts/${post._id}/save`, { method: "PUT" });
+                    if (res.ok) toast.success("Post saved!");
+                  } catch { toast.error("Failed to save post"); }
+                }}
+              />
             </div>
 
             {/* Content & Caption */}
@@ -456,9 +536,7 @@ const Posts = () => {
             )}
           </div>
         );
-      })}
-    </div>
-  );
-};
+      
+});
 
-export default Posts;
+export default React.memo(Posts);

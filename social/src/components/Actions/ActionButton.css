@@ -1,0 +1,87 @@
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text);
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2px;
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .action-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: var(--bg-hover-light);
+  transform: scale(1.05);
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.action-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+/* Variant Styles */
+.action-like:hover:not(:disabled), .action-like.active {
+  color: #f43f5e;
+}
+
+.action-like.active .icon-filled {
+  fill: #f43f5e;
+  stroke: #f43f5e;
+}
+
+.action-comment:hover:not(:disabled) {
+  color: #3b82f6;
+}
+
+.action-share:hover:not(:disabled) {
+  color: #10b981;
+}
+
+.action-share:hover:not(:disabled) .action-icon {
+  transform: rotate(-10deg) scale(1.1);
+}
+
+.action-save:hover:not(:disabled), .action-save.active {
+  color: var(--color-primary);
+}
+
+.action-save.active .icon-filled {
+  fill: var(--color-primary);
+  stroke: var(--color-primary);
+}
+
+/* Animations */
+@keyframes actionPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.pop-animation {
+  animation: actionPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}

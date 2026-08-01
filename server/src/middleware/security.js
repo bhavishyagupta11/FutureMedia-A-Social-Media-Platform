@@ -15,10 +15,12 @@ const applySecurityMiddleware = (app) => {
   });
   app.use("/api", limiter);
 
+  const isTestEnv = process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT_TEST === 'true';
+
   // Stricter rate limit for auth routes
   const authLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 50,
+    max: isTestEnv ? 10000 : 50,
     message: "Too many login attempts, please try again after an hour"
   });
   app.use("/api/auth/login", authLimiter);
