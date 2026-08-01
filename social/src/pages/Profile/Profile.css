@@ -1,8 +1,48 @@
-/* ─── Profile Page ──────────────────────────────────────────────────────── */
 .ProfilePage {
   width: 100%;
+  max-width: 1200px;
   margin: 2rem auto;
-  padding: 0 4rem 4rem;
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.private-profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  margin-top: 2rem;
+  background: var(--color-surface, #131B2E);
+  border: 1px solid var(--color-border, #1E293B);
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.private-icon-pill {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.private-profile-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #FFFFFF);
+  margin-bottom: 0.5rem;
+}
+
+.private-profile-card p {
+  color: var(--color-text-secondary, #94A3B8);
+  font-size: 0.95rem;
+  max-width: 380px;
+  line-height: 1.5;
 }
 
 .profileLoading {
@@ -190,123 +230,125 @@
   border-radius: 3px 3px 0 0;
 }
 
-/* Posts grid */
-.profilePostsGrid {
+/* Instagram-style Post Grid */
+.profileGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-top: 0.5rem;
 }
 
-.profilePostThumb {
+.gridItem {
   position: relative;
-  aspect-ratio: 1;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
-  border-radius: var(--radius-card);
+  border-radius: 4px;
   cursor: pointer;
-  background: var(--color-card);
+  background: var(--color-surface, #18181B);
 }
 
-.profilePostThumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.profilePostThumb:hover img {
-  transform: scale(1.08);
-}
-
-.profilePostOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.2rem;
-}
-
-.profilePostThumb:hover .profilePostOverlay {
+.gridItem:hover .gridItemOverlay {
   opacity: 1;
 }
 
-.overlayItem {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+.gridMedia {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
 }
 
-/* People list */
-.profilePeopleList {
+.gridItem:hover .gridMedia {
+  transform: scale(1.05);
+}
+
+.gridItemOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.textPostPreview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(124, 58, 237, 0.15));
+  text-align: center;
+  color: var(--color-text-muted, #a1a1aa);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
+.textPostPreview p {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Empty state */
+.emptyState {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: var(--color-text-muted, #a1a1aa);
   gap: 1rem;
 }
 
-.profilePersonRow {
+.emptyState p {
+  font-size: 1rem;
+}
+
+/* User list for followers/following tabs */
+.userList {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.userListItem {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
-  padding: 1rem 0;
-  background: transparent;
-  border-bottom: 1px solid var(--color-border);
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: var(--transition-smooth);
+  transition: background 0.2s ease;
 }
 
-.profilePersonRow:hover {
-  background: var(--color-card-hover);
+.userListItem:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.profilePersonRow img {
-  width: 50px;
-  height: 50px;
+.userListItem img {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.profilePersonRow strong {
-  display: block;
-  color: var(--color-text);
-  font-size: 1.05rem;
-}
-
-.profilePersonRow span {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-}
-
-.profileEmptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: var(--color-text);
-  padding: 6rem 2rem;
-  background: transparent;
-  grid-column: 1 / -1;
-  width: 100%;
-}
-
-.profileEmptyState h2 {
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
-  font-weight: 800;
-}
-
-.profileEmptyState p {
-  color: var(--color-text-muted);
-  font-size: 1.1rem;
-  max-width: 600px;
-  line-height: 1.6;
+.userListItem span {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text, #fff);
 }
 
 /* ─── Edit Profile ──────────────────────────────────────────────────────── */
@@ -453,24 +495,63 @@
 }
 
 @media (max-width: 768px) {
-  .profileInfo {
+  .ProfilePage {
+    padding: 0 var(--space-1) var(--space-2);
+    margin: 1rem auto;
+  }
+
+  .profileHeader {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    gap: 1.5rem;
+    padding: 1rem 1rem 0;
   }
-  .profileAvatarWrapper {
-    left: 50%;
-    transform: translateX(-50%);
+
+  .profileAvatar {
+    width: 86px;
+    height: 86px;
   }
+
+  .profileHeaderTop {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
   .profileStats {
     justify-content: center;
     width: 100%;
   }
+
   .profileActions {
     justify-content: center;
     width: 100%;
   }
-  .profilePostsGrid {
+
+  .profileBioSection {
+    align-items: center;
+  }
+
+  .profileGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .profileTabs {
+    gap: 0;
+    justify-content: space-around;
+  }
+
+  .tab {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .profileGrid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
   }
 }
