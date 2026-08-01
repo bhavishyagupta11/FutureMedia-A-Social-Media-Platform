@@ -5,8 +5,10 @@ import Masonry from "react-masonry-css";
 import { Heart, MessageCircle, Compass, Hash, Users } from "lucide-react";
 import { apiFetch } from "../../utils/api";
 import ProfileImage from "../../img/profileImg.jpg";
+import { useNavigate } from "react-router-dom";
 
 const Explore = () => {
+  const navigate = useNavigate();
   const [searchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [posts, setPosts] = useState([]);
@@ -35,7 +37,8 @@ const Explore = () => {
     try {
       const res = await apiFetch("/api/v1/posts");
       if (res.ok) {
-        const data = await res.json();
+        const payload = await res.json();
+        const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
         setPosts(data.sort(() => 0.5 - Math.random())); 
       }
     } catch (error) {
@@ -99,23 +102,26 @@ const Explore = () => {
               <p>Discover creators, trending hashtags, and recommended users to fill your feed.</p>
               
               <div className="emptyStateSuggestions">
-                <div className="suggestionBox">
+                <div className="suggestionBox" onClick={() => navigate('/explore')}>
                   <Hash size={24} />
                   <span>Trending</span>
                 </div>
-                <div className="suggestionBox">
+                <div className="suggestionBox" onClick={() => navigate('/search')}>
                   <Users size={24} />
                   <span>Creators</span>
                 </div>
               </div>
 
-              <button className="primaryCTA">Start Discovering</button>
+              <button className="primaryCTA" onClick={() => navigate('/search')}>Start Discovering</button>
             </div>
           ) : (
             filteredPosts.map((post, index) => {
-              const image = post.media && post.media.length > 0 ? post.media[0].url : post.imageUrl;
-              if (!image) return null;
+              const media = post.media && post.media.length > 0 ? post.media[0] : null;
+              const image = media ? media.url : post.imageUrl;
               
+              const isVideo = media ? media.type === "video" : (image && image.match(/\.(mp4|webm|ogg)$/i));
+              const url = image ? (image.startsWith("http") ? image : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${image}`) : null;
+
               return (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -123,12 +129,20 @@ const Explore = () => {
                   transition={{ delay: Math.min(index * 0.05, 0.5) }}
                   key={post._id}
                   className="masonryItem"
+                  style={{ background: 'var(--color-card)', cursor: 'pointer' }}
+                  onClick={() => window.location.href = `/post/${post._id}`}
                 >
-                  <img 
-                    src={image.startsWith("http") ? image : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${image}`} 
-                    alt="Post" 
-                    className="masonryImage" 
-                  />
+                  {url ? (
+                    isVideo ? (
+                      <video src={url} className="masonryImage" style={{ objectFit: "cover" }} />
+                    ) : (
+                      <img src={url} alt="Post" className="masonryImage" />
+                    )
+                  ) : (
+                    <div style={{ padding: '2rem 1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: 'var(--color-text)', fontSize: '1.2rem', fontWeight: 600, wordBreak: 'break-word', minHeight: '150px' }}>
+                      {post.caption || "Text Post"}
+                    </div>
+                  )}
                   <div className="masonryOverlay">
                     <div className="masonryAuthor">
                       <img 
