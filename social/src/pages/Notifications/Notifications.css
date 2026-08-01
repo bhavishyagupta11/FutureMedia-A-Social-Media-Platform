@@ -6,8 +6,8 @@
 }
 
 .notifications-timeline {
-  width: 65%;
-  min-width: 600px;
+  width: 100%;
+  max-width: 1000px;
   display: flex;
   flex-direction: column;
 }
