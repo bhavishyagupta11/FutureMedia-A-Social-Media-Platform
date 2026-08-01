@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./Auth.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
-import { clearUserSession, persistUserSession } from "../../utils/session";
+import { clearUserSession, persistUserSession, getSessionUserId } from "../../utils/session";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -51,13 +51,16 @@ const AuthBrand = ({ title, subtitle }) => {
 function LogIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resendStatus, setResendStatus] = useState({ loading: false, success: false, error: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem("userId")) {
-      clearUserSession();
+    // If already logged in, redirect home
+    if (getSessionUserId()) {
+      navigate("/home", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   const loginMutation = useMutation({
     mutationFn: async (formData) => {
@@ -68,7 +71,10 @@ function LogIn() {
       });
       const data = await response.json();
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Login failed");
+        const err = new Error(data.message || "Login failed");
+        err.code = data.code;
+        err.canResend = data.canResend;
+        throw err;
       }
       return data;
     },
@@ -78,7 +84,12 @@ function LogIn() {
       navigate("/home");
     },
     onError: (error) => {
-      toast.error(error.message);
+      if (error.code === "EMAIL_NOT_VERIFIED") {
+        setUnverifiedEmail(username.trim());
+        toast.error("Please verify your email address to log in.");
+      } else {
+        toast.error(error.message);
+      }
     },
   });
 
@@ -90,6 +101,28 @@ function LogIn() {
       return;
     }
     loginMutation.mutate({ username: normalizedUsername, password });
+  };
+
+  const handleResendFromLogin = async () => {
+    if (!unverifiedEmail) return;
+    setResendStatus({ loading: true, success: false, error: "" });
+    try {
+      const res = await apiFetch("/api/v1/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: unverifiedEmail })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResendStatus({ loading: false, success: true, error: "" });
+        toast.success("Verification email sent! Please check your inbox.");
+      } else {
+        setResendStatus({ loading: false, success: false, error: data.message || "Failed to resend email." });
+        toast.error(data.message || "Failed to resend link.");
+      }
+    } catch {
+      setResendStatus({ loading: false, success: false, error: "Network error. Please try again." });
+    }
   };
 
   return (
@@ -107,6 +140,31 @@ function LogIn() {
         <form className="infoForm authForm" onSubmit={handleLogin}>
           <h3>Log In</h3>
           <p className="authHint">Log in to continue your FM journey.</p>
+
+          {unverifiedEmail && (
+            <div style={{ background: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "8px", padding: "14px", marginBottom: "16px" }}>
+              <div style={{ color: "#f59e0b", fontWeight: "600", fontSize: "14px", marginBottom: "4px" }}>
+                Email Verification Required
+              </div>
+              <div style={{ color: "var(--color-text-secondary)", fontSize: "13px", marginBottom: "10px" }}>
+                Your account is registered but email address has not been verified yet.
+              </div>
+              {resendStatus.success ? (
+                <div style={{ color: "#10b981", fontSize: "13px", fontWeight: "600" }}>
+                  ✓ Fresh verification email dispatched! Check your inbox.
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendFromLogin}
+                  disabled={resendStatus.loading}
+                  style={{ background: "var(--color-primary)", color: "#fff", border: "none", borderRadius: "6px", padding: "8px 14px", fontSize: "13px", cursor: "pointer", fontWeight: "600" }}
+                >
+                  {resendStatus.loading ? "Sending..." : "Resend Verification Link"}
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="inputGroup">
             <label htmlFor="login-username">Username or Email</label>
@@ -196,19 +254,8 @@ function Authenticate() {
       return { payload, data };
     },
     onSuccess: async ({ payload }) => {
-      toast.success("Account created successfully!");
-      const loginResp = await apiFetch("/api/v1/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: payload.username, password: payload.password }),
-      });
-      if (loginResp.ok) {
-        const loginData = await loginResp.json();
-        persistUserSession(loginData.data || loginData);
-        navigate("/home");
-      } else {
-        navigate("/");
-      }
+      toast.success("Account created successfully! Please check your email to verify your account.");
+      navigate("/");
     },
     onError: (error) => {
       if (error.isValidation) {
@@ -378,8 +425,8 @@ function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
-  // Assume token is passed in URL like /reset-password/:token
-  const token = window.location.pathname.split("/").pop();
+  const { token: routeToken } = useParams();
+  const token = routeToken || window.location.pathname.split("/").pop();
 
   const resetMutation = useMutation({
     mutationFn: async (payload) => {
