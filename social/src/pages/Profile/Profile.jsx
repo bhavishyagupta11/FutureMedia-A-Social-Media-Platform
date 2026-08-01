@@ -2,73 +2,122 @@ import React, { useEffect, useState } from "react";
 import "./Profile.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
-import { getSessionUserId } from "../../utils/session";
+import { getSessionUserId, getStoredUserProfile } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
 import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "framer-motion";
-import { Edit3, UserPlus, UserMinus, MessageCircle, Heart, MessageSquare, Link as LinkIcon, Grid, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import { Lock, Bookmark, Link as LinkIcon, Grid, Users, Heart } from "lucide-react";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { id: paramId } = useParams();
+  const { username: paramUsername } = useParams();
   const currentUserId = getSessionUserId();
-  const profileId = paramId || currentUserId;
+  const storedUser = getStoredUserProfile();
+  const profileIdentifier = paramUsername || storedUser.username || currentUserId;
 
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [tab, setTab] = useState("posts");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isRequested, setIsRequested] = useState(false);
   const [loadingFollow, setLoadingFollow] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!currentUserId) { navigate("/"); return; }
-    if (!profileId) return;
+    if (!profileIdentifier) return;
 
-    apiFetch(`/api/v1/users/${profileId}`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
-        if (!data) return;
-        setUser(data);
-        if (data.followers) {
-          setIsFollowing(data.followers.some((f) => {
+    apiFetch(`/api/v1/users/${profileIdentifier}`)
+      .then((r) => {
+        if (!r.ok) {
+          setError(true);
+          return null;
+        }
+        return r.json();
+      })
+      .then((payload) => {
+        if (!payload) return;
+        const userData = payload.data || payload;
+        setUser(userData);
+
+        if (userData.followers) {
+          setIsFollowing(userData.followers.some((f) => {
             const fid = f._id || f;
             return String(fid) === String(currentUserId);
           }));
         }
+
+        if (userData.followRequests) {
+          setIsRequested(userData.followRequests.some((r) => {
+            const rid = r._id || r;
+            return String(rid) === String(currentUserId);
+          }));
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(true);
+      });
+
+    apiFetch(`/api/v1/posts/user/${profileIdentifier}`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((payload) => {
+        const postsData = payload.data || payload;
+        setPosts(Array.isArray(postsData) ? postsData : []);
       })
       .catch(console.error);
-
-    apiFetch(`/api/v1/posts/user/${profileId}`)
-      .then((r) => r.ok ? r.json() : [])
-      .then((data) => setPosts(Array.isArray(data) ? data : []))
-      .catch(console.error);
-  }, [profileId, currentUserId, navigate]);
+  }, [profileIdentifier, currentUserId, navigate]);
 
   const handleFollow = async () => {
     try {
       setLoadingFollow(true);
-      const endpoint = isFollowing
-        ? `/api/v1/users/${profileId}/unfollow`
-        : `/api/v1/users/${profileId}/follow`;
-      const response = await apiFetch(endpoint, { method: "POST" });
-      if (!response.ok) { toast.error("Could not update follow"); return; }
+      const endpoint = (isFollowing || isRequested)
+        ? `/api/v1/users/${user?._id || profileIdentifier}/unfollow`
+        : `/api/v1/users/${user?._id || profileIdentifier}/follow`;
 
-      setIsFollowing((prev) => !prev);
-      setUser((prev) => {
-        if (!prev) return prev;
-        const followers = prev.followers || [];
-        if (isFollowing) {
-          return { ...prev, followers: followers.filter((f) => String(f._id || f) !== String(currentUserId)) };
-        } else {
-          return { ...prev, followers: [...followers, { _id: currentUserId }] };
-        }
-      });
-      toast.success(isFollowing ? `Unfollowed @${user?.username}` : `Now following @${user?.username}! 🎉`, { autoClose: 1500 });
-    } catch { toast.error("Network error"); }
-    finally { setLoadingFollow(false); }
+      const response = await apiFetch(endpoint, { method: "POST" });
+      if (!response.ok) { 
+        const errData = await response.json();
+        toast.error(errData?.message || "Could not update follow status"); 
+        return; 
+      }
+
+      const resData = await response.json();
+      const payload = resData.data || resData;
+
+      if (payload.requested) {
+        setIsRequested(true);
+        setIsFollowing(false);
+        toast.info(`Follow request sent to @${user?.username}!`);
+      } else if (payload.following) {
+        setIsFollowing(true);
+        setIsRequested(false);
+        toast.success(`Now following @${user?.username}! 🎉`, { autoClose: 1500 });
+      } else {
+        setIsFollowing(false);
+        setIsRequested(false);
+        toast.info(payload.message || `Unfollowed @${user?.username}`);
+      }
+    } catch { 
+      toast.error("Network error"); 
+    } finally { 
+      setLoadingFollow(false); 
+    }
   };
 
-  const isOwnProfile = String(profileId) === String(currentUserId);
+  const isOwnProfile = user 
+    ? (String(user._id) === String(currentUserId) || user.username === storedUser.username)
+    : false;
+
+  const isAuthorized = isOwnProfile || !user?.isPrivate || isFollowing;
+
+  if (error) return (
+    <div className="profileLoading" style={{ color: "var(--color-text)", textAlign: "center", padding: "2rem" }}>
+      <h2>User not found</h2>
+      <p>The profile you are looking for does not exist or has been removed.</p>
+      <button className="primaryCTA" onClick={() => navigate("/home")} style={{ marginTop: "1rem" }}>Return Home</button>
+    </div>
+  );
 
   if (!user) return (
     <div className="profileLoading">
@@ -115,13 +164,13 @@ const ProfilePage = () => {
               ) : (
                 <>
                   <button
-                    className={`profileBtn ${isFollowing ? "unfollowBtn" : "followBtn"}`}
+                    className={`profileBtn ${isFollowing ? "unfollowBtn" : isRequested ? "requestedBtn" : "followBtn"}`}
                     onClick={handleFollow}
                     disabled={loadingFollow}
                   >
-                    {loadingFollow ? "..." : isFollowing ? "Following" : "Follow"}
+                    {loadingFollow ? "..." : isFollowing ? "Following" : isRequested ? "Requested" : "Follow"}
                   </button>
-                  <button className="profileBtn messageBtn" onClick={() => navigate("/messages", { state: { startChatWith: profileId } })}>
+                  <button className="profileBtn messageBtn" onClick={() => navigate("/messages", { state: { startChatWith: user._id } })}>
                     Message
                   </button>
                 </>
@@ -131,12 +180,12 @@ const ProfilePage = () => {
 
           <div className="profileStats">
             <div className="statItem">
-              <strong>{posts.length}</strong> posts
+              <strong>{isAuthorized ? posts.length : 0}</strong> posts
             </div>
-            <div className="statItem" onClick={() => setTab("followers")} style={{ cursor: "pointer" }}>
+            <div className="statItem" onClick={() => isAuthorized && setTab("followers")} style={{ cursor: isAuthorized ? "pointer" : "default" }}>
               <strong>{user.followers?.length || 0}</strong> followers
             </div>
-            <div className="statItem" onClick={() => setTab("following")} style={{ cursor: "pointer" }}>
+            <div className="statItem" onClick={() => isAuthorized && setTab("following")} style={{ cursor: isAuthorized ? "pointer" : "default" }}>
               <strong>{user.following?.length || 0}</strong> following
             </div>
           </div>
@@ -153,141 +202,101 @@ const ProfilePage = () => {
         </motion.div>
       </div>
 
-      {/* Tabs */}
-      <div className="profileTabs">
-        {[
-          { id: "posts", icon: <Grid size={18} />, label: "Posts" },
-          { id: "reels", icon: <Heart size={18} />, label: "Reels" }, /* Using Heart since Play is not imported, let's just use Grid/Heart/Users */
-          { id: "tagged", icon: <Users size={18} />, label: "Tagged" },
-          { id: "saved", icon: <Heart size={18} />, label: "Saved" }
-        ].map((t) => (
-          <button 
-            key={t.id}
-            className={`tab ${tab === t.id ? "activeTab" : ""}`} 
-            onClick={() => setTab(t.id)}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {t.icon} {t.label}
-            </div>
-            {tab === t.id && (
-              <motion.div layoutId="activeTabIndicator" className="activeTabIndicator" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab content */}
-      <div className="profileTabContent">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-          >
-            {tab === "posts" && (
-              <div className="profilePostsGrid">
-                {posts.length === 0 ? (
-                  <div className="profileEmptyState">
-                    <Grid size={64} className="emptyStateIcon" />
-                    <h2>No posts yet</h2>
-                    <p>When this user shares photos or videos, they will appear here.</p>
-                  </div>
-                ) : (
-                  posts.map((post, i) => (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="profilePostThumb" 
-                      key={post._id}
-                    >
-                      <img src={post.imageUrl} alt={post.caption || "post"} />
-                      <div className="profilePostOverlay">
-                        <div className="overlayItem">
-                          <Heart size={20} fill="#fff" /> {post.likes?.length || 0}
-                        </div>
-                        <div className="overlayItem">
-                          <MessageSquare size={20} fill="#fff" /> {post.comments?.length || 0}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))
+      {/* Main Content: Protected vs Authorized */}
+      {!isAuthorized ? (
+        <div className="private-profile-card">
+          <div className="private-icon-pill">
+            <Lock size={36} color="var(--color-primary, #7C3AED)" />
+          </div>
+          <h3>This Account is Private</h3>
+          <p>Follow @{user.username} to see their posts, photos, and activity.</p>
+        </div>
+      ) : (
+        <>
+          {/* Tabs */}
+          <div className="profileTabs">
+            {[
+              { id: "posts", icon: <Grid size={18} />, label: "Posts" },
+              { id: "followers", icon: <Users size={18} />, label: "Followers" },
+              { id: "following", icon: <Users size={18} />, label: "Following" },
+              { id: "saved", icon: <Bookmark size={18} />, label: "Saved" }
+            ].map((t) => (
+              <button 
+                key={t.id}
+                className={`tab ${tab === t.id ? "activeTab" : ""}`} 
+                onClick={() => setTab(t.id)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {t.icon} {t.label}
+                </div>
+                {tab === t.id && (
+                  <motion.div layoutId="activeTabIndicator" className="activeTabIndicator" />
                 )}
-              </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Grid Content */}
+          <div className="profileGrid">
+            {tab === "posts" && (
+              posts.length === 0 ? (
+                <div className="emptyState">
+                  <Grid size={48} color="var(--color-text-secondary)" />
+                  <p>No posts yet</p>
+                </div>
+              ) : (
+                posts.map((post) => (
+                  <div key={post._id} className="gridItem" onClick={() => navigate(`/post/${post._id}`)}>
+                    {post.media && post.media[0] ? (
+                      post.media[0].type === "video" ? (
+                        <video src={post.media[0].url} className="gridMedia" />
+                      ) : (
+                        <img src={post.media[0].url} alt="post" className="gridMedia" />
+                      )
+                    ) : (
+                      <div className="textPostPreview">
+                        <p>{post.caption}</p>
+                      </div>
+                    )}
+                    <div className="gridItemOverlay">
+                      <span><Heart size={18} fill="#fff" /> {post.likes?.length || 0}</span>
+                    </div>
+                  </div>
+                ))
+              )
             )}
 
             {tab === "followers" && (
-              <div className="profilePeopleList">
-                {(user.followers || []).length === 0 ? (
-                  <div className="profileEmptyState">
-                    <Users size={64} className="emptyStateIcon" />
-                    <h2>No followers yet</h2>
-                    <p>Once people start following this user, they'll show up here.</p>
+              <div className="userList">
+                {user.followers?.map((f) => (
+                  <div key={f._id} className="userListItem" onClick={() => navigate(`/profile/${f.username || f._id}`)}>
+                    <img src={f.profilePicture || ProfileImage} alt={f.username} />
+                    <span>@{f.username}</span>
                   </div>
-                ) : (
-                  user.followers.map((f, i) => {
-                    const fid = f._id || f;
-                    const fname = f.displayName || f.username || "User";
-                    const favatar = f.profilePicture || ProfileImage;
-                    return (
-                      <motion.div 
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="profilePersonRow" 
-                        key={String(fid)} 
-                        onClick={() => navigate(`/profile/${fid}`)}
-                      >
-                        <img src={favatar} alt={fname} />
-                        <div>
-                          <strong>{fname}</strong>
-                          {f.username && <span>@{f.username}</span>}
-                        </div>
-                      </motion.div>
-                    );
-                  })
-                )}
+                ))}
               </div>
             )}
 
             {tab === "following" && (
-              <div className="profilePeopleList">
-                {(user.following || []).length === 0 ? (
-                  <div className="profileEmptyState">
-                    <UserPlus size={64} className="emptyStateIcon" />
-                    <h2>Not following anyone</h2>
-                    <p>Once this user starts following others, they'll show up here.</p>
+              <div className="userList">
+                {user.following?.map((f) => (
+                  <div key={f._id} className="userListItem" onClick={() => navigate(`/profile/${f.username || f._id}`)}>
+                    <img src={f.profilePicture || ProfileImage} alt={f.username} />
+                    <span>@{f.username}</span>
                   </div>
-                ) : (
-                  user.following.map((f, i) => {
-                    const fid = f._id || f;
-                    const fname = f.displayName || f.username || "User";
-                    const favatar = f.profilePicture || ProfileImage;
-                    return (
-                      <motion.div 
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="profilePersonRow" 
-                        key={String(fid)} 
-                        onClick={() => navigate(`/profile/${fid}`)}
-                      >
-                        <img src={favatar} alt={fname} />
-                        <div>
-                          <strong>{fname}</strong>
-                          {f.username && <span>@{f.username}</span>}
-                        </div>
-                      </motion.div>
-                    );
-                  })
-                )}
+                ))}
               </div>
             )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+
+            {tab === "saved" && (
+              <div className="emptyState">
+                <Bookmark size={48} color="var(--color-text-secondary)" />
+                <p>Saved posts are private to you</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </motion.div>
   );
 };
