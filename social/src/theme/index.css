@@ -29,19 +29,19 @@
   --space-4: 32px;
   
   /* Radius */
-  --radius-card: 12px;
-  --radius-button: 8px;
+  --radius-card: 28px;
+  --radius-button: 18px;
   --radius-avatar: 50%;
   
   /* Glassmorphism & Shadows */
-  --blur-glass: blur(10px);
-  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-glow: none;
-  --shadow-focus: 0 0 0 2px rgba(var(--color-primary-rgb), 0.3);
-  --shadow-primary-hover: none;
-  --transition-smooth: all 0.2s ease-out;
+  --blur-glass: blur(20px);
+  --shadow-soft: 0 8px 32px 0 rgba(79, 70, 229, 0.15);
+  --shadow-glow: 0 8px 32px 0 rgba(79, 70, 229, 0.3);
+  --shadow-focus: 0 0 0 2px rgba(var(--color-primary-rgb), 0.5);
+  --shadow-primary-hover: 0 8px 32px 0 rgba(79, 70, 229, 0.4);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --bg-input: rgba(255, 255, 255, 0.05);
-  --bg-hover-light: rgba(255, 255, 255, 0.05);
+  --bg-hover-light: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -95,4 +95,69 @@ a {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
+}
+
+/* Unified Global Button Design System */
+button {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.primaryCTA,
+.btn-primary,
+.btn-gradient {
+  background: linear-gradient(135deg, var(--color-primary, #4F46E5), var(--color-secondary, #7C3AED)) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 10px 22px !important;
+  border-radius: 18px !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+  transition: all 0.25s ease !important;
+  text-decoration: none !important;
+}
+
+.primaryCTA:hover,
+.btn-primary:hover,
+.btn-gradient:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45) !important;
+  background: linear-gradient(135deg, #4338CA, #6D28D9) !important;
+}
+
+.primaryCTA:active,
+.btn-primary:active,
+.btn-gradient:active {
+  transform: translateY(0) !important;
+}
+
+.secondaryCTA,
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--color-text, #ffffff) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  padding: 10px 22px !important;
+  border-radius: 18px !important;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12)) !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.25s ease !important;
+}
+
+.secondaryCTA:hover,
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
 }
