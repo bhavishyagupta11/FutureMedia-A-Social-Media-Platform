@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { House, Compass, SquarePlus, Bell, MessageCircleMore, User } from 'lucide-react';
+import { House, Search, Compass, SquarePlus, Bell, MessageCircleMore, User } from 'lucide-react';
 import { getStoredUserProfile } from '../../utils/session';
 import './BottomNav.css';
 
@@ -11,6 +11,10 @@ const BottomNav = ({ onOpenCreateModal }) => {
     <nav className="bottom-nav">
       <NavLink to="/home" className={({ isActive }) => isActive ? 'bnav-item active' : 'bnav-item'} aria-label="Home">
         <House size={22} />
+      </NavLink>
+
+      <NavLink to="/search" className={({ isActive }) => isActive ? 'bnav-item active' : 'bnav-item'} aria-label="Search">
+        <Search size={22} />
       </NavLink>
 
       <NavLink to="/explore" className={({ isActive }) => isActive ? 'bnav-item active' : 'bnav-item'} aria-label="Explore">

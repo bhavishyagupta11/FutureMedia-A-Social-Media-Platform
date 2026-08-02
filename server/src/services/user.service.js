@@ -109,10 +109,6 @@ const searchUsers = async (query, currentUserId) => {
     ]
   };
 
-  if (currentUserId) {
-    filter._id = { $ne: currentUserId };
-  }
-
   const users = await User.find(filter)
     .select("username displayName profilePicture bio isVerified isPrivate followRequests followers settings")
     .limit(20);
