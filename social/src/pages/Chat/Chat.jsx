@@ -7,7 +7,7 @@ import ProfileImage from "../../img/profileImg.jpg";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Send, X, MessageCircleMore, MoreVertical } from "lucide-react";
+import { Search, Send, X, MessageCircleMore, MoreVertical, Smile, Image } from "lucide-react";
 
 const ENDPOINT = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 let socket;
@@ -378,22 +378,31 @@ const Chat = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="chatInputBar">
-              <input
-                type="text"
-                placeholder="Message..."
-                value={newMessage}
-                onChange={handleTyping}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                className="chatInput"
-              />
-              <button 
-                className="chatSendBtn"
-                onClick={sendMessage}
-                disabled={!newMessage.trim()}
-              >
-                <Send size={18} />
-              </button>
+            <div className="chatInputContainer">
+              <div className="chatInputRow">
+                <button type="button" className="chatAttachBtn" title="Add emoji">
+                  <Smile size={20} />
+                </button>
+                <button type="button" className="chatAttachBtn" title="Attach media">
+                  <Image size={20} />
+                </button>
+                <input
+                  type="text"
+                  placeholder="Message..."
+                  value={newMessage}
+                  onChange={handleTyping}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  className="chatInput"
+                />
+                <button 
+                  className="chatSendBtn"
+                  onClick={sendMessage}
+                  disabled={!newMessage.trim()}
+                  title="Send message"
+                >
+                  <Send size={18} />
+                </button>
+              </div>
             </div>
           </>
         )}

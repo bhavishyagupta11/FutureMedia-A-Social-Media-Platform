@@ -30,20 +30,6 @@ const AuthBrand = ({ title, subtitle }) => {
       </div>
       <h2>{title}</h2>
       <p className="brandSubtitle">{subtitle}</p>
-      <div className="authStats">
-        <div>
-          <strong>2M+</strong>
-          <span>Daily Loops</span>
-        </div>
-        <div>
-          <strong>860K+</strong>
-          <span>Creators</span>
-        </div>
-        <div>
-          <strong>150+</strong>
-          <span>Countries</span>
-        </div>
-      </div>
     </motion.div>
   );
 };
