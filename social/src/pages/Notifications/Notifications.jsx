@@ -1,82 +1,136 @@
 import React, { useState, useEffect } from "react";
 import "./Notifications.css";
-import { motion } from "framer-motion";
-import { Bell, Heart, MessageCircle, UserPlus, Star } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, Heart, MessageCircle, UserPlus, Star, Check, X, ArrowRight } from "lucide-react";
 import ProfileImage from "../../img/profileImg.jpg";
 import { apiFetch } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState({});
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await apiFetch("/api/v1/notifications");
-        if (response.ok) {
-          const payload = await response.json();
-          const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          if (data.length > 0) {
-            // Group them simply as "Recent"
-            setNotifications([{ group: "Recent", items: data.map(n => ({
-              id: n._id,
-              type: n.type.toLowerCase(),
-              user: { name: n.sender?.displayName || n.sender?.username, handle: n.sender?.username, avatar: n.sender?.profilePicture || ProfileImage },
-              message: n.body,
-              time: new Date(n.createdAt).toLocaleDateString(),
-              unread: !n.read,
-              link: n.deepLink
-            })) }]);
-          } else {
-            setNotifications([]);
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchNotifications();
   }, []);
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await apiFetch("/api/v1/notifications");
+      if (response.ok) {
+        const payload = await response.json();
+        const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
+        setNotifications(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getIconForType = (type) => {
-    switch (type) {
+    const t = (type || "").toLowerCase();
+    switch (t) {
       case "like": return <Heart size={14} color="#fff" fill="#fff" />;
       case "comment": return <MessageCircle size={14} color="#fff" fill="#fff" />;
-      case "follow": return <UserPlus size={14} color="#fff" />;
+      case "follow":
+      case "follow_request": return <UserPlus size={14} color="#fff" />;
       case "mention": return <Star size={14} color="#fff" fill="#fff" />;
       default: return <Bell size={14} color="#fff" />;
     }
   };
 
   const getIconColor = (type) => {
-    switch (type) {
+    const t = (type || "").toLowerCase();
+    switch (t) {
       case "like": return "#f43f5e";
       case "comment": return "#3b82f6";
-      case "follow": return "#10b981";
+      case "follow":
+      case "follow_request": return "#10b981";
       case "mention": return "#eab308";
       default: return "var(--color-primary)";
     }
   };
 
-  const markAsRead = async (groupId, notifId) => {
+  const handleAcceptRequest = async (notif) => {
+    const senderId = notif.sender?._id || notif.sender;
+    const notifId = notif._id;
+    if (!senderId) return;
+
     try {
-      const res = await apiFetch(`/api/v1/notifications/${notifId}/read`, { method: "PUT" });
+      setActionLoading(prev => ({ ...prev, [notifId]: true }));
+      const res = await apiFetch(`/api/v1/users/${senderId}/accept-follow-request`, { method: "POST" });
       if (res.ok) {
-        setNotifications(notifications.map(group => {
-          if (group.group === groupId) {
-            return {
-              ...group,
-              items: group.items.map(n => n.id === notifId ? { ...n, unread: false } : n)
-            };
-          }
-          return group;
-        }));
+        toast.success("Follow request accepted!");
+        setNotifications(prev => prev.map(n => n._id === notifId ? {
+          ...n,
+          type: "follow",
+          body: "is now following you",
+          sender: { ...n.sender, relationshipStatus: "following" }
+        } : n));
+      } else {
+        const data = await res.json();
+        toast.error(data?.message || "Failed to accept request");
       }
-    } catch (e) { console.error(e); }
+    } catch (err) {
+      toast.error("Network error");
+    } finally {
+      setActionLoading(prev => ({ ...prev, [notifId]: false }));
+    }
+  };
+
+  const handleRejectRequest = async (notif) => {
+    const senderId = notif.sender?._id || notif.sender;
+    const notifId = notif._id;
+    if (!senderId) return;
+
+    try {
+      setActionLoading(prev => ({ ...prev, [notifId]: true }));
+      const res = await apiFetch(`/api/v1/users/${senderId}/reject-follow-request`, { method: "POST" });
+      if (res.ok) {
+        toast.info("Follow request removed");
+        await apiFetch(`/api/v1/notifications/${notifId}`, { method: "DELETE" });
+        setNotifications(prev => prev.filter(n => n._id !== notifId));
+      }
+    } catch (err) {
+      toast.error("Network error");
+    } finally {
+      setActionLoading(prev => ({ ...prev, [notifId]: false }));
+    }
+  };
+
+  const handleNotificationClick = (notif) => {
+    const t = (notif.type || "").toLowerCase();
+    const senderHandle = notif.sender?.username;
+    
+    if (notif.deepLink) {
+      navigate(notif.deepLink);
+      return;
+    }
+
+    if (t === "follow_request" || t === "follow") {
+      if (senderHandle) navigate(`/profile/${senderHandle}`);
+    } else if (t === "message") {
+      navigate("/messages");
+    } else if (notif.entityId) {
+      navigate(`/post/${notif.entityId}`);
+    }
+  };
+
+  const markAllRead = async () => {
+    try {
+      const res = await apiFetch("/api/v1/notifications/read-all", { method: "PUT" });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        toast.success("All notifications marked as read");
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -90,35 +144,23 @@ const Notifications = () => {
       <div className="notifications-timeline">
         <div className="notificationsHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1>Notifications</h1>
-          <button 
-            className="primaryCTA" 
-            style={{ padding: "8px 16px", fontSize: "14px" }}
-            onClick={async () => {
-              try {
-                const res = await apiFetch("/api/v1/notifications/read-all", { method: "PUT" });
-                if (res.ok) {
-                  setNotifications(notifications.map(group => ({
-                    ...group,
-                    items: group.items.map(n => ({ ...n, unread: false }))
-                  })));
-                }
-              } catch (e) { console.error(e); }
-            }}
-          >
-            Mark all as read
-          </button>
+          {notifications.length > 0 && (
+            <button className="primaryCTA" style={{ padding: "8px 16px", fontSize: "14px" }} onClick={markAllRead}>
+              Mark all as read
+            </button>
+          )}
         </div>
 
         <div className="notificationsItems">
           {loading ? (
             <div className="notificationsEmptyState">
-              <h2>Loading...</h2>
+              <h2>Loading notifications...</h2>
             </div>
           ) : notifications.length === 0 ? (
             <div className="notificationsEmptyState">
               <Bell size={64} className="emptyStateIcon" />
               <h2>You're all caught up!</h2>
-              <p>When you interact with others or they interact with you, your notifications will appear here.</p>
+              <p>When you interact with creators or receive follow requests, your notifications will appear here.</p>
               
               <div className="emptyStateSuggestions">
                 <div className="suggestionBox" onClick={() => navigate('/search')}>
@@ -134,43 +176,91 @@ const Notifications = () => {
               <button className="primaryCTA" onClick={() => navigate('/explore')}>Explore FutureMedia</button>
             </div>
           ) : (
-            notifications.map((group, gIndex) => (
-              <div key={gIndex} className="notificationGroup">
-                <h3 className="notificationGroupTitle">{group.group}</h3>
-                {group.items.map((notif, index) => (
+            <AnimatePresence>
+              {notifications.map((notif, index) => {
+                const sender = notif.sender || {};
+                const senderName = sender.displayName || sender.username || "Someone";
+                const senderHandle = sender.username || "user";
+                const avatar = sender.profilePicture || ProfileImage;
+                const type = (notif.type || "").toLowerCase();
+                const isBusy = actionLoading[notif._id];
+
+                return (
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    key={notif.id}
-                    className={`notificationItem ${notif.unread ? "unread" : ""}`}
-                    onClick={() => markAsRead(group.group, notif.id)}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ delay: index * 0.03 }}
+                    key={notif._id}
+                    className={`notificationItem ${!notif.read ? "unread" : ""}`}
                   >
-                    <div className="notificationAvatarWrapper">
-                      <img src={notif.user.avatar} alt="User" className="notificationAvatar" />
-                      <div className="notificationTypeBadge" style={{ backgroundColor: getIconColor(notif.type) }}>
-                        {getIconForType(notif.type)}
+                    {/* SENDER AVATAR - CLICKABLE TO PROFILE */}
+                    <div 
+                      className="notificationAvatarWrapper"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => navigate(`/profile/${senderHandle}`)}
+                    >
+                      <img src={avatar} alt={senderName} className="notificationAvatar" />
+                      <div className="notificationTypeBadge" style={{ backgroundColor: getIconColor(type) }}>
+                        {getIconForType(type)}
                       </div>
                     </div>
                     
-                    <div className="notificationContent">
+                    {/* NOTIFICATION CONTENT */}
+                    <div className="notificationContent" onClick={() => handleNotificationClick(notif)} style={{ cursor: "pointer" }}>
                       <p>
-                        <strong>{notif.user.name}</strong> {notif.message}
+                        <strong 
+                          style={{ cursor: "pointer" }}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/profile/${senderHandle}`); }}
+                        >
+                          {senderName}
+                        </strong>{" "}
+                        {notif.body}
                       </p>
-                      <span className="notificationTime">{notif.time}</span>
+                      <span className="notificationTime">{new Date(notif.createdAt || Date.now()).toLocaleDateString()}</span>
                     </div>
 
-                    {notif.type === "follow" ? (
-                      <button className="notification-action-btn">Follow</button>
-                    ) : notif.postImage ? (
-                      <img src={notif.postImage} alt="Post preview" className="notificationPostPreview" />
-                    ) : null}
+                    {/* ACTION AREA */}
+                    <div className="notificationActions">
+                      {type === "follow_request" ? (
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button
+                            className="notif-btn notif-accept"
+                            onClick={() => handleAcceptRequest(notif)}
+                            disabled={isBusy}
+                          >
+                            <Check size={14} /> Accept
+                          </button>
+                          <button
+                            className="notif-btn notif-delete"
+                            onClick={() => handleRejectRequest(notif)}
+                            disabled={isBusy}
+                          >
+                            <X size={14} /> Delete
+                          </button>
+                        </div>
+                      ) : type === "follow" ? (
+                        <button
+                          className="notif-btn notif-view"
+                          onClick={() => navigate(`/profile/${senderHandle}`)}
+                        >
+                          Visit Profile
+                        </button>
+                      ) : (
+                        <button
+                          className="notif-btn notif-view"
+                          onClick={() => handleNotificationClick(notif)}
+                        >
+                          <ArrowRight size={14} />
+                        </button>
+                      )}
+                    </div>
 
-                    {notif.unread && <div className="unreadIndicator" />}
+                    {!notif.read && <div className="unreadIndicator" />}
                   </motion.div>
-                ))}
-              </div>
-            ))
+                );
+              })}
+            </AnimatePresence>
           )}
         </div>
       </div>
