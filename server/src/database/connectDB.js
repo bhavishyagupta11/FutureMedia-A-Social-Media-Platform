@@ -6,30 +6,36 @@ let mongoConnectPromise = null;
 const connectDB = async () => {
   try {
     const mongoUri = env.MONGO_URI;
-    if (!mongoUri) throw new Error("MONGO_URI not defined in .env file");
+    if (!mongoUri) throw new Error("MONGO_URI not defined in environment variables");
     if (mongoose.connection.readyState === 1) return;
 
     if (!mongoConnectPromise) {
       mongoConnectPromise = mongoose
         .connect(mongoUri, { serverSelectionTimeoutMS: 5000 })
-        .then(() => console.log("MongoDB Atlas connected successfully!!"))
+        .then(() => console.log("[DATABASE] MongoDB Atlas connected successfully!"))
         .catch(async (err) => {
-          console.log("MongoDB connection failed:", err.message);
-          console.log("Falling back to in-memory MongoDB...");
-          try {
-            const { MongoMemoryServer } = require("mongodb-memory-server");
-            const mongoServer = await MongoMemoryServer.create();
-            await mongoose.connect(mongoServer.getUri());
-            console.log("In-memory MongoDB connected.");
-          } catch (memErr) {
-            console.error("In-memory fallback failed:", memErr.message);
+          console.error("[DATABASE] MongoDB connection attempt failed:", err.message);
+          
+          // Never attempt to spin up in-memory MongoDB in production
+          if (!env.isProduction && process.env.NODE_ENV !== "production") {
+            console.log("[DATABASE] Development mode detected: attempting in-memory fallback...");
+            try {
+              const { MongoMemoryServer } = require("mongodb-memory-server");
+              const mongoServer = await MongoMemoryServer.create();
+              await mongoose.connect(mongoServer.getUri());
+              console.log("[DATABASE] In-memory MongoDB connected successfully.");
+            } catch (memErr) {
+              console.error("[DATABASE] In-memory fallback failed:", memErr.message);
+            }
           }
         })
-        .finally(() => { mongoConnectPromise = null; });
+        .finally(() => { 
+          mongoConnectPromise = null; 
+        });
     }
     await mongoConnectPromise;
   } catch (err) {
-    console.error("MongoDB connection error:", err.message);
+    console.error("[DATABASE] Non-fatal MongoDB connection error:", err.message);
   }
 };
 

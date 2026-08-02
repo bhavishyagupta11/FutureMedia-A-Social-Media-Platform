@@ -6,7 +6,7 @@ exports.getHealth = async (req, res) => {
   const health = {
     status: "OK",
     version: "2.0.0",
-    applicationMode: "Development",
+    applicationMode: env.isProduction ? "Production" : "Development",
     coreServices: {
       mongodb: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
       jwt: env.JWT_SECRET ? "Configured" : "Unconfigured"
