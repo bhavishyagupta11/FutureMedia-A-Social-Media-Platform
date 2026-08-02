@@ -268,7 +268,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .ExplorePage {
     padding: 0 var(--space-2) 6rem;
     margin: 1rem auto;
@@ -283,6 +283,12 @@
   }
   .exploreCategories {
     justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .exploreCategories::-webkit-scrollbar {
+    display: none;
   }
   .my-masonry-grid {
     margin-left: 0;
@@ -293,5 +299,9 @@
   .masonryItem {
     width: 100%;
     margin-bottom: 14px;
+  }
+  .masonryOverlay {
+    opacity: 1;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%);
   }
 }

@@ -21,7 +21,7 @@ const Explore = () => {
     default: 4,
     1400: 3,
     900: 2,
-    600: 1
+    768: 1
   };
 
   useEffect(() => {

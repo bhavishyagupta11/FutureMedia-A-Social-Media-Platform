@@ -80,13 +80,32 @@ const updateProfile = async (id, data) => {
 
 const searchUsers = async (query, currentUserId) => {
   if (!query || typeof query !== "string") return [];
-  const q = query.toLowerCase();
+  
+  let q = query.trim();
+  if (q.startsWith("@")) {
+    q = q.substring(1).trim();
+  }
+  if (!q) return [];
+
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(escaped, "i");
 
   const filter = {
-    accountStatus: "active",
-    $or: [
-      { usernameLower: { $regex: q, $options: "i" } },
-      { displayNameLower: { $regex: q, $options: "i" } }
+    $and: [
+      {
+        $or: [
+          { accountStatus: "active" },
+          { accountStatus: { $exists: false } }
+        ]
+      },
+      {
+        $or: [
+          { username: regex },
+          { usernameLower: regex },
+          { displayName: regex },
+          { displayNameLower: regex }
+        ]
+      }
     ]
   };
 

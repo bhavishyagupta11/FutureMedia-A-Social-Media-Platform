@@ -244,7 +244,12 @@
 }
 
 @media (max-width: 768px) {
+  .search-page {
+    padding: 0 var(--space-2) 6rem;
+    margin: 1rem auto;
+  }
   .search-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
