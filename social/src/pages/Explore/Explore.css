@@ -262,11 +262,36 @@
   background: var(--color-secondary);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .ExplorePage {
+    padding: 0 var(--space-3) 6rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .ExplorePage {
+    padding: 0 var(--space-2) 6rem;
+    margin: 1rem auto;
+  }
+  .exploreHeader {
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
+  }
   .exploreHeader h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
   .exploreCategories {
     justify-content: flex-start;
+  }
+  .my-masonry-grid {
+    margin-left: 0;
+  }
+  .my-masonry-grid_column {
+    padding-left: 0;
+  }
+  .masonryItem {
+    width: 100%;
+    margin-bottom: 14px;
   }
 }
