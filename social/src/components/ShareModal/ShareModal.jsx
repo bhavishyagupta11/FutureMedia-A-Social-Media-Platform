@@ -14,8 +14,9 @@ const ShareModal = ({ modalOpened, setModalOpened, onPostCreated }) => {
             type="button"
             className="shareModalClose"
             onClick={() => setModalOpened(false)}
+            aria-label="Close"
           >
-            Close
+            ×
           </button>
         </div>
 

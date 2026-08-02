@@ -125,7 +125,7 @@ const Profile = () => {
   const handleAcceptIncomingRequest = async () => {
     try {
       setLoadingFollow(true);
-      const res = await apiFetch(`/api/v1/users/${user._id}/accept-follow-request`, { method: "POST" });
+      const res = await apiFetch(`/api/v1/users/follow-requests/${user._id}/accept`, { method: "POST" });
       if (res.ok) {
         toast.success(`Accepted follow request from @${user.username}!`);
         setHasIncomingRequest(false);
@@ -142,7 +142,7 @@ const Profile = () => {
   const handleRejectIncomingRequest = async () => {
     try {
       setLoadingFollow(true);
-      const res = await apiFetch(`/api/v1/users/${user._id}/reject-follow-request`, { method: "POST" });
+      const res = await apiFetch(`/api/v1/users/follow-requests/${user._id}/reject`, { method: "POST" });
       if (res.ok) {
         toast.info(`Declined follow request from @${user.username}`);
         setHasIncomingRequest(false);

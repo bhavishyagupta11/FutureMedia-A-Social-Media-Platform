@@ -47,6 +47,9 @@
   justify-content: center;
   cursor: pointer;
   transition: var(--transition-smooth);
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0;
 }
 
 .shareModalClose:hover {

@@ -63,7 +63,7 @@ const Notifications = () => {
 
     try {
       setActionLoading(prev => ({ ...prev, [notifId]: true }));
-      const res = await apiFetch(`/api/v1/users/${senderId}/accept-follow-request`, { method: "POST" });
+      const res = await apiFetch(`/api/v1/users/follow-requests/${senderId}/accept`, { method: "POST" });
       if (res.ok) {
         toast.success("Follow request accepted!");
         setNotifications(prev => prev.map(n => n._id === notifId ? {
@@ -90,7 +90,7 @@ const Notifications = () => {
 
     try {
       setActionLoading(prev => ({ ...prev, [notifId]: true }));
-      const res = await apiFetch(`/api/v1/users/${senderId}/reject-follow-request`, { method: "POST" });
+      const res = await apiFetch(`/api/v1/users/follow-requests/${senderId}/reject`, { method: "POST" });
       if (res.ok) {
         toast.info("Follow request removed");
         await apiFetch(`/api/v1/notifications/${notifId}`, { method: "DELETE" });
