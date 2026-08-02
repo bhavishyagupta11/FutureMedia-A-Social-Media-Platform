@@ -16,16 +16,12 @@ const Explore = () => {
 
   const categories = ["All", "Trending", "Photography", "Art", "Technology", "Fashion", "Travel"];
 
-  // Masonry breakpoints
+  // Responsive Masonry breakpoints for Desktop, Tablet, and Mobile
   const breakpointColumnsObj = {
-    default: 8,
-    2400: 7,
-    2000: 6,
-    1600: 5,
-    1200: 4,
-    900: 3,
-    600: 2,
-    400: 1
+    default: 4,
+    1400: 3,
+    900: 2,
+    600: 1
   };
 
   useEffect(() => {
@@ -121,6 +117,7 @@ const Explore = () => {
               
               const isVideo = media ? media.type === "video" : (image && image.match(/\.(mp4|webm|ogg)$/i));
               const url = image ? (image.startsWith("http") ? image : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${image}`) : null;
+              const authorUsername = post.userId?.username || post.user?.username || "user";
 
               return (
                 <motion.div
@@ -130,7 +127,7 @@ const Explore = () => {
                   key={post._id}
                   className="masonryItem"
                   style={{ background: 'var(--color-card)', cursor: 'pointer' }}
-                  onClick={() => window.location.href = `/post/${post._id}`}
+                  onClick={() => navigate(`/profile/${authorUsername}`)}
                 >
                   {url ? (
                     isVideo ? (
@@ -159,7 +156,7 @@ const Explore = () => {
                         <Heart size={16} fill={post.likes?.length > 0 ? "white" : "none"} /> {post.likes?.length || 0}
                       </span>
                       <span className="masonryStat">
-                        <MessageCircle size={16} /> 0
+                        <MessageCircle size={16} /> {post.comments?.length || 0}
                       </span>
                     </div>
                   </div>

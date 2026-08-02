@@ -1,7 +1,5 @@
 const Notification = require("../models/notificationModel");
 const User = require("../models/userModel");
-// The actual socket emitter would be injected or required
-// For now, we stub it until we refactor socket.js
 const { getIo } = require("../sockets/socket"); 
 
 class NotificationService {
@@ -11,7 +9,7 @@ class NotificationService {
 
     const recipient = await User.findById(recipientId).select("settings.notifications.push");
     if (recipient && recipient.settings && recipient.settings.notifications.push === false) {
-      return null; // User disabled push notifications
+      return null;
     }
 
     const notification = await Notification.create({
@@ -24,9 +22,9 @@ class NotificationService {
       deepLink
     });
 
-    const populatedNotif = await notification.populate("sender", "username displayName profilePicture");
+    const populatedNotif = await notification.populate("sender", "username displayName profilePicture isVerified isPrivate followRequests followers");
 
-    // Realtime delivery
+    // Realtime delivery via Socket.IO
     const io = getIo();
     if (io) {
       io.to(recipientId.toString()).emit("new notification", populatedNotif);
@@ -36,11 +34,37 @@ class NotificationService {
   }
 
   async getUserNotifications(userId, limit = 20, skip = 0) {
-    return await Notification.find({ recipient: userId })
-      .sort({ timestamp: -1 })
+    const rawNotifications = await Notification.find({ recipient: userId })
+      .sort({ createdAt: -1, timestamp: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("sender", "username displayName profilePicture");
+      .populate("sender", "username displayName profilePicture isVerified isPrivate followRequests followers settings");
+
+    const currentUserIdStr = userId.toString();
+
+    return rawNotifications.map((notif) => {
+      const notifObj = notif.toObject();
+      if (notifObj.sender && typeof notifObj.sender === "object") {
+        const sender = notifObj.sender;
+        const isPrivate = sender.isPrivate === true || sender.settings?.privacy?.profileVisibility === "private";
+        const isRequested = sender.followRequests?.some((id) => id.toString() === currentUserIdStr) || false;
+        const isFollowing = sender.followers?.some((id) => id.toString() === currentUserIdStr) || false;
+        const relationshipStatus = isFollowing ? "following" : (isRequested ? "requested" : "none");
+
+        delete sender.followRequests;
+        delete sender.followers;
+        delete sender.settings;
+
+        notifObj.sender = {
+          ...sender,
+          isPrivate,
+          isRequested,
+          isFollowing,
+          relationshipStatus
+        };
+      }
+      return notifObj;
+    });
   }
 
   async markAsRead(notificationId, userId) {

@@ -8,7 +8,7 @@ import './SuggestedUsers.css';
 const SuggestedUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [followingMap, setFollowingMap] = useState({});
+  const [statusMap, setStatusMap] = useState({}); // userId -> "none" | "requested" | "following"
   const [loadingFollow, setLoadingFollow] = useState({});
 
   useEffect(() => {
@@ -18,7 +18,14 @@ const SuggestedUsers = () => {
         if (res.ok) {
           const payload = await res.json();
           const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          setUsers(data.slice(0, 5)); // Limit to 5
+          const slicedData = data.slice(0, 5);
+          setUsers(slicedData);
+
+          const initialStatusMap = {};
+          slicedData.forEach((u) => {
+            initialStatusMap[u._id] = u.status || (u.isFollowing ? "following" : (u.isRequested ? "requested" : "none"));
+          });
+          setStatusMap(initialStatusMap);
         }
       } catch (err) {
         console.error("Failed to fetch suggested users:", err);
@@ -29,28 +36,42 @@ const SuggestedUsers = () => {
     fetchUsers();
   }, []);
 
-  const handleFollow = async (userId) => {
+  const handleFollowToggle = async (user) => {
+    const userId = user._id;
+    const currentStatus = statusMap[userId] || "none";
+
     try {
-      setLoadingFollow(prev => ({ ...prev, [userId]: true }));
-      const isFollowing = followingMap[userId];
-      
-      const endpoint = isFollowing
+      setLoadingFollow((prev) => ({ ...prev, [userId]: true }));
+
+      const isActionUnfollow = currentStatus === "following" || currentStatus === "requested";
+      const endpoint = isActionUnfollow
         ? `/api/v1/users/${userId}/unfollow`
         : `/api/v1/users/${userId}/follow`;
-        
+
       const response = await apiFetch(endpoint, { method: "POST" });
-      if (!response.ok) { 
-        const errData = await response.json();
-        toast.error(errData?.message || "Could not update follow status"); 
-        return; 
+      const payload = await response.json();
+
+      if (!response.ok) {
+        toast.error(payload?.message || "Could not update follow status");
+        return;
       }
 
-      setFollowingMap(prev => ({ ...prev, [userId]: !isFollowing }));
-      toast.success(isFollowing ? "Unfollowed" : "Following!", { autoClose: 1500 });
-    } catch { 
-      toast.error("Network error"); 
-    } finally { 
-      setLoadingFollow(prev => ({ ...prev, [userId]: false }));
+      const resData = payload.data || payload;
+      const newStatus = resData.status || (resData.requested ? "requested" : (resData.following ? "following" : "none"));
+
+      setStatusMap((prev) => ({ ...prev, [userId]: newStatus }));
+
+      if (newStatus === "requested") {
+        toast.info("Follow request sent", { autoClose: 1500 });
+      } else if (newStatus === "following") {
+        toast.success("Following!", { autoClose: 1500 });
+      } else {
+        toast.info("Unfollowed", { autoClose: 1500 });
+      }
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setLoadingFollow((prev) => ({ ...prev, [userId]: false }));
     }
   };
 
@@ -63,26 +84,38 @@ const SuggestedUsers = () => {
         {users.length === 0 ? (
           <p className="no-suggestions">No suggestions right now.</p>
         ) : (
-          users.map(user => {
-            const isFollowing = followingMap[user._id];
+          users.map((user) => {
+            const status = statusMap[user._id] || "none";
             const isLoading = loadingFollow[user._id];
+
+            let buttonText = "Follow";
+            let buttonClass = "follow-btn";
+
+            if (status === "requested") {
+              buttonText = "Requested";
+              buttonClass = "follow-btn requested";
+            } else if (status === "following") {
+              buttonText = "Following";
+              buttonClass = "follow-btn following";
+            }
+
             return (
               <div key={user._id} className="suggestion-item">
-                <Link to={`/profile/${user._id}`} className="suggestion-avatar">
+                <Link to={`/profile/${user.username || user._id}`} className="suggestion-avatar">
                   <img src={user.profilePicture || ProfileImage} alt={user.username} />
                 </Link>
                 <div className="suggestion-info">
-                  <Link to={`/profile/${user._id}`}>
+                  <Link to={`/profile/${user.username || user._id}`}>
                     <strong>{user.displayName || user.username}</strong>
                   </Link>
                   <span>@{user.username}</span>
                 </div>
-                <button 
-                  className={`follow-btn ${isFollowing ? 'following' : ''}`}
-                  onClick={() => handleFollow(user._id)}
+                <button
+                  className={buttonClass}
+                  onClick={() => handleFollowToggle(user)}
                   disabled={isLoading}
                 >
-                  {isLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+                  {isLoading ? '...' : buttonText}
                 </button>
               </div>
             );
