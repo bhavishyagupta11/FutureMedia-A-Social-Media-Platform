@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import "./Posts.css";
 import "../Post/Post.css";
-import { PostsData } from "../../Data/PostsData";
 import ProfileImage from "../../img/profileImg.jpg";
 import { apiFetch } from "../../utils/api";
 import { getSessionUserId } from "../../utils/session";
@@ -12,10 +11,10 @@ import ActionBar from "../Actions/ActionBar";
 
 const normalizePost = (post) => {
   const source = post || {};
-  const id = source._id || `demo-${Math.random().toString(36).slice(2, 10)}`;
+  const id = source._id || `post-${Math.random().toString(36).slice(2, 10)}`;
   const userId = source.userId || {};
-  const name = userId.displayName || userId.username || source.name || "FSM User";
-  const username = userId.username || source.username || "fsm";
+  const name = userId.displayName || userId.username || source.name || "User";
+  const username = userId.username || source.username || "user";
   const avatar = userId.profilePicture || source.avatar || source.img || ProfileImage;
   const ownerId = userId._id || source.userId || "";
 
@@ -49,7 +48,6 @@ const normalizePost = (post) => {
 
 const withDemoFallback = (realPosts) => {
   const normalized = Array.isArray(realPosts) ? realPosts : [];
-  if (normalized.length === 0) return PostsData.map(normalizePost);
   return normalized;
 };
 
