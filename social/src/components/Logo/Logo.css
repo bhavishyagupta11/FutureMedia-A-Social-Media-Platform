@@ -1,42 +1,35 @@
 .futuremedia-logo {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   user-select: none;
 }
 
-.futuremedia-logo .fm-f,
-.futuremedia-logo .fm-m {
-  font-weight: 900;
-  letter-spacing: -1px;
+.futuremedia-logo .fm-brand-img {
+  height: 44px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.25);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.futuremedia-logo .fm-f {
-  color: var(--color-primary);
+.futuremedia-logo:hover .fm-brand-img {
+  transform: scale(1.03);
 }
 
-.futuremedia-logo .fm-m {
-  color: var(--color-secondary);
+.futuremedia-logo.small .fm-brand-img {
+  height: 32px;
+  border-radius: 8px;
 }
 
-.futuremedia-logo .fm-text {
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--color-text) 0%, #a0aec0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-left: 0.3rem;
+.futuremedia-logo.normal .fm-brand-img {
+  height: 44px;
+  border-radius: 10px;
 }
 
-.futuremedia-logo.small {
-  font-size: 1.2rem;
-}
-
-.futuremedia-logo.normal {
-  font-size: 1.6rem;
-}
-
-.futuremedia-logo.large {
-  font-size: 2.2rem;
+.futuremedia-logo.large .fm-brand-img {
+  height: 90px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
 }

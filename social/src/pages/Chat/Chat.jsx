@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Send, X, MessageCircleMore, MoreVertical } from "lucide-react";
 
-const ENDPOINT = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+const ENDPOINT = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 let socket;
 
 const Chat = () => {

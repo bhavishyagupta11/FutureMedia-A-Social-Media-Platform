@@ -12,6 +12,8 @@ const startServer = async () => {
     await connectDB();
     initSocket(server);
 
+    const modeDisplay = env.isProduction ? "Production" : "Development";
+
     server.listen(env.PORT, () => {
       console.log(`
 =============================
@@ -26,11 +28,11 @@ Cloudinary ${env.features.cloudinary ? '✓' : '✓ Local Storage Mode'}
 Socket.IO ${env.features.socket ? '✓' : '⚠ Disabled'}
 FastAPI ${env.features.intelligence ? '✓' : '⚠ Disabled'}
 
-Application Mode: Development
+Application Mode: ${modeDisplay}
 Authentication: READY
 =============================
       `);
-      console.log(`Server running on http://localhost:${env.PORT}`);
+      console.log(`Server running on http://localhost:${env.PORT} in ${modeDisplay} mode`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);

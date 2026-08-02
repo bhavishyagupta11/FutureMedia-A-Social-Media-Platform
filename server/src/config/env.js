@@ -14,24 +14,32 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
+const nodeEnv = process.env.NODE_ENV || "development";
+const isProduction = nodeEnv === "production";
+
 const features = {
   redis: Boolean(process.env.REDIS_URL),
-  bullmq: Boolean(process.env.REDIS_URL), // BullMQ requires Redis
+  bullmq: Boolean(process.env.REDIS_URL),
   smtp: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
   cloudinary: Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET),
   intelligence: Boolean(process.env.INTELLIGENCE_SERVICE_URL),
-  socket: true // Default to true, will disable if initSocket throws
+  socket: true
 };
 
+const rawOrigins = process.env.CLIENT_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000,https://futuremedia-one.vercel.app,https://futuremedia.vercel.app";
+const parsedOrigins = rawOrigins
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
 module.exports = {
+  NODE_ENV: nodeEnv,
+  isProduction,
   PORT: process.env.PORT || 8080,
   MONGO_URI,
   JWT_SECRET,
   JWT_EXPIRE: process.env.JWT_EXPIRE || "30d",
-  CLIENT_ORIGINS: (process.env.CLIENT_ORIGINS || "http://localhost:3000,http://127.0.0.1:3000")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean),
+  CLIENT_ORIGINS: parsedOrigins,
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,

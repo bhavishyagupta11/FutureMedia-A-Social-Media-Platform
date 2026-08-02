@@ -58,7 +58,8 @@ const registerUser = async ({ username, email, password, deviceInfo, ipAddress }
   });
 
   let emailWarning = null;
-  const verifyUrl = `${env.CLIENT_ORIGINS[0]}/verify/${rawToken}`;
+  const frontendBaseUrl = env.CLIENT_ORIGINS.find(o => !o.includes("localhost") && !o.includes("127.0.0.1")) || env.CLIENT_ORIGINS[0];
+  const verifyUrl = `${frontendBaseUrl}/verify/${rawToken}`;
   try {
     const emailResult = await EmailService.sendVerificationEmail(user, verifyUrl);
     if (emailResult && emailResult.warning) {

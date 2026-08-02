@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { CheckCircle, AlertCircle, Clock, ArrowLeft, Loader2 } from "lucide-react";
 import { apiFetch } from "../../utils/api";
+import Logo from "../../components/Logo/Logo";
 import "./Auth.css";
 
 export default function VerifyEmail() {
@@ -88,9 +89,8 @@ export default function VerifyEmail() {
       <div className="glass-card" style={{ maxWidth: "480px", width: "90%", textAlign: "center", padding: "40px 32px", borderRadius: "16px" }}>
         
         {/* BRANDING */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "24px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "800", fontSize: "14px" }}>FM</div>
-          <span style={{ fontWeight: "700", fontSize: "18px", color: "var(--color-text)" }}>FutureMedia</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
+          <Logo size="normal" />
         </div>
 
         {/* LOADING STATE */}

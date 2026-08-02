@@ -5,6 +5,7 @@ import { apiFetch } from "../../utils/api";
 import { getStoredUserProfile, persistUserSession } from "../../utils/session";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Lock, Bell, Eye, Database, Smartphone, Shield, HelpCircle, CheckCircle } from "lucide-react";
+import Logo from "../../components/Logo/Logo";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -180,9 +181,12 @@ const Settings = () => {
       transition={{ duration: 0.4 }}
       className="SettingsPage"
     >
-      <div className="settingsHeader">
-        <h1>Settings</h1>
-        <p>Manage your account settings and preferences.</p>
+      <div className="settingsHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h1>Settings</h1>
+          <p>Manage your account settings and preferences.</p>
+        </div>
+        <Logo size="normal" />
       </div>
 
       <div className="settingsLayout">
@@ -441,7 +445,30 @@ const Settings = () => {
               </motion.div>
             )}
 
-            {activeTab !== "account" && activeTab !== "privacy" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "data" && activeTab !== "appearance" && (
+            {activeTab === "support" && (
+              <motion.div
+                key="support"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="settingsSection"
+                style={{ textAlign: "center", padding: "2.5rem 1rem" }}
+              >
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <Logo size="large" />
+                </div>
+                <h3 style={{ color: "var(--color-text)", fontSize: "1.2rem", fontWeight: "700", marginBottom: "0.5rem" }}>FutureMedia Support & Community</h3>
+                <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", maxWidth: "420px", margin: "0 auto 1.5rem", lineHeight: "1.6" }}>
+                  Connect with creators, share your thoughts, and inspire the community. Need help or have feedback? Reach out to our team.
+                </p>
+                <a href="mailto:support@futuremedia.bullishpath.in" className="settingsSaveButton" style={{ textDecoration: "none", display: "inline-block" }}>
+                  Contact Support
+                </a>
+              </motion.div>
+            )}
+
+            {activeTab !== "account" && activeTab !== "privacy" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "data" && activeTab !== "appearance" && activeTab !== "support" && (
               <motion.div
                 key="placeholder"
                 initial={{ opacity: 0, x: 20 }}
