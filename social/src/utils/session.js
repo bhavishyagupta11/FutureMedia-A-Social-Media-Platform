@@ -50,12 +50,12 @@ export const persistUserSession = (rawUser) => {
     localStorage.setItem("userId", user._id);
   }
 
-  localStorage.setItem("image", user.img || "");
-  localStorage.setItem("followersList", JSON.stringify(user.followersList || []));
-  localStorage.setItem("followingList", JSON.stringify(user.followingsList || []));
+  localStorage.setItem("image", user.profilePicture || user.img || "");
+  localStorage.setItem("followersList", JSON.stringify(user.followersList || user.followers || []));
+  localStorage.setItem("followingList", JSON.stringify(user.followingsList || user.following || []));
 
   const displayName =
-    user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "FSM User";
+    user.displayName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || "User";
 
   localStorage.setItem("displayName", displayName);
   localStorage.setItem("name", displayName);

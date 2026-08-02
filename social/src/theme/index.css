@@ -44,6 +44,23 @@
   --bg-hover-light: rgba(255, 255, 255, 0.08);
 }
 
+[data-theme="light"] {
+  --color-bg: #F4F4F5;
+  --color-surface: #FFFFFF;
+  --color-card: #FFFFFF;
+  --color-card-hover: #F4F4F5;
+  --color-border: #E4E4E7;
+  --color-border-hover: #D4D4D8;
+
+  --color-text: #09090B;
+  --color-text-muted: #71717A;
+
+  --bg-input: #F4F4F5;
+  --bg-hover-light: #E4E4E7;
+  --shadow-soft: 0 8px 32px 0 rgba(0, 0, 0, 0.06);
+  --shadow-glow: 0 8px 32px 0 rgba(79, 70, 229, 0.15);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

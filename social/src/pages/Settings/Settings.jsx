@@ -38,6 +38,9 @@ const Settings = () => {
       .then(payload => {
         if (!payload) return;
         const userData = payload.data || payload;
+        if (userData.displayName !== undefined) setDisplayName(userData.displayName);
+        if (userData.bio !== undefined) setBio(userData.bio);
+        if (userData.website !== undefined) setWebsite(userData.website);
         if (typeof userData.isPrivate === "boolean") {
           setPrivateAccount(userData.isPrivate);
           localStorage.setItem("isPrivate", String(userData.isPrivate));
@@ -99,6 +102,8 @@ const Settings = () => {
         return;
       }
 
+      const updatedProfileData = await response.json();
+
       // Also save settings
       const settingsData = {
         privacy: { profileVisibility: privateAccount ? "private" : "public" },
@@ -111,7 +116,7 @@ const Settings = () => {
         body: JSON.stringify(settingsData)
       });
 
-      persistUserSession(await response.json());
+      persistUserSession(updatedProfileData);
       window.dispatchEvent(new Event("profile:updated"));
       setSaved(true);
     } catch (saveError) {
@@ -445,6 +450,26 @@ const Settings = () => {
               </motion.div>
             )}
 
+            {activeTab === "sessions" && (
+              <motion.div
+                key="sessions"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="settingsSection"
+              >
+                <h2><Smartphone size={24} /> Active Sessions</h2>
+                <div className="settingsRow">
+                  <div className="settingsRowInfo">
+                    <strong>Current Web Session</strong>
+                    <span>Active now • Web Browser ({navigator.platform || "Desktop"})</span>
+                  </div>
+                  <span style={{ color: "var(--color-success)", fontWeight: "600", fontSize: "0.9rem" }}>Active Now</span>
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === "support" && (
               <motion.div
                 key="support"
@@ -468,7 +493,7 @@ const Settings = () => {
               </motion.div>
             )}
 
-            {activeTab !== "account" && activeTab !== "privacy" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "data" && activeTab !== "appearance" && activeTab !== "support" && (
+            {activeTab !== "account" && activeTab !== "privacy" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "data" && activeTab !== "appearance" && activeTab !== "sessions" && activeTab !== "support" && (
               <motion.div
                 key="placeholder"
                 initial={{ opacity: 0, x: 20 }}

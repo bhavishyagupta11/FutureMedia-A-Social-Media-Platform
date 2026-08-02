@@ -401,9 +401,8 @@ const PostItem = React.memo(({
                 onLike={() => handleLikes(post)}
                 onCommentToggle={() => setOpenComments((cur) => ({ ...cur, [post._id]: !isCommentOpen }))}
                 onShare={() => handleShare(post)}
-                isSaved={false} // Would come from user state, keeping dummy for now or fetching real
+                isSaved={false}
                 onSave={async () => {
-                  if (post.isDemo) return;
                   try {
                     const res = await apiFetch(`/api/v1/posts/${post._id}/save`, { method: "PUT" });
                     if (res.ok) toast.success("Post saved!");
