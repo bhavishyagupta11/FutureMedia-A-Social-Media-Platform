@@ -14,6 +14,10 @@ class EmailService {
           user: env.SMTP_USER,
           pass: env.SMTP_PASS,
         } : undefined,
+        // Production-safe timeouts to prevent sockets hanging
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 10000,
       });
     } else {
       this.transporter = null;

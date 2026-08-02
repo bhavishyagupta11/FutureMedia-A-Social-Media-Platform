@@ -16,6 +16,10 @@ const generateToken = (id) => {
   });
 };
 
+const getFrontendBaseUrl = () => {
+  return env.CLIENT_ORIGINS.find(o => !o.includes("localhost") && !o.includes("127.0.0.1")) || env.CLIENT_ORIGINS[0] || "http://localhost:3000";
+};
+
 const registerUser = async ({ username, email, password, deviceInfo, ipAddress }) => {
   const trimmedUsername = username.trim();
   const trimmedEmail = email.trim();
@@ -57,20 +61,14 @@ const registerUser = async ({ username, email, password, deviceInfo, ipAddress }
     activeSessions: []
   });
 
-  let emailWarning = null;
-  const frontendBaseUrl = env.CLIENT_ORIGINS.find(o => !o.includes("localhost") && !o.includes("127.0.0.1")) || env.CLIENT_ORIGINS[0];
-  const verifyUrl = `${frontendBaseUrl}/verify/${rawToken}`;
-  try {
-    const emailResult = await EmailService.sendVerificationEmail(user, verifyUrl);
-    if (emailResult && emailResult.warning) {
-      emailWarning = emailResult.warning;
-    }
-  } catch (e) {
-    LoggerService.error("Email verification failed to send", e);
-    emailWarning = "Verification email could not be sent because SMTP is not configured.";
-  }
+  const verifyUrl = `${getFrontendBaseUrl()}/verify/${rawToken}`;
 
-  LoggerService.security("User registered", { userId: user._id, email });
+  // Non-blocking background verification email dispatch
+  EmailService.sendVerificationEmail(user, verifyUrl).catch((e) => {
+    LoggerService.error("Background email verification dispatch error", e);
+  });
+
+  LoggerService.security("User registered", { userId: user._id, email: user.email });
 
   return {
     user: {
@@ -80,7 +78,7 @@ const registerUser = async ({ username, email, password, deviceInfo, ipAddress }
       profilePicture: user.profilePicture,
       isEmailVerified: user.isEmailVerified
     },
-    meta: emailWarning ? { warning: emailWarning } : null
+    meta: null
   };
 };
 
@@ -151,32 +149,20 @@ const verifyEmail = async (rawToken) => {
   const user = await User.findOne({ emailVerificationToken: hashedToken });
 
   if (!user) {
-    const err = new Error("Invalid or already used verification token.");
+    const err = new Error("Verification token is invalid or has expired.");
     err.status = 400;
     err.code = "TOKEN_INVALID";
-    LoggerService.info("Email verification failed: Invalid token");
     throw err;
   }
 
-  // Already verified check
-  if (user.isEmailVerified) {
-    return {
-      message: "Email address is already verified.",
-      code: "ALREADY_VERIFIED"
-    };
-  }
-
-  // Token Expiration check
-  if (user.emailVerificationExpires && user.emailVerificationExpires.getTime() < Date.now()) {
-    const err = new Error("Verification token has expired. Please request a new link.");
-    err.status = 400;
+  if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+    const err = new Error("Verification link has expired. Please request a new verification email.");
+    err.status = 410;
     err.code = "TOKEN_EXPIRED";
     err.canResend = true;
-    LoggerService.info("Email verification failed: Token expired", { userId: user._id });
     throw err;
   }
 
-  // Mark verified & consume token
   user.isEmailVerified = true;
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
@@ -201,7 +187,7 @@ const resendVerification = async (email) => {
   const trimmedEmail = email.trim().toLowerCase();
   const user = await User.findOne({ email: trimmedEmail });
 
-  // Generic success to prevent email enumeration
+  // Generic success response to prevent email enumeration
   if (!user) {
     LoggerService.info("Resend verification requested for non-existent email", { email: trimmedEmail });
     return {
@@ -235,14 +221,14 @@ const resendVerification = async (email) => {
   user.emailVerificationLastSentAt = new Date();
   await user.save();
 
-  const verifyUrl = `${env.CLIENT_ORIGINS[0]}/verify/${rawToken}`;
-  try {
-    await EmailService.sendVerificationEmail(user, verifyUrl);
-  } catch (e) {
-    LoggerService.error("Resend verification email failed to send", e);
-  }
+  const verifyUrl = `${getFrontendBaseUrl()}/verify/${rawToken}`;
+  
+  // Non-blocking background verification email dispatch
+  EmailService.sendVerificationEmail(user, verifyUrl).catch((e) => {
+    LoggerService.error("Background resend verification email dispatch error", e);
+  });
 
-  LoggerService.security("Resend verification email sent", { userId: user._id });
+  LoggerService.security("Resend verification email initiated", { userId: user._id });
 
   return {
     message: "If an account exists with that email, a verification link has been sent.",
@@ -294,61 +280,46 @@ const forgotPassword = async (email) => {
   user.resetPasswordExpires = new Date(Date.now() + 3600000);
   await user.save();
 
-  const resetUrl = `${env.CLIENT_ORIGINS[0]}/reset-password/${rawToken}`;
-  try {
-    await EmailService.sendPasswordResetEmail(user, resetUrl);
-  } catch (e) {
-    LoggerService.error("Password reset email failed to send", e);
-  }
+  const resetUrl = `${getFrontendBaseUrl()}/reset-password/${rawToken}`;
+  
+  // Non-blocking background email dispatch
+  EmailService.sendPasswordResetEmail(user, resetUrl).catch((e) => {
+    LoggerService.error("Background password reset email dispatch error", e);
+  });
 
-  LoggerService.security("Password reset token generated and sent", { userId: user._id, email: user.email });
-
-  return { message: "Password reset link sent to your email.", code: "FORGOT_SUCCESS" };
+  return { message: "If an account exists with that email, a password reset link has been sent.", code: "FORGOT_SUCCESS" };
 };
 
 const resetPassword = async (rawToken, newPassword) => {
-  if (!rawToken || typeof rawToken !== "string") {
-    const err = new Error("Invalid or missing reset token.");
-    err.status = 400;
-    err.code = "INVALID_TOKEN";
-    throw err;
-  }
-
-  if (!newPassword || newPassword.length < 8) {
-    const err = new Error("Password must be at least 8 characters long.");
+  if (!rawToken || !newPassword || newPassword.length < 8) {
+    const err = new Error("Invalid request or password must be at least 8 characters.");
     err.status = 400;
     err.code = "WEAK_PASSWORD";
     throw err;
   }
 
   const hashedToken = hashToken(rawToken);
-  const user = await User.findOne({ resetPasswordToken: hashedToken });
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: new Date() }
+  });
 
   if (!user) {
-    const err = new Error("Invalid or expired reset token");
+    const err = new Error("Password reset token is invalid or has expired.");
     err.status = 400;
-    err.code = "INVALID_TOKEN";
-    LoggerService.info("Password reset failed: Invalid token");
+    err.code = "TOKEN_INVALID";
     throw err;
   }
 
-  if (user.resetPasswordExpires && user.resetPasswordExpires.getTime() < Date.now()) {
-    const err = new Error("Reset token has expired. Please request a new password reset link.");
-    err.status = 400;
-    err.code = "TOKEN_EXPIRED";
-    LoggerService.info("Password reset failed: Expired token", { userId: user._id });
-    throw err;
-  }
-
-  const hashedPassword = await hashPassword(newPassword);
-  user.password = hashedPassword;
+  user.password = hashPassword(newPassword);
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
+  user.activeSessions = []; // Revoke active sessions
   await user.save();
 
-  LoggerService.security("Password reset completed successfully", { userId: user._id });
+  LoggerService.security("Password reset completed", { userId: user._id });
 
-  return { message: "Password reset successful!", code: "RESET_SUCCESS" };
+  return { message: "Password reset successfully! You can now log in with your new password.", code: "RESET_SUCCESS" };
 };
 
 module.exports = {
@@ -359,5 +330,5 @@ module.exports = {
   logoutCurrentDevice,
   logoutAllDevices,
   forgotPassword,
-  resetPassword
+  resetPassword,
 };

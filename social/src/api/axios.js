@@ -5,6 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:808
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 15000, // 15-second request timeout to prevent hanging UI
 });
 
 api.interceptors.request.use(
@@ -79,7 +80,7 @@ export const apiFetch = async (path, options = {}) => {
           }
           return error.response.data;
         }
-        return { success: false, message: "Network or Server Error", errors: null };
+        return { success: false, message: error.message || "Network or Server Error", errors: null };
       },
     };
   }
