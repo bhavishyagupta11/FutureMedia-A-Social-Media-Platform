@@ -17,10 +17,13 @@ if (!JWT_SECRET) {
 const nodeEnv = process.env.NODE_ENV || "development";
 const isProduction = nodeEnv === "production";
 
+// Auto-detect Resend API Key from RESEND_API_KEY or SMTP_PASS (if starts with re_)
+const resendApiKey = process.env.RESEND_API_KEY || (process.env.SMTP_PASS?.startsWith("re_") ? process.env.SMTP_PASS : null);
+
 const features = {
   redis: Boolean(process.env.REDIS_URL),
   bullmq: Boolean(process.env.REDIS_URL),
-  smtp: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+  smtp: Boolean(resendApiKey || (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS)),
   cloudinary: Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET),
   intelligence: Boolean(process.env.INTELLIGENCE_SERVICE_URL),
   socket: true
@@ -31,6 +34,8 @@ const parsedOrigins = rawOrigins
   .split(",")
   .map((origin) => origin.trim().replace(/\/+$/, ""))
   .filter(Boolean);
+
+const emailMode = process.env.EMAIL_MODE || (resendApiKey ? "resend_api" : (process.env.SMTP_HOST ? "smtp" : "console"));
 
 module.exports = {
   NODE_ENV: nodeEnv,
@@ -45,12 +50,13 @@ module.exports = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   REDIS_URL: process.env.REDIS_URL,
   INTELLIGENCE_SERVICE_URL: process.env.INTELLIGENCE_SERVICE_URL || "http://localhost:8000",
+  RESEND_API_KEY: resendApiKey,
   SMTP_HOST: process.env.SMTP_HOST,
-  SMTP_PORT: process.env.SMTP_PORT || 2525,
+  SMTP_PORT: process.env.SMTP_PORT || 587,
   SMTP_USER: process.env.SMTP_USER,
   SMTP_PASS: process.env.SMTP_PASS,
   FROM_EMAIL: process.env.FROM_EMAIL || "noreply@futuremedia.bullishpath.in",
   FROM_NAME: process.env.FROM_NAME || "FutureMedia",
-  EMAIL_MODE: process.env.EMAIL_MODE || (process.env.SMTP_HOST ? "resend" : "console"),
+  EMAIL_MODE: emailMode,
   features
 };
