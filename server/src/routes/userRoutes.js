@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../middleware/auth");
+const { protect, optionalAuth } = require("../middleware/auth");
 const { upload } = require("../config/cloudinary");
 const { roleMiddleware } = require("../middleware/role");
 const {
@@ -16,7 +16,7 @@ const {
 
 const router = express.Router();
 
-router.get("/search", protect, searchUsers);
+router.get("/search", optionalAuth, searchUsers);
 router.get("/suggested", protect, getSuggestedUsers);
 router.get("/suggestions", protect, getSuggestedUsers);
 
