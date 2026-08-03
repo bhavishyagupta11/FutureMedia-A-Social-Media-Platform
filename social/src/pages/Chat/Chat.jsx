@@ -7,7 +7,7 @@ import ProfileImage from "../../img/profileImg.jpg";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Send, X, MessageCircleMore, MoreVertical } from "lucide-react";
+import { Search, Send, X, MessageCircleMore, MoreVertical, ArrowLeft } from "lucide-react";
 
 const ENDPOINT = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 let socket;
@@ -200,7 +200,7 @@ const Chat = () => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.4 }}
-      className="ChatPage"
+      className={`ChatPage ${activeChat ? "has-active-chat" : ""}`}
     >
       {/* Left panel — chat list */}
       <div className="chatList">
@@ -301,6 +301,14 @@ const Chat = () => {
         ) : (
           <>
             <div className="chatWindowHeader">
+              <button 
+                type="button"
+                className="chatBackBtn" 
+                onClick={() => setActiveChat(null)}
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft size={20} />
+              </button>
               {(() => {
                 const other = getOtherParticipant(activeChat);
                 return other ? (
