@@ -6,7 +6,7 @@ import { apiFetch } from "../../utils/api";
 import { getStoredUserProfile } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
 import { toast } from "react-toastify";
-import { Lock, Heart, MessageCircle, Check, X, ShieldAlert } from "lucide-react";
+import { Lock, Heart, MessageCircle, Check, X, ShieldAlert, Settings as SettingsIcon } from "lucide-react";
 
 const Profile = () => {
   const { username: profileIdentifier } = useParams();
@@ -228,9 +228,14 @@ const Profile = () => {
             <span className="profileUsername">@{user.username}</span>
             <div className="profileActions">
               {isOwnProfile ? (
-                <button className="profileBtn editBtn" onClick={() => navigate("/profile/edit")}>
-                  Edit profile
-                </button>
+                <>
+                  <button className="profileBtn editBtn" onClick={() => navigate("/profile/edit")}>
+                    Edit profile
+                  </button>
+                  <button className="profileBtn settingsBtn" onClick={() => navigate("/settings")} title="Settings" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <SettingsIcon size={16} /> Settings
+                  </button>
+                </>
               ) : (
                 <>
                   <button
