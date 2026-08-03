@@ -115,12 +115,13 @@
   transition: var(--transition-smooth);
 }
 
-.editBtn {
+.editBtn, .settingsBtn {
   background: var(--bg-hover-light);
   color: var(--color-text);
+  border: 1px solid var(--color-border);
 }
-.editBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+.editBtn:hover, .settingsBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .followBtn {
