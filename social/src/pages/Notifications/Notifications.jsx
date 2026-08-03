@@ -69,7 +69,8 @@ const Notifications = () => {
         setNotifications(prev => prev.map(n => n._id === notifId ? {
           ...n,
           type: "follow",
-          body: "is now following you",
+          isAccepted: true,
+          body: "is now connected with you",
           sender: { ...n.sender, relationshipStatus: "following" }
         } : n));
       } else {
@@ -222,7 +223,7 @@ const Notifications = () => {
 
                     {/* ACTION AREA */}
                     <div className="notificationActions">
-                      {type === "follow_request" ? (
+                      {type === "follow_request" && !notif.isAccepted ? (
                         <div style={{ display: "flex", gap: "8px" }}>
                           <button
                             className="notif-btn notif-accept"
@@ -239,7 +240,7 @@ const Notifications = () => {
                             <X size={14} /> Delete
                           </button>
                         </div>
-                      ) : type === "follow" ? (
+                      ) : (type === "follow" || notif.isAccepted) ? (
                         <button
                           className="notif-btn notif-view"
                           onClick={() => navigate(`/profile/${senderHandle}`)}
