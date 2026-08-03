@@ -6,17 +6,32 @@ const protect = (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
     
     if (!token) {
-      res.status(401);
-      throw new Error("Authentication token missing");
+      const err = new Error("Authentication token missing");
+      err.status = 401;
+      return next(err);
     }
     
     const decoded = jwt.verify(token, env.JWT_SECRET || "default_secret");
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401);
-    throw new Error("Invalid or expired token");
+    const err = new Error("Invalid or expired token");
+    err.status = 401;
+    return next(err);
   }
 };
 
-module.exports = { protect };
+const optionalAuth = (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (token) {
+      const decoded = jwt.verify(token, env.JWT_SECRET || "default_secret");
+      req.user = decoded;
+    }
+  } catch (error) {
+    // optional auth allows unauthenticated access
+  }
+  next();
+};
+
+module.exports = { protect, optionalAuth };
