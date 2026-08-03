@@ -8,6 +8,8 @@
   flex: 1;
   margin-left: 244px; /* Width of sidebar */
   min-height: 100vh;
+  min-width: 0; /* Prevent flex child from exceeding parent */
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
