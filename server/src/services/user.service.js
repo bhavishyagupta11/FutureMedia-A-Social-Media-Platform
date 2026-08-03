@@ -261,6 +261,12 @@ const acceptFollowRequest = async (requesterId, currentUserId) => {
   await currentUser.save();
   await requester.save();
 
+  const Notification = require("../models/notificationModel");
+  await Notification.updateMany(
+    { recipientId: currentUserId, senderId: requesterId, type: "follow_request" },
+    { type: "follow", body: "accepted follow request" }
+  );
+
   const NotificationService = require("./NotificationService");
   await NotificationService.createNotification({
     recipientId: requesterId,
@@ -285,6 +291,13 @@ const rejectFollowRequest = async (requesterId, currentUserId) => {
 
   currentUser.followRequests = currentUser.followRequests.filter(id => id.toString() !== requesterId);
   await currentUser.save();
+
+  const Notification = require("../models/notificationModel");
+  await Notification.deleteMany({
+    recipientId: currentUserId,
+    senderId: requesterId,
+    type: "follow_request"
+  });
 
   return { message: "Follow request rejected", status: "none" };
 };
