@@ -11,7 +11,7 @@ const protect = (req, res, next) => {
       return next(err);
     }
     
-    const decoded = jwt.verify(token, env.JWT_SECRET || "default_secret");
+    const decoded = jwt.verify(token, env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (error) {
@@ -25,7 +25,7 @@ const optionalAuth = (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (token) {
-      const decoded = jwt.verify(token, env.JWT_SECRET || "default_secret");
+      const decoded = jwt.verify(token, env.JWT_SECRET);
       req.user = decoded;
     }
   } catch (error) {
