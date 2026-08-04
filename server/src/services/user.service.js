@@ -67,11 +67,21 @@ const calculateProfileCompletion = (userObj) => {
   return Math.round((filled / fields.length) * 100);
 };
 
+const ALLOWED_PROFILE_FIELDS = [
+  'displayName', 'bio', 'website', 'location', 'profession', 'education',
+  'skills', 'socialLinks', 'gender', 'pronouns', 'coverImage', 'profilePicture',
+  'isPrivate'
+];
+
 const updateProfile = async (id, data) => {
   const user = await User.findById(id);
   if (!user) throw new Error("User not found");
 
-  Object.assign(user, data);
+  // Whitelist fields to prevent mass-assignment of role, isVerified, accountStatus, etc.
+  const sanitized = Object.fromEntries(
+    Object.entries(data).filter(([key]) => ALLOWED_PROFILE_FIELDS.includes(key))
+  );
+  Object.assign(user, sanitized);
   user.profileCompletion = calculateProfileCompletion(user);
   
   await user.save();
@@ -263,7 +273,7 @@ const acceptFollowRequest = async (requesterId, currentUserId) => {
 
   const Notification = require("../models/notificationModel");
   await Notification.updateMany(
-    { recipientId: currentUserId, senderId: requesterId, type: "follow_request" },
+    { recipient: currentUserId, sender: requesterId, type: "follow_request" },
     { type: "follow", body: "accepted follow request" }
   );
 
@@ -294,8 +304,8 @@ const rejectFollowRequest = async (requesterId, currentUserId) => {
 
   const Notification = require("../models/notificationModel");
   await Notification.deleteMany({
-    recipientId: currentUserId,
-    senderId: requesterId,
+    recipient: currentUserId,
+    sender: requesterId,
     type: "follow_request"
   });
 
