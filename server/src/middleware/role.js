@@ -1,8 +1,9 @@
 const roleMiddleware = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      res.status(403);
-      throw new Error(`User role '${req.user ? req.user.role : "undefined"}' is not authorized to access this route`);
+      const err = new Error(`User role '${req.user ? req.user.role : "undefined"}' is not authorized to access this route`);
+      err.status = 403;
+      return next(err);
     }
     next();
   };
