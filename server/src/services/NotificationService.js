@@ -8,7 +8,7 @@ class NotificationService {
     if (recipientId.toString() === senderId.toString()) return null;
 
     const recipient = await User.findById(recipientId).select("settings.notifications.push");
-    if (recipient && recipient.settings && recipient.settings.notifications.push === false) {
+    if (recipient?.settings?.notifications?.push === false) {
       return null;
     }
 
