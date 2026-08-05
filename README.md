@@ -17,26 +17,20 @@ FutureMedia is a production-grade, full-stack social networking application engi
 
 ## Interface Previews
 
-### Homepage & Authentication
-![Homepage Preview](https://via.placeholder.com/1200x675/18181B/FFFFFF?text=FutureMedia+Auth+%26+Landing)
-
-### Main Feed
-![Feed Preview](https://via.placeholder.com/1200x675/18181B/FFFFFF?text=FutureMedia+Realtime+Feed)
-
-### User Profile
-![Profile Preview](https://via.placeholder.com/1200x675/18181B/FFFFFF?text=FutureMedia+Instagram-Style+Profile+Grid)
-
-### Realtime Messaging
-![Messaging Preview](https://via.placeholder.com/1200x675/18181B/FFFFFF?text=FutureMedia+Realtime+Chat)
-
-### Discovery & Search
-![Search Preview](https://via.placeholder.com/1200x675/18181B/FFFFFF?text=FutureMedia+User+%26+Content+Search)
-
 ### Notifications Center
-![Notifications Preview](https://via.placeholder.com/1200x675/18181B/FFFFFF?text=FutureMedia+Activity+Notifications)
+![Notifications Center](docs/screenshots/notifications.png)
 
-### User Settings
-![Settings Preview](https://via.placeholder.com/1200x675/18181B/FFFFFF?text=FutureMedia+Account+%26+Privacy+Settings)
+### Create Post Modal
+![Create Post Modal](docs/screenshots/create_post_modal.png)
+
+### Account Settings
+![Account Profile Settings](docs/screenshots/settings_account.png)
+
+### Appearance & Theme Preferences
+![Appearance Settings](docs/screenshots/settings_appearance.png)
+
+### Main Feed & Homepage
+![Main Feed Preview](docs/screenshots/home_feed.png)
 
 ---
 
