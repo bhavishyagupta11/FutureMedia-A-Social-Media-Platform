@@ -1,20 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Stories.css';
 import { Plus } from 'lucide-react';
 import { getStoredUserProfile } from '../../utils/session';
 import { apiFetch } from '../../utils/api';
-import toast from 'react-hot-toast';
 import StoryViewer from './StoryViewer';
+import CreateStoryModal from './CreateStoryModal';
+import ProfileImage from '../../img/profileImg.jpg';
 
 const Stories = () => {
-  const profile = getStoredUserProfile() || {};
+  const [profile, setProfile] = useState(getStoredUserProfile() || {});
   const [storyGroups, setStoryGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewerIndex, setViewerIndex] = useState(null);
-  const fileInputRef = useRef(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     fetchStories();
+
+    const handleSessionUpdate = () => {
+      setProfile(getStoredUserProfile() || {});
+    };
+
+    window.addEventListener('session:updated', handleSessionUpdate);
+    window.addEventListener('profile:updated', handleSessionUpdate);
+
+    return () => {
+      window.removeEventListener('session:updated', handleSessionUpdate);
+      window.removeEventListener('profile:updated', handleSessionUpdate);
+    };
   }, []);
 
   const fetchStories = async () => {
@@ -22,7 +35,8 @@ const Stories = () => {
       const res = await apiFetch('/api/v1/stories');
       if (res.ok) {
         const payload = await res.json();
-        setStoryGroups(Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []));
+        const data = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+        setStoryGroups(data);
       }
     } catch (e) {
       console.error(e);
@@ -31,65 +45,97 @@ const Stories = () => {
     }
   };
 
-  const handleCreateStory = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const currentUserId = profile.userId;
+  const userAvatar = profile.image || profile.profilePicture || ProfileImage;
 
-    const formData = new FormData();
-    formData.append('media', file);
+  // Find my story group if I have active stories
+  const myGroupIndex = storyGroups.findIndex(g => String(g.user?._id) === String(currentUserId));
+  const myStoryGroup = myGroupIndex !== -1 ? storyGroups[myGroupIndex] : null;
 
-    try {
-      toast.loading('Uploading story...', { id: 'storyUpload' });
-      const res = await apiFetch('/api/v1/stories', {
-        method: 'POST',
-        body: formData,
-      });
-      if (res.ok) {
-        toast.success('Story published!', { id: 'storyUpload' });
-        fetchStories();
-      } else {
-        toast.error('Failed to upload story', { id: 'storyUpload' });
-      }
-    } catch (err) {
-      toast.error('Failed to upload story', { id: 'storyUpload' });
-    }
-  };
+  // Check if my story group is fully seen
+  const isMyStorySeen = myStoryGroup?.stories.every(s => 
+    s.seenBy?.some(v => String(v.user?._id || v.user || v) === String(currentUserId))
+  );
 
   return (
     <>
       <div className="stories-container">
+        {/* YOUR STORY ITEM */}
         <div className="story-item create-story">
-          <div className="story-avatar-container" onClick={() => fileInputRef.current?.click()}>
-            <img src={profile.avatar || 'https://i.pravatar.cc/150?u=myprofile'} alt="Your Story" className="story-avatar" />
-            <div className="create-story-btn">
-              <Plus size={16} strokeWidth={3} />
-            </div>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleCreateStory} 
-              accept="image/*,video/*" 
-              style={{ display: 'none' }} 
+          <div 
+            className={`story-avatar-container ${myStoryGroup ? `has-story ${isMyStorySeen ? 'seen' : ''}` : ''}`}
+            onClick={() => {
+              if (myStoryGroup) {
+                setViewerIndex(myGroupIndex);
+              } else {
+                setIsCreateModalOpen(true);
+              }
+            }}
+          >
+            <img 
+              src={userAvatar} 
+              alt="Your Story" 
+              className="story-avatar" 
+              onError={(e) => { e.target.src = ProfileImage; }}
             />
+            <div 
+              className="create-story-badge"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsCreateModalOpen(true);
+              }}
+              title="Add to story"
+            >
+              <Plus size={14} strokeWidth={3} />
+            </div>
           </div>
           <span className="story-username">Your Story</span>
         </div>
 
-        {!loading && storyGroups.map((group, index) => (
-          <div className="story-item" key={group.user._id} onClick={() => setViewerIndex(index)}>
-            <div className="story-avatar-container has-story">
-              <img src={group.user.profilePicture || 'https://i.pravatar.cc/150'} alt={group.user.username} className="story-avatar" />
+        {/* OTHER USERS' STORIES */}
+        {!loading && storyGroups.map((group, index) => {
+          if (String(group.user?._id) === String(currentUserId)) return null;
+
+          const isSeen = group.stories.every(s => 
+            s.seenBy?.some(v => String(v.user?._id || v.user || v) === String(currentUserId))
+          );
+
+          return (
+            <div 
+              className="story-item" 
+              key={group.user?._id || index} 
+              onClick={() => setViewerIndex(index)}
+            >
+              <div className={`story-avatar-container has-story ${isSeen ? 'seen' : ''}`}>
+                <img 
+                  src={group.user?.profilePicture || ProfileImage} 
+                  alt={group.user?.username || 'user'} 
+                  className="story-avatar" 
+                  onError={(e) => { e.target.src = ProfileImage; }}
+                />
+              </div>
+              <span className="story-username">
+                {group.user?.displayName || group.user?.username || 'User'}
+              </span>
             </div>
-            <span className="story-username">{group.user.displayName || group.user.username}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
+      {/* STORY CREATION MODAL */}
+      <CreateStoryModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onStoryCreated={fetchStories}
+      />
+
+      {/* STORY VIEWER MODAL */}
       {viewerIndex !== null && (
         <StoryViewer 
           storyGroups={storyGroups} 
           initialGroupIndex={viewerIndex} 
-          onClose={() => setViewerIndex(null)} 
+          onClose={() => setViewerIndex(null)}
+          onStoryDeleted={fetchStories}
         />
       )}
     </>
