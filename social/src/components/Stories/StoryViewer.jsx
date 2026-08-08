@@ -154,6 +154,8 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
     ? (story.mediaUrl.startsWith("http") ? story.mediaUrl : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${story.mediaUrl}`) 
     : "";
 
+  const userAvatarUrl = group.user?.profilePicture || ProfileImage;
+
   return (
     <AnimatePresence>
       <motion.div 
@@ -162,10 +164,6 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <button className="story-close-btn" onClick={onClose} title="Close (Esc)">
-          <X size={28} />
-        </button>
-
         <div 
           className="story-viewer-content"
           onMouseDown={() => setIsPaused(true)}
@@ -190,29 +188,45 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
 
           {/* User Header */}
           <div className="story-header">
-            <img 
-              src={group.user?.profilePicture || ProfileImage} 
-              alt={group.user?.username || 'user'} 
-              className="story-viewer-avatar" 
-            />
-            <div className="story-viewer-info">
-              <span className="story-viewer-username">
-                {group.user?.displayName || group.user?.username || 'User'}
-              </span>
-              <span className="story-viewer-time">
-                {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+            <div className="story-header-user">
+              <img 
+                src={userAvatarUrl} 
+                alt={group.user?.username || 'user'} 
+                className="story-viewer-avatar" 
+                onError={(e) => { e.target.src = ProfileImage; }}
+              />
+              <div className="story-viewer-info">
+                <span className="story-viewer-username">
+                  {group.user?.displayName || group.user?.username || 'User'}
+                </span>
+                <span className="story-viewer-time">
+                  {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
             </div>
 
-            {isOwner && (
+            <div className="story-header-actions">
+              {isOwner && (
+                <button 
+                  type="button"
+                  className="story-delete-btn" 
+                  onClick={(e) => { e.stopPropagation(); handleDeleteCurrentStory(); }}
+                  title="Delete Story"
+                  aria-label="Delete Story"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
               <button 
-                className="story-delete-btn" 
-                onClick={(e) => { e.stopPropagation(); handleDeleteCurrentStory(); }}
-                title="Delete Story"
+                type="button"
+                className="story-close-btn" 
+                onClick={(e) => { e.stopPropagation(); onClose(); }} 
+                title="Close (Esc)"
+                aria-label="Close Story"
               >
-                <Trash2 size={16} />
+                <X size={20} />
               </button>
-            )}
+            </div>
           </div>
 
           {/* Media / Content Body */}
@@ -304,7 +318,12 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
                 ) : (
                   viewersList.map((viewer) => (
                     <div key={viewer._id} className="viewer-item">
-                      <img src={viewer.profilePicture || ProfileImage} alt={viewer.username} className="viewer-avatar" />
+                      <img 
+                        src={viewer.profilePicture || ProfileImage} 
+                        alt={viewer.username} 
+                        className="viewer-avatar" 
+                        onError={(e) => { e.target.src = ProfileImage; }}
+                      />
                       <div className="viewer-info">
                         <span className="viewer-name">{viewer.displayName || viewer.username}</span>
                         <span className="viewer-handle">@{viewer.username}</span>
