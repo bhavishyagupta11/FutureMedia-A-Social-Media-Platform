@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Eye, Trash2 } from 'lucide-react';
 import './StoryViewer.css';
 import { apiFetch } from '../../utils/api';
-import { getStoredUserProfile } from '../../utils/session';
+import { getStoredUserProfile, resolveAvatar } from '../../utils/session';
 import toast from 'react-hot-toast';
 import ProfileImage from '../../img/profileImg.jpg';
 
@@ -154,7 +154,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
     ? (story.mediaUrl.startsWith("http") ? story.mediaUrl : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${story.mediaUrl}`) 
     : "";
 
-  const userAvatarUrl = group.user?.profilePicture || ProfileImage;
+  const userAvatarUrl = resolveAvatar(group.user);
 
   return (
     <AnimatePresence>
@@ -319,7 +319,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
                   viewersList.map((viewer) => (
                     <div key={viewer._id} className="viewer-item">
                       <img 
-                        src={viewer.profilePicture || ProfileImage} 
+                        src={resolveAvatar(viewer)} 
                         alt={viewer.username} 
                         className="viewer-avatar" 
                         onError={(e) => { e.target.src = ProfileImage; }}

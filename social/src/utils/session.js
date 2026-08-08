@@ -1,3 +1,5 @@
+import ProfileImage from "../img/profileImg.jpg";
+
 const USER_STORAGE_KEYS = [
   "userId",
   "image",
@@ -38,6 +40,32 @@ export const getStoredUserProfile = () => ({
   followingList: safeJsonParse(localStorage.getItem("followingList")),
   isPrivate: localStorage.getItem("isPrivate") === "true",
 });
+
+export const resolveAvatar = (user) => {
+  if (!user) {
+    const stored = getStoredUserProfile();
+    return stored.image || ProfileImage;
+  }
+  
+  if (typeof user === 'string') {
+    if (user.startsWith('http') || user.startsWith('/uploads') || user.startsWith('data:')) {
+      return user.startsWith('http') || user.startsWith('data:') ? user : `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}${user}`;
+    }
+    return ProfileImage;
+  }
+
+  const avatar = user.profilePicture || user.image || user.avatar || user.img;
+  if (avatar && (avatar.startsWith('http') || avatar.startsWith('/uploads') || avatar.startsWith('data:'))) {
+    return avatar.startsWith('http') || avatar.startsWith('data:') ? avatar : `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}${avatar}`;
+  }
+
+  const stored = getStoredUserProfile();
+  if (user._id && String(user._id) === String(stored.userId) && stored.image) {
+    return stored.image;
+  }
+
+  return ProfileImage;
+};
 
 export const persistUserSession = (rawUser) => {
   if (!rawUser) {

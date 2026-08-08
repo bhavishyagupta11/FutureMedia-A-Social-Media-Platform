@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Stories.css';
 import { Plus } from 'lucide-react';
-import { getStoredUserProfile } from '../../utils/session';
+import { getStoredUserProfile, resolveAvatar } from '../../utils/session';
 import { apiFetch } from '../../utils/api';
 import StoryViewer from './StoryViewer';
 import CreateStoryModal from './CreateStoryModal';
@@ -46,7 +46,7 @@ const Stories = () => {
   };
 
   const currentUserId = profile.userId;
-  const userAvatar = profile.image || profile.profilePicture || ProfileImage;
+  const userAvatar = resolveAvatar(profile);
 
   // Find my story group if I have active stories
   const myGroupIndex = storyGroups.findIndex(g => String(g.user?._id) === String(currentUserId));
@@ -108,7 +108,7 @@ const Stories = () => {
             >
               <div className={`story-avatar-container has-story ${isSeen ? 'seen' : ''}`}>
                 <img 
-                  src={group.user?.profilePicture || ProfileImage} 
+                  src={resolveAvatar(group.user)} 
                   alt={group.user?.username || 'user'} 
                   className="story-avatar" 
                   onError={(e) => { e.target.src = ProfileImage; }}
