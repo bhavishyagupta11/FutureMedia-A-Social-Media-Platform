@@ -21,6 +21,18 @@ const FONTS = [
   { label: 'Cursive', value: 'cursive' }
 ];
 
+const FONT_SIZE_MAP = {
+  small: '1.25rem',
+  normal: '1.75rem',
+  large: '2.5rem',
+};
+
+const FONT_SIZE_OPTIONS = [
+  { key: 'small', label: 'Small' },
+  { key: 'normal', label: 'Normal' },
+  { key: 'large', label: 'Large' },
+];
+
 const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
   const [activeTab, setActiveTab] = useState('media'); // 'media' | 'text'
   const [selectedFile, setSelectedFile] = useState(null);
@@ -30,7 +42,7 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
   // Text Story states
   const [storyText, setStoryText] = useState('');
   const [selectedGradient, setSelectedGradient] = useState(GRADIENTS[0].bg);
-  const [fontSize, setFontSize] = useState('1.5rem');
+  const [fontSizeKey, setFontSizeKey] = useState('normal'); // 'small' | 'normal' | 'large'
   const [textAlign, setTextAlign] = useState('center');
   const [fontFamily, setFontFamily] = useState('sans-serif');
   
@@ -43,7 +55,6 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check size limit (20MB max)
     if (file.size > 20 * 1024 * 1024) {
       toast.error('File size exceeds 20MB limit');
       return;
@@ -100,7 +111,7 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
           mediaType: 'text',
           text: storyText.trim(),
           background: selectedGradient,
-          fontSize: fontSize,
+          fontSize: fontSizeKey,
           textColor: '#ffffff',
           textAlign: textAlign,
           fontFamily: fontFamily,
@@ -220,7 +231,7 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
                     value={storyText}
                     onChange={(e) => setStoryText(e.target.value)}
                     style={{ 
-                      fontSize: fontSize, 
+                      fontSize: FONT_SIZE_MAP[fontSizeKey] || '1.75rem', 
                       color: '#ffffff',
                       textAlign: textAlign,
                       fontFamily: fontFamily
@@ -320,25 +331,16 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
 
                 <div className="story-options-row">
                   <span className="options-label">Font Size</span>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {['1.2rem', '1.5rem', '2rem'].map((sz, idx) => (
+                  <div className="font-size-segmented-control">
+                    {FONT_SIZE_OPTIONS.map((opt) => (
                       <button
-                        key={sz}
+                        key={opt.key}
                         type="button"
-                        style={{
-                          flex: 1,
-                          padding: '0.4rem',
-                          background: fontSize === sz ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontWeight: 600,
-                          fontSize: '0.85rem'
-                        }}
-                        onClick={() => setFontSize(sz)}
+                        className={`font-size-btn ${fontSizeKey === opt.key ? 'active' : ''}`}
+                        aria-pressed={fontSizeKey === opt.key}
+                        onClick={() => setFontSizeKey(opt.key)}
                       >
-                        {idx === 0 ? 'Small' : idx === 1 ? 'Normal' : 'Large'}
+                        {opt.label}
                       </button>
                     ))}
                   </div>

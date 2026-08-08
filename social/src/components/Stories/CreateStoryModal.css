@@ -91,7 +91,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 /* Upload Dropzone */
@@ -173,7 +173,7 @@
 /* Text Story Canvas Preview */
 .text-story-canvas {
   width: 100%;
-  height: 280px;
+  height: 260px;
   border-radius: var(--radius-card, 20px);
   display: flex;
   align-items: center;
@@ -183,6 +183,7 @@
   box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.3);
   transition: background 0.3s ease;
   position: relative;
+  box-sizing: border-box;
 }
 
 .text-story-canvas textarea {
@@ -193,6 +194,8 @@
   resize: none;
   font-weight: 700;
   line-height: 1.4;
+  box-sizing: border-box;
+  transition: font-size 0.2s ease;
 }
 
 .text-story-canvas textarea::placeholder {
@@ -216,6 +219,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .options-label {
@@ -245,6 +250,50 @@
   border-color: #ffffff;
   transform: scale(1.15);
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+/* Font Size Segmented Control */
+.font-size-segmented-control {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-input, rgba(255, 255, 255, 0.05));
+  padding: 4px;
+  border-radius: var(--radius-button, 14px);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+}
+
+.font-size-btn {
+  width: 100%;
+  min-width: 0;
+  padding: 0.55rem 0.25rem;
+  background: transparent;
+  color: var(--color-text-muted, #a1a1aa);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-align: center;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.font-size-btn.active {
+  background: var(--color-primary, #4F46E5);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+}
+
+.font-size-btn:hover:not(.active) {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .caption-input {

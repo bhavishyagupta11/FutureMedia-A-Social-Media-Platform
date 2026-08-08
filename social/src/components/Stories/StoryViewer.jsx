@@ -7,6 +7,15 @@ import { getStoredUserProfile } from '../../utils/session';
 import toast from 'react-hot-toast';
 import ProfileImage from '../../img/profileImg.jpg';
 
+const FONT_SIZE_MAP = {
+  small: '1.25rem',
+  normal: '1.75rem',
+  large: '2.5rem',
+  '1.2rem': '1.25rem',
+  '1.5rem': '1.75rem',
+  '2rem': '2.5rem'
+};
+
 const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }) => {
   const currentProfile = getStoredUserProfile() || {};
   const currentUserId = currentProfile.userId;
@@ -216,7 +225,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
                 <span 
                   className="story-text-content" 
                   style={{ 
-                    fontSize: story.fontSize || '1.5rem', 
+                    fontSize: FONT_SIZE_MAP[story.fontSize] || story.fontSize || '1.75rem', 
                     color: story.textColor || '#ffffff',
                     textAlign: story.textAlign || 'center',
                     fontFamily: story.fontFamily || 'sans-serif'
