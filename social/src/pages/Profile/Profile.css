@@ -72,6 +72,20 @@
 
 .profileAvatarWrapper {
   flex-shrink: 0;
+  border-radius: 50%;
+  padding: 3px;
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+.profileAvatarWrapper.has-active-story {
+  background: linear-gradient(45deg, #F97316, #EC4899, #8B5CF6, #4F46E5);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+  cursor: pointer;
+}
+
+.profileAvatarWrapper.has-active-story:hover {
+  transform: scale(1.05);
 }
 
 .profileAvatar {
@@ -79,6 +93,7 @@
   height: 150px;
   border-radius: 50%;
   object-fit: cover;
+  display: block;
 }
 
 .profileInfo {

@@ -4,19 +4,32 @@ const asyncHandler = require("../utils/asyncHandler");
 const { successResponse } = require("../utils/responseHandler");
 
 exports.createStory = asyncHandler(async (req, res) => {
-  const { mediaType, caption, text, background, fontSize, textColor } = req.body;
+  const { mediaType, caption, text, background, fontSize, textColor, textAlign, fontFamily } = req.body;
 
   let mediaUrl = "";
   let type = mediaType || "image";
 
   if (req.file) {
+    const isImage = req.file.mimetype.startsWith("image/");
+    const isVideo = req.file.mimetype.startsWith("video/");
+    if (!isImage && !isVideo) {
+      const err = new Error("Invalid file format. Only images and videos are allowed.");
+      err.status = 400;
+      throw err;
+    }
+
     mediaUrl = req.file.path && req.file.path.startsWith("http") 
       ? req.file.path 
       : `/uploads/${req.file.filename}`;
-    type = req.file.mimetype.startsWith("video") ? "video" : "image";
+    type = isVideo ? "video" : "image";
   } else if (type === "text") {
     if (!text || !text.trim()) {
       const err = new Error("Text content is required for text story");
+      err.status = 400;
+      throw err;
+    }
+    if (text.trim().length > 280) {
+      const err = new Error("Text story exceeds maximum character limit of 280");
       err.status = 400;
       throw err;
     }
@@ -27,17 +40,19 @@ exports.createStory = asyncHandler(async (req, res) => {
   }
 
   const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + 24); // Standard 24h story lifetime
+  expiresAt.setHours(expiresAt.getHours() + 24); // 24-hour lifetime
 
   const story = await Story.create({
     userId: req.user.id,
     mediaUrl,
     mediaType: type,
-    caption: caption || "",
-    text: text || "",
+    caption: (caption || "").substring(0, 300),
+    text: (text || "").substring(0, 280),
     background: background || "linear-gradient(135deg, #4F46E5, #7C3AED)",
     fontSize: fontSize || "1.5rem",
     textColor: textColor || "#ffffff",
+    textAlign: ["left", "center", "right"].includes(textAlign) ? textAlign : "center",
+    fontFamily: fontFamily || "sans-serif",
     expiresAt,
     seenBy: [{ user: req.user.id, viewedAt: new Date() }]
   });
@@ -92,25 +107,78 @@ exports.getFeedStories = asyncHandler(async (req, res) => {
   return successResponse(res, 200, "Stories fetched", result);
 });
 
+exports.getUserStories = asyncHandler(async (req, res) => {
+  const targetUserId = req.params.userId;
+  const currentUserId = req.user.id.toString();
+
+  const targetUser = await User.findById(targetUserId)
+    .select("username displayName profilePicture isPrivate followers settings");
+
+  if (!targetUser) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+
+  // Privacy Validation
+  if (targetUserId !== currentUserId) {
+    const isPrivate = targetUser.isPrivate === true || targetUser.settings?.privacy?.profileVisibility === "private";
+    const isFollower = targetUser.followers?.some(id => id.toString() === currentUserId);
+    
+    if (isPrivate && !isFollower) {
+      const err = new Error("This account is private. Follow to view stories.");
+      err.status = 403;
+      throw err;
+    }
+  }
+
+  const now = new Date();
+  const stories = await Story.find({
+    userId: targetUserId,
+    expiresAt: { $gt: now }
+  }).sort({ createdAt: 1 });
+
+  if (stories.length === 0) {
+    return successResponse(res, 200, "No active stories", null);
+  }
+
+  return successResponse(res, 200, "User stories fetched", {
+    user: {
+      _id: targetUser._id,
+      username: targetUser.username,
+      displayName: targetUser.displayName,
+      profilePicture: targetUser.profilePicture
+    },
+    stories
+  });
+});
+
 exports.markStoryAsViewed = asyncHandler(async (req, res) => {
-  const story = await Story.findById(req.params.id);
+  const storyId = req.params.id;
+  const currentUserId = req.user.id;
+
+  const story = await Story.findById(storyId);
   if (!story) {
     const err = new Error("Story not found");
     err.status = 404;
     throw err;
   }
 
-  const currentUserIdStr = req.user.id.toString();
+  const currentUserIdStr = currentUserId.toString();
   const alreadyViewed = story.seenBy.some(
     item => (item.user ? item.user.toString() : item.toString()) === currentUserIdStr
   );
 
   if (!alreadyViewed) {
-    story.seenBy.push({ user: req.user.id, viewedAt: new Date() });
-    await story.save();
+    // Atomic update using $addToSet / $push to avoid race conditions
+    await Story.updateOne(
+      { _id: storyId, "seenBy.user": { $ne: currentUserId } },
+      { $push: { seenBy: { user: currentUserId, viewedAt: new Date() } } }
+    );
   }
 
-  return successResponse(res, 200, "Story marked as viewed", story);
+  const updatedStory = await Story.findById(storyId);
+  return successResponse(res, 200, "Story marked as viewed", updatedStory);
 });
 
 exports.getStoryViewers = asyncHandler(async (req, res) => {
@@ -118,8 +186,8 @@ exports.getStoryViewers = asyncHandler(async (req, res) => {
     .populate("seenBy.user", "username displayName profilePicture isVerified");
 
   if (!story) {
-    const err = new Error("Story not found or unauthorized");
-    err.status = 404;
+    const err = new Error("Story not found or unauthorized to view viewers");
+    err.status = 403;
     throw err;
   }
 
@@ -141,7 +209,7 @@ exports.deleteStory = asyncHandler(async (req, res) => {
   const story = await Story.findOne({ _id: req.params.id, userId: req.user.id });
   if (!story) {
     const err = new Error("Story not found or unauthorized");
-    err.status = 404;
+    err.status = 403;
     throw err;
   }
   await story.deleteOne();

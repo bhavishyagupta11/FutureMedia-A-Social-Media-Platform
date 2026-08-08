@@ -3,6 +3,7 @@ import "./Post.css";
 import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal } from "lucide-react";
 import { apiFetch } from "../../utils/api";
 import { motion } from "framer-motion";
+import ProfileImage from "../../img/profileImg.jpg";
 
 const Post = ({ data, attribute }) => {
   const [liked, setLiked] = useState(attribute?.likes || 0);
@@ -46,7 +47,7 @@ const Post = ({ data, attribute }) => {
       <div className="post-header">
         <div className="post-header-user">
           <div className="post-avatar">
-             <img src="https://via.placeholder.com/40" alt="Avatar" />
+             <img src={attribute?.profilePicture || ProfileImage} alt="Avatar" />
           </div>
           <div className="post-user-info">
             <span className="post-username">{attribute?.name || 'User'}</span>

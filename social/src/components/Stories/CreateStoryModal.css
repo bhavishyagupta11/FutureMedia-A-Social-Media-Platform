@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
@@ -173,16 +173,16 @@
 /* Text Story Canvas Preview */
 .text-story-canvas {
   width: 100%;
-  height: 300px;
+  height: 280px;
   border-radius: var(--radius-card, 20px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  text-align: center;
   word-break: break-word;
   box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.3);
   transition: background 0.3s ease;
+  position: relative;
 }
 
 .text-story-canvas textarea {
@@ -191,14 +191,24 @@
   border: none;
   outline: none;
   resize: none;
-  text-align: center;
-  font-family: inherit;
   font-weight: 700;
   line-height: 1.4;
 }
 
 .text-story-canvas textarea::placeholder {
   color: rgba(255, 255, 255, 0.6);
+}
+
+.char-counter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
 /* Control Options */

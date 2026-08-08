@@ -7,6 +7,7 @@ import { getStoredUserProfile } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
 import { toast } from "react-toastify";
 import { Lock, Heart, MessageCircle, Check, X, ShieldAlert, Settings as SettingsIcon } from "lucide-react";
+import StoryViewer from "../../components/Stories/StoryViewer";
 
 const Profile = () => {
   const { username: profileIdentifier } = useParams();
@@ -22,6 +23,8 @@ const Profile = () => {
   const [hasIncomingRequest, setHasIncomingRequest] = useState(false);
   const [loadingFollow, setLoadingFollow] = useState(false);
   const [error, setError] = useState(false);
+  const [userStoriesGroup, setUserStoriesGroup] = useState(null);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
 
   useEffect(() => {
     setError(false);
@@ -65,6 +68,17 @@ const Profile = () => {
             })
             .catch(console.error);
         }
+        // Fetch target user's active stories for story ring
+        apiFetch(`/api/v1/stories/user/${userData._id}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(storiesPayload => {
+            if (storiesPayload && storiesPayload.data && storiesPayload.data.stories?.length > 0) {
+              setUserStoriesGroup(storiesPayload.data);
+            } else {
+              setUserStoriesGroup(null);
+            }
+          })
+          .catch(() => setUserStoriesGroup(null));
       })
       .catch((err) => {
         console.error(err);
@@ -213,7 +227,11 @@ const Profile = () => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="profileAvatarWrapper"
+          className={`profileAvatarWrapper ${userStoriesGroup ? 'has-active-story' : ''}`}
+          onClick={() => {
+            if (userStoriesGroup) setShowStoryViewer(true);
+          }}
+          title={userStoriesGroup ? "Click to view story" : ""}
         >
           <img src={avatarUrl} alt={user.username} className="profileAvatar" />
         </motion.div>
@@ -408,6 +426,14 @@ const Profile = () => {
           </div>
         )}
       </div>
+
+      {showStoryViewer && userStoriesGroup && (
+        <StoryViewer
+          storyGroups={[userStoriesGroup]}
+          initialGroupIndex={0}
+          onClose={() => setShowStoryViewer(false)}
+        />
+      )}
     </motion.div>
   );
 };

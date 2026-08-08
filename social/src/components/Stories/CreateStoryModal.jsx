@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Image as ImageIcon, Type, UploadCloud, Send } from 'lucide-react';
+import { X, Image as ImageIcon, Type, UploadCloud, Send, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import './CreateStoryModal.css';
 import { apiFetch } from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -14,6 +14,13 @@ const GRADIENTS = [
   { name: 'Golden Amber', bg: 'linear-gradient(135deg, #F59E0B, #D97706)' },
 ];
 
+const FONTS = [
+  { label: 'Sans', value: 'sans-serif' },
+  { label: 'Serif', value: 'serif' },
+  { label: 'Mono', value: 'monospace' },
+  { label: 'Cursive', value: 'cursive' }
+];
+
 const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
   const [activeTab, setActiveTab] = useState('media'); // 'media' | 'text'
   const [selectedFile, setSelectedFile] = useState(null);
@@ -24,6 +31,8 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
   const [storyText, setStoryText] = useState('');
   const [selectedGradient, setSelectedGradient] = useState(GRADIENTS[0].bg);
   const [fontSize, setFontSize] = useState('1.5rem');
+  const [textAlign, setTextAlign] = useState('center');
+  const [fontFamily, setFontFamily] = useState('sans-serif');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
@@ -33,6 +42,12 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Check size limit (20MB max)
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('File size exceeds 20MB limit');
+      return;
+    }
 
     setSelectedFile(file);
     const url = URL.createObjectURL(file);
@@ -75,12 +90,20 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
           return;
         }
 
+        if (storyText.trim().length > 280) {
+          toast.error('Text story cannot exceed 280 characters', { id: toastId });
+          setIsSubmitting(false);
+          return;
+        }
+
         const payload = {
           mediaType: 'text',
           text: storyText.trim(),
           background: selectedGradient,
           fontSize: fontSize,
           textColor: '#ffffff',
+          textAlign: textAlign,
+          fontFamily: fontFamily,
           caption: caption,
         };
 
@@ -152,7 +175,7 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
                   >
                     <UploadCloud size={48} className="dropzone-icon" />
                     <span className="dropzone-text">Click to choose image or video</span>
-                    <span className="dropzone-hint">Supports PNG, JPG, MP4, WEBM (up to 24h expiration)</span>
+                    <span className="dropzone-hint">Supports PNG, JPG, MP4, WEBM (up to 20MB)</span>
                     <input 
                       type="file"
                       ref={fileInputRef}
@@ -182,6 +205,7 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
                     className="caption-input"
+                    maxLength={300}
                   />
                 </div>
               </>
@@ -195,9 +219,88 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
                     placeholder="Start typing your story..."
                     value={storyText}
                     onChange={(e) => setStoryText(e.target.value)}
-                    style={{ fontSize: fontSize, color: '#ffffff' }}
+                    style={{ 
+                      fontSize: fontSize, 
+                      color: '#ffffff',
+                      textAlign: textAlign,
+                      fontFamily: fontFamily
+                    }}
+                    maxLength={280}
                     rows={4}
                   />
+                  <div className="char-counter">
+                    {storyText.length}/280
+                  </div>
+                </div>
+
+                {/* Alignment & Typography Tools */}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button
+                      type="button"
+                      style={{
+                        padding: '6px 10px',
+                        background: textAlign === 'left' ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => setTextAlign('left')}
+                    >
+                      <AlignLeft size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        padding: '6px 10px',
+                        background: textAlign === 'center' ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => setTextAlign('center')}
+                    >
+                      <AlignCenter size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        padding: '6px 10px',
+                        background: textAlign === 'right' ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => setTextAlign('right')}
+                    >
+                      <AlignRight size={16} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {FONTS.map(f => (
+                      <button
+                        key={f.value}
+                        type="button"
+                        style={{
+                          padding: '4px 8px',
+                          fontSize: '0.75rem',
+                          fontFamily: f.value,
+                          background: fontFamily === f.value ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setFontFamily(f.value)}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="story-options-row">

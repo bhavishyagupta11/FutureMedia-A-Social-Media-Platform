@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Eye, Trash2 } from 'lucide-react';
 import './StoryViewer.css';
@@ -15,12 +15,25 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [videoDuration, setVideoDuration] = useState(5000); // default 5s
   const [showViewersModal, setShowViewersModal] = useState(false);
   const [viewersList, setViewersList] = useState([]);
   const [loadingViewers, setLoadingViewers] = useState(false);
 
+  const videoRef = useRef(null);
   const group = storyGroups[currentGroupIndex];
   const story = group?.stories?.[currentStoryIndex];
+
+  // Escape key listener to close viewer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     if (!story || !group) {
@@ -34,6 +47,10 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
     }
 
     setProgress(0);
+    const durationMs = story.mediaType === 'video' ? Math.max(3000, videoDuration) : 5000;
+    const intervalTime = 50;
+    const stepIncrement = (intervalTime / durationMs) * 100;
+
     let interval;
     if (!isPaused && !showViewersModal) {
       interval = setInterval(() => {
@@ -42,13 +59,14 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
             handleNext();
             return 0;
           }
-          return prev + 2; // 50 steps = ~2.5 seconds or 5 seconds total at 50ms per step
+          return prev + stepIncrement;
         });
-      }, story.mediaType === 'video' ? 100 : 50);
+      }, intervalTime);
     }
+
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentGroupIndex, currentStoryIndex, isPaused, showViewersModal, story]);
+  }, [currentGroupIndex, currentStoryIndex, isPaused, showViewersModal, videoDuration, story]);
 
   const handleNext = () => {
     if (currentStoryIndex < group.stories.length - 1) {
@@ -85,11 +103,9 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
         toast.success("Story deleted");
         if (onStoryDeleted) onStoryDeleted();
         
-        // If this was the only story in group
         if (group.stories.length <= 1) {
           onClose();
         } else {
-          // Remove deleted story locally
           group.stories.splice(currentStoryIndex, 1);
           if (currentStoryIndex >= group.stories.length) {
             setCurrentStoryIndex(group.stories.length - 1);
@@ -137,7 +153,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <button className="story-close-btn" onClick={onClose}>
+        <button className="story-close-btn" onClick={onClose} title="Close (Esc)">
           <X size={28} />
         </button>
 
@@ -147,6 +163,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
           onMouseUp={() => setIsPaused(false)}
           onTouchStart={() => setIsPaused(true)}
           onTouchEnd={() => setIsPaused(false)}
+          onTouchCancel={() => setIsPaused(false)}
         >
           {/* Top Progress Segmented Bar */}
           <div className="story-progress-container">
@@ -198,13 +215,31 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
               >
                 <span 
                   className="story-text-content" 
-                  style={{ fontSize: story.fontSize || '1.5rem', color: story.textColor || '#ffffff' }}
+                  style={{ 
+                    fontSize: story.fontSize || '1.5rem', 
+                    color: story.textColor || '#ffffff',
+                    textAlign: story.textAlign || 'center',
+                    fontFamily: story.fontFamily || 'sans-serif'
+                  }}
                 >
                   {story.text}
                 </span>
               </div>
             ) : story.mediaType === 'video' ? (
-              <video src={mediaUrl} autoPlay playsInline muted className="story-media" onEnded={handleNext} />
+              <video 
+                ref={videoRef}
+                src={mediaUrl} 
+                autoPlay 
+                playsInline 
+                muted 
+                className="story-media" 
+                onLoadedMetadata={(e) => {
+                  if (e.target.duration) {
+                    setVideoDuration(e.target.duration * 1000);
+                  }
+                }}
+                onEnded={handleNext} 
+              />
             ) : (
               <img src={mediaUrl} alt="Story" className="story-media" />
             )}
