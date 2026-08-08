@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Eye, Trash2, Users } from 'lucide-react';
+import { X, Eye, Trash2 } from 'lucide-react';
 import './StoryViewer.css';
 import { apiFetch } from '../../utils/api';
 import { getStoredUserProfile } from '../../utils/session';
