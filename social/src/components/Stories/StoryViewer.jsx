@@ -1,43 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Eye, Trash2, Users } from 'lucide-react';
 import './StoryViewer.css';
 import { apiFetch } from '../../utils/api';
+import { getStoredUserProfile } from '../../utils/session';
+import toast from 'react-hot-toast';
+import ProfileImage from '../../img/profileImg.jpg';
 
-const StoryViewer = ({ storyGroups, initialGroupIndex, onClose }) => {
+const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }) => {
+  const currentProfile = getStoredUserProfile() || {};
+  const currentUserId = currentProfile.userId;
+
   const [currentGroupIndex, setCurrentGroupIndex] = useState(initialGroupIndex);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [showViewersModal, setShowViewersModal] = useState(false);
+  const [viewersList, setViewersList] = useState([]);
+  const [loadingViewers, setLoadingViewers] = useState(false);
 
   const group = storyGroups[currentGroupIndex];
-  const story = group?.stories[currentStoryIndex];
+  const story = group?.stories?.[currentStoryIndex];
 
   useEffect(() => {
-    if (!story) {
+    if (!story || !group) {
       onClose();
       return;
     }
 
-    if (!story.seenBy?.includes(localStorage.getItem('userId'))) {
+    // Mark as viewed in backend if not self
+    if (currentUserId && String(group.user?._id) !== String(currentUserId)) {
       apiFetch(`/api/v1/stories/${story._id}/view`, { method: 'PUT' }).catch(console.error);
     }
 
+    setProgress(0);
     let interval;
-    if (!isPaused) {
+    if (!isPaused && !showViewersModal) {
       interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 100) {
             handleNext();
             return 0;
           }
-          return prev + 1; // 100 steps in 5 seconds = 50ms per step
+          return prev + 2; // 50 steps = ~2.5 seconds or 5 seconds total at 50ms per step
         });
-      }, (story.mediaType === 'video' ? 150 : 50)); // video gives more time, ideally use video events
+      }, story.mediaType === 'video' ? 100 : 50);
     }
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentGroupIndex, currentStoryIndex, isPaused, story]);
+  }, [currentGroupIndex, currentStoryIndex, isPaused, showViewersModal, story]);
 
   const handleNext = () => {
     if (currentStoryIndex < group.stories.length - 1) {
@@ -58,14 +69,65 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose }) => {
       setProgress(0);
     } else if (currentGroupIndex > 0) {
       setCurrentGroupIndex(prev => prev - 1);
-      setCurrentStoryIndex(storyGroups[currentGroupIndex - 1].stories.length - 1);
+      const prevGroupStories = storyGroups[currentGroupIndex - 1].stories;
+      setCurrentStoryIndex(prevGroupStories.length - 1);
       setProgress(0);
     }
   };
 
-  if (!story) return null;
+  const handleDeleteCurrentStory = async () => {
+    if (!story) return;
+    if (!window.confirm("Are you sure you want to delete this story?")) return;
 
-  const url = story.mediaUrl.startsWith("http") ? story.mediaUrl : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${story.mediaUrl}`;
+    try {
+      const res = await apiFetch(`/api/v1/stories/${story._id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success("Story deleted");
+        if (onStoryDeleted) onStoryDeleted();
+        
+        // If this was the only story in group
+        if (group.stories.length <= 1) {
+          onClose();
+        } else {
+          // Remove deleted story locally
+          group.stories.splice(currentStoryIndex, 1);
+          if (currentStoryIndex >= group.stories.length) {
+            setCurrentStoryIndex(group.stories.length - 1);
+          }
+          setProgress(0);
+        }
+      } else {
+        toast.error("Failed to delete story");
+      }
+    } catch (e) {
+      toast.error("Failed to delete story");
+    }
+  };
+
+  const fetchViewers = async () => {
+    if (!story) return;
+    setIsPaused(true);
+    setLoadingViewers(true);
+    setShowViewersModal(true);
+    try {
+      const res = await apiFetch(`/api/v1/stories/${story._id}/viewers`);
+      if (res.ok) {
+        const payload = await res.json();
+        setViewersList(payload.data || payload || []);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingViewers(false);
+    }
+  };
+
+  if (!story || !group) return null;
+
+  const isOwner = currentUserId && String(group.user?._id) === String(currentUserId);
+  const mediaUrl = story.mediaUrl 
+    ? (story.mediaUrl.startsWith("http") ? story.mediaUrl : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${story.mediaUrl}`) 
+    : "";
 
   return (
     <AnimatePresence>
@@ -75,13 +137,21 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <button className="story-close-btn" onClick={onClose}><X size={32} /></button>
-        
-        <div className="story-viewer-content" onMouseDown={() => setIsPaused(true)} onMouseUp={() => setIsPaused(false)} onTouchStart={() => setIsPaused(true)} onTouchEnd={() => setIsPaused(false)}>
-          {/* Progress Bars */}
+        <button className="story-close-btn" onClick={onClose}>
+          <X size={28} />
+        </button>
+
+        <div 
+          className="story-viewer-content"
+          onMouseDown={() => setIsPaused(true)}
+          onMouseUp={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
+        >
+          {/* Top Progress Segmented Bar */}
           <div className="story-progress-container">
             {group.stories.map((s, idx) => (
-              <div key={s._id} className="story-progress-bg">
+              <div key={s._id || idx} className="story-progress-bg">
                 <div 
                   className="story-progress-fill"
                   style={{
@@ -92,33 +162,119 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose }) => {
             ))}
           </div>
 
+          {/* User Header */}
           <div className="story-header">
-            <img src={group.user.profilePicture || 'https://i.pravatar.cc/150'} alt={group.user.username} className="story-viewer-avatar" />
-            <span className="story-viewer-username">{group.user.displayName || group.user.username}</span>
-            <span className="story-viewer-time">{new Date(story.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-          </div>
+            <img 
+              src={group.user?.profilePicture || ProfileImage} 
+              alt={group.user?.username || 'user'} 
+              className="story-viewer-avatar" 
+            />
+            <div className="story-viewer-info">
+              <span className="story-viewer-username">
+                {group.user?.displayName || group.user?.username || 'User'}
+              </span>
+              <span className="story-viewer-time">
+                {new Date(story.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
 
-          <div className="story-media-container">
-            {story.mediaType === 'video' ? (
-              <video src={url} autoPlay playsInline className="story-media" onEnded={handleNext} />
-            ) : (
-              <img src={url} alt="Story" className="story-media" />
+            {isOwner && (
+              <button 
+                className="story-delete-btn" 
+                onClick={(e) => { e.stopPropagation(); handleDeleteCurrentStory(); }}
+                title="Delete Story"
+              >
+                <Trash2 size={16} />
+              </button>
             )}
           </div>
 
-          {group.user._id === localStorage.getItem('userId') && (
-            <div className="story-views">
+          {/* Media / Content Body */}
+          <div className="story-media-container">
+            {story.mediaType === 'text' ? (
+              <div 
+                className="story-text-container" 
+                style={{ background: story.background || 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
+              >
+                <span 
+                  className="story-text-content" 
+                  style={{ fontSize: story.fontSize || '1.5rem', color: story.textColor || '#ffffff' }}
+                >
+                  {story.text}
+                </span>
+              </div>
+            ) : story.mediaType === 'video' ? (
+              <video src={mediaUrl} autoPlay playsInline muted className="story-media" onEnded={handleNext} />
+            ) : (
+              <img src={mediaUrl} alt="Story" className="story-media" />
+            )}
+
+            {story.caption && (
+              <div className="story-caption-overlay">
+                {story.caption}
+              </div>
+            )}
+          </div>
+
+          {/* Owner View Tracking Pill */}
+          {isOwner && (
+            <div 
+              className="story-views-pill" 
+              onClick={(e) => { e.stopPropagation(); fetchViewers(); }}
+            >
               <Eye size={16} /> {story.seenBy?.length || 0} views
             </div>
           )}
 
-          <div className="story-nav left" onClick={(e) => { e.stopPropagation(); handlePrev(); }}>
-            <ChevronLeft size={32} />
-          </div>
-          <div className="story-nav right" onClick={(e) => { e.stopPropagation(); handleNext(); }}>
-            <ChevronRight size={32} />
-          </div>
+          {/* Tap Navigation Areas */}
+          <div className="story-nav left" onClick={(e) => { e.stopPropagation(); handlePrev(); }} />
+          <div className="story-nav right" onClick={(e) => { e.stopPropagation(); handleNext(); }} />
         </div>
+
+        {/* Viewers Sheet / Modal */}
+        {showViewersModal && (
+          <div className="viewers-sheet-overlay" onClick={() => { setShowViewersModal(false); setIsPaused(false); }}>
+            <motion.div 
+              className="viewers-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="viewers-sheet-header">
+                <h4>Viewed by {viewersList.length}</h4>
+                <button className="modal-close-btn" onClick={() => { setShowViewersModal(false); setIsPaused(false); }}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="viewers-list">
+                {loadingViewers ? (
+                  <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                    Loading viewers...
+                  </div>
+                ) : viewersList.length === 0 ? (
+                  <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                    No views yet
+                  </div>
+                ) : (
+                  viewersList.map((viewer) => (
+                    <div key={viewer._id} className="viewer-item">
+                      <img src={viewer.profilePicture || ProfileImage} alt={viewer.username} className="viewer-avatar" />
+                      <div className="viewer-info">
+                        <span className="viewer-name">{viewer.displayName || viewer.username}</span>
+                        <span className="viewer-handle">@{viewer.username}</span>
+                      </div>
+                      <span className="viewer-time">
+                        {viewer.viewedAt ? new Date(viewer.viewedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
