@@ -1,0 +1,296 @@
+.create-story-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.create-story-modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-surface, #18181B);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-card, 24px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  max-height: 90vh;
+}
+
+.create-story-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+}
+
+.create-story-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text, #ffffff);
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted, #a1a1aa);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--color-text, #ffffff);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.create-story-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.story-tab-btn {
+  flex: 1;
+  padding: 0.8rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted, #a1a1aa);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.story-tab-btn.active {
+  color: var(--color-primary, #4F46E5);
+  border-bottom-color: var(--color-primary, #4F46E5);
+  background: rgba(79, 70, 229, 0.08);
+}
+
+.create-story-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Upload Dropzone */
+.file-upload-dropzone {
+  border: 2px dashed var(--color-border, rgba(255, 255, 255, 0.2));
+  border-radius: var(--radius-button, 18px);
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.02);
+  text-align: center;
+}
+
+.file-upload-dropzone:hover {
+  border-color: var(--color-primary, #4F46E5);
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.dropzone-icon {
+  color: var(--color-primary, #4F46E5);
+}
+
+.dropzone-text {
+  font-weight: 600;
+  color: var(--color-text, #ffffff);
+  font-size: 1rem;
+}
+
+.dropzone-hint {
+  font-size: 0.825rem;
+  color: var(--color-text-muted, #a1a1aa);
+}
+
+/* Media Preview */
+.story-preview-container {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  border-radius: var(--radius-card, 20px);
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-preview-media {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.remove-media-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-media-btn:hover {
+  background: #EF4444;
+}
+
+/* Text Story Canvas Preview */
+.text-story-canvas {
+  width: 100%;
+  height: 300px;
+  border-radius: var(--radius-card, 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  word-break: break-word;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease;
+}
+
+.text-story-canvas textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  text-align: center;
+  font-family: inherit;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.text-story-canvas textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Control Options */
+.story-options-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.options-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #a1a1aa);
+}
+
+.bg-palette {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding: 4px 2px;
+}
+
+.bg-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.bg-swatch.active {
+  border-color: #ffffff;
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.caption-input {
+  width: 100%;
+  background: var(--bg-input, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-button, 18px);
+  padding: 0.75rem 1rem;
+  color: var(--color-text, #ffffff);
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.caption-input:focus {
+  border-color: var(--color-primary, #4F46E5);
+}
+
+.create-story-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.cancel-modal-btn {
+  flex: 1;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  color: var(--color-text, #ffffff);
+  border-radius: var(--radius-button, 18px);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.publish-story-btn {
+  flex: 2;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, var(--color-primary, #4F46E5), var(--color-secondary, #7C3AED));
+  border: none;
+  color: #ffffff;
+  border-radius: var(--radius-button, 18px);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.publish-story-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
