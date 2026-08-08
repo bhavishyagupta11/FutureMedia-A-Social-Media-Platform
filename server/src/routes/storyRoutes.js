@@ -8,6 +8,7 @@ const router = express.Router();
 router.post("/", protect, upload.single("media"), storyController.createStory);
 router.get("/", protect, storyController.getFeedStories);
 router.put("/:id/view", protect, storyController.markStoryAsViewed);
+router.get("/:id/viewers", protect, storyController.getStoryViewers);
 router.delete("/:id", protect, storyController.deleteStory);
 
 module.exports = router;
