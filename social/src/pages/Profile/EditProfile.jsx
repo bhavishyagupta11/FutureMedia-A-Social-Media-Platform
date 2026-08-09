@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "./Profile.css";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
-import { getSessionUserId, getStoredUserProfile, persistUserSession } from "../../utils/session";
+import { getSessionUserId, getStoredUserProfile, persistUserSession, resolveAvatar } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
 import { toast } from "react-toastify";
 
@@ -19,20 +19,27 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (!currentUserId) { navigate("/"); return; }
+    
+    const stored = getStoredUserProfile();
+    setForm({
+      displayName: stored.displayName || "",
+      bio: stored.bio || "",
+      website: stored.website || "",
+    });
+    setCurrentAvatar(resolveAvatar(stored));
+
     apiFetch(`/api/v1/users/${currentUserId}`)
       .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
-        if (!data) return;
+      .then((payload) => {
+        if (!payload) return;
+        const data = payload.data || payload;
         setForm({
           displayName: data.displayName || "",
           bio: data.bio || "",
           website: data.website || "",
         });
-        const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
-        const avatar = data.profilePicture
-          ? data.profilePicture.startsWith("/") ? `${API_BASE}${data.profilePicture}` : data.profilePicture
-          : ProfileImage;
-        setCurrentAvatar(avatar);
+        setCurrentAvatar(resolveAvatar(data));
+        persistUserSession(data);
       })
       .catch(console.error);
   }, [currentUserId, navigate]);
@@ -62,17 +69,10 @@ const EditProfile = () => {
 
       if (!response.ok) { toast.error("Failed to update profile"); return; }
 
-      const updated = await response.json();
-      persistUserSession({
-        ...getStoredUserProfile(),
-        _id: updated._id,
-        displayName: updated.displayName,
-        bio: updated.bio,
-        website: updated.website,
-        img: updated.profilePicture,
-        username: updated.username,
-        token: localStorage.getItem("token"),
-      });
+      const updatedData = await response.json();
+      const updatedUser = updatedData.data || updatedData;
+
+      persistUserSession(updatedUser);
       toast.success("Profile updated! ✨", { autoClose: 1500 });
       navigate(`/profile/${currentUserId}`);
     } catch { toast.error("Network error while saving"); }
@@ -86,7 +86,7 @@ const EditProfile = () => {
 
         <div className="editAvatarSection">
           <div className="editAvatarWrapper" onClick={() => fileRef.current.click()}>
-            <img src={preview || currentAvatar} alt="avatar" className="editAvatar" />
+            <img src={preview || currentAvatar} alt="avatar" className="editAvatar" onError={(e) => { e.target.src = ProfileImage; }} />
             <div className="editAvatarOverlay">📷 Change</div>
           </div>
           <input ref={fileRef} type="file" accept="image/*" className="d-none" style={{ display: "none" }} onChange={handleFileChange} />
