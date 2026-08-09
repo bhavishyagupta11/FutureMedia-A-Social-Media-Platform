@@ -156,7 +156,7 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
         >
           <div className="create-story-header">
             <h3>Create Story</h3>
-            <button className="modal-close-btn" onClick={onClose}>
+            <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
               <X size={20} />
             </button>
           </div>
@@ -202,7 +202,7 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
                     ) : (
                       <img src={filePreview} alt="Story Preview" className="story-preview-media" />
                     )}
-                    <button className="remove-media-btn" onClick={handleClearMedia}>
+                    <button className="remove-media-btn" onClick={handleClearMedia} aria-label="Remove media">
                       <X size={16} />
                     </button>
                   </div>
@@ -244,73 +244,54 @@ const CreateStoryModal = ({ isOpen, onClose, onStoryCreated }) => {
                   </div>
                 </div>
 
-                {/* Alignment & Typography Tools */}
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button
-                      type="button"
-                      style={{
-                        padding: '6px 10px',
-                        background: textAlign === 'left' ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => setTextAlign('left')}
-                    >
-                      <AlignLeft size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      style={{
-                        padding: '6px 10px',
-                        background: textAlign === 'center' ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => setTextAlign('center')}
-                    >
-                      <AlignCenter size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      style={{
-                        padding: '6px 10px',
-                        background: textAlign === 'right' ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => setTextAlign('right')}
-                    >
-                      <AlignRight size={16} />
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {FONTS.map(f => (
+                {/* Alignment & Font Family Controls */}
+                <div className="story-options-row">
+                  <span className="options-label">Text Alignment & Font Family</span>
+                  <div className="typography-tools-row">
+                    <div className="alignment-group">
                       <button
-                        key={f.value}
                         type="button"
-                        style={{
-                          padding: '4px 8px',
-                          fontSize: '0.75rem',
-                          fontFamily: f.value,
-                          background: fontFamily === f.value ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => setFontFamily(f.value)}
+                        className={`tool-btn ${textAlign === 'left' ? 'active' : ''}`}
+                        aria-pressed={textAlign === 'left'}
+                        onClick={() => setTextAlign('left')}
+                        title="Align Left"
                       >
-                        {f.label}
+                        <AlignLeft size={16} />
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        className={`tool-btn ${textAlign === 'center' ? 'active' : ''}`}
+                        aria-pressed={textAlign === 'center'}
+                        onClick={() => setTextAlign('center')}
+                        title="Align Center"
+                      >
+                        <AlignCenter size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className={`tool-btn ${textAlign === 'right' ? 'active' : ''}`}
+                        aria-pressed={textAlign === 'right'}
+                        onClick={() => setTextAlign('right')}
+                        title="Align Right"
+                      >
+                        <AlignRight size={16} />
+                      </button>
+                    </div>
+
+                    <div className="font-family-group">
+                      {FONTS.map(f => (
+                        <button
+                          key={f.value}
+                          type="button"
+                          className={`tool-btn ${fontFamily === f.value ? 'active' : ''}`}
+                          aria-pressed={fontFamily === f.value}
+                          style={{ fontFamily: f.value }}
+                          onClick={() => setFontFamily(f.value)}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
