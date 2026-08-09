@@ -74,11 +74,12 @@ export const persistUserSession = (rawUser) => {
   
   const user = rawUser.data ? rawUser.data : rawUser;
 
-  if (user._id) {
-    localStorage.setItem("userId", user._id);
+  if (user._id || user.userId) {
+    localStorage.setItem("userId", user._id || user.userId);
   }
 
-  localStorage.setItem("image", user.profilePicture || user.img || "");
+  const avatarUrl = user.profilePicture || user.image || user.img || user.avatar || "";
+  localStorage.setItem("image", avatarUrl);
   localStorage.setItem("followersList", JSON.stringify(user.followersList || user.followers || []));
   localStorage.setItem("followingList", JSON.stringify(user.followingsList || user.following || []));
 
@@ -90,13 +91,15 @@ export const persistUserSession = (rawUser) => {
   localStorage.setItem("bio", user.bio || "");
   localStorage.setItem("website", user.website || "");
   localStorage.setItem("username", user.username || "");
-  localStorage.setItem("token", user.token || "");
-  localStorage.setItem("isPrivate", String(user.isPrivate === true));
+  if (user.token) localStorage.setItem("token", user.token);
+  if (typeof user.isPrivate === "boolean") localStorage.setItem("isPrivate", String(user.isPrivate));
 
   window.dispatchEvent(new CustomEvent("session:updated", { detail: user }));
+  window.dispatchEvent(new CustomEvent("profile:updated", { detail: user }));
 };
 
 export const clearUserSession = () => {
   USER_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   window.dispatchEvent(new Event("session:cleared"));
+  window.dispatchEvent(new Event("profile:updated"));
 };
