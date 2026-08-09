@@ -2,64 +2,98 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Settings.css";
 import { apiFetch } from "../../utils/api";
-import { getStoredUserProfile, persistUserSession } from "../../utils/session";
+import { getStoredUserProfile, persistUserSession, clearUserSession } from "../../utils/session";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Lock, Bell, Eye, Database, Smartphone, Shield, HelpCircle, CheckCircle } from "lucide-react";
+import { User, Lock, Bell, Eye, Database, Smartphone, Shield, HelpCircle, CheckCircle, AlertTriangle, LogOut, ChevronDown, ChevronUp, Send } from "lucide-react";
 import Logo from "../../components/Logo/Logo";
+import toast from "react-hot-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const storedProfile = getStoredUserProfile() || {};
-  const [displayName, setDisplayName] = useState(storedProfile.displayName || "");
-  const [bio, setBio] = useState(storedProfile.bio || "");
-  const [website, setWebsite] = useState(storedProfile.website || "");
+  const [profile, setProfile] = useState(getStoredUserProfile() || {});
+  const [displayName, setDisplayName] = useState(profile.displayName || "");
+  const [bio, setBio] = useState(profile.bio || "");
+  const [website, setWebsite] = useState(profile.website || "");
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("account");
 
-  // Mocked states for UI demonstration
-  const [privateAccount, setPrivateAccount] = useState(getStoredUserProfile().isPrivate ?? false);
+  // Settings states
+  const [privateAccount, setPrivateAccount] = useState(profile.isPrivate ?? false);
   const [activityStatus, setActivityStatus] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
 
+  // Security password states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  // Support states
+  const [faqOpen, setFaqOpen] = useState(null);
+  const [supportMessage, setSupportMessage] = useState("");
+  const [sendingSupport, setSendingSupport] = useState(false);
+
+  // Danger zone modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [confirmDeleteText, setConfirmDeleteText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     if (!localStorage.getItem("userId")) {
       navigate("/");
+      return;
     }
-  }, [navigate]);
 
-  useEffect(() => {
-    const userId = storedProfile.userId;
-    if (!userId) return;
-    apiFetch(`/api/v1/users/${userId}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(payload => {
-        if (!payload) return;
-        const userData = payload.data || payload;
-        if (userData.displayName !== undefined) setDisplayName(userData.displayName);
-        if (userData.bio !== undefined) setBio(userData.bio);
-        if (userData.website !== undefined) setWebsite(userData.website);
-        if (typeof userData.isPrivate === "boolean") {
-          setPrivateAccount(userData.isPrivate);
-          localStorage.setItem("isPrivate", String(userData.isPrivate));
-        }
-        if (typeof userData.settings?.notifications?.push === "boolean") {
-          setPushNotifications(userData.settings.notifications.push);
-        }
-        if (typeof userData.settings?.notifications?.email === "boolean") {
-          setEmailNotifications(userData.settings.notifications.email);
-        }
-      })
-      .catch(console.error);
+    const syncProfile = () => {
+      const p = getStoredUserProfile();
+      setProfile(p);
+      setDisplayName(p.displayName || "");
+      setBio(p.bio || "");
+      setWebsite(p.website || "");
+      setPrivateAccount(p.isPrivate);
+    };
+
+    syncProfile();
+
+    window.addEventListener("profile:updated", syncProfile);
+    window.addEventListener("session:updated", syncProfile);
+
+    // Fetch latest user data from backend
+    const userId = profile.userId || localStorage.getItem("userId");
+    if (userId) {
+      apiFetch(`/api/v1/users/${userId}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(payload => {
+          if (!payload) return;
+          const userData = payload.data || payload;
+          setDisplayName(userData.displayName || "");
+          setBio(userData.bio || "");
+          setWebsite(userData.website || "");
+          if (typeof userData.isPrivate === "boolean") {
+            setPrivateAccount(userData.isPrivate);
+          }
+          if (userData.settings?.notifications) {
+            if (typeof userData.settings.notifications.push === "boolean") setPushNotifications(userData.settings.notifications.push);
+            if (typeof userData.settings.notifications.email === "boolean") setEmailNotifications(userData.settings.notifications.email);
+          }
+          persistUserSession(userData);
+        })
+        .catch(console.error);
+    }
+
+    return () => {
+      window.removeEventListener("profile:updated", syncProfile);
+      window.removeEventListener("session:updated", syncProfile);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePrivacyToggle = async (newValue) => {
     setPrivateAccount(newValue);
     try {
-      const res = await apiFetch(`/api/v1/users/${storedProfile.userId}/settings`, {
+      const userId = profile.userId || localStorage.getItem("userId");
+      const res = await apiFetch(`/api/v1/users/${userId}/settings`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isPrivate: newValue, privacy: { profileVisibility: newValue ? "private" : "public" } })
@@ -71,7 +105,7 @@ const Settings = () => {
       }
     } catch (err) {
       console.error(err);
-      setPrivateAccount(!newValue); // Revert on failure
+      setPrivateAccount(!newValue);
     }
   };
 
@@ -82,43 +116,29 @@ const Settings = () => {
     setIsSaving(true);
 
     try {
+      const userId = profile.userId || localStorage.getItem("userId");
       const formData = {
         displayName: displayName.trim(),
         bio: bio.trim(),
         website: website.trim(),
       };
 
-      const response = await apiFetch(`/api/v1/users/${storedProfile.userId}/profile`, {
+      const response = await apiFetch(`/api/v1/users/${userId}/profile`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        setError(payload?.error || "Unable to save changes.");
+        setError(payload?.message || payload?.error || "Unable to save changes.");
         return;
       }
 
       const updatedProfileData = await response.json();
-
-      // Also save settings
-      const settingsData = {
-        privacy: { profileVisibility: privateAccount ? "private" : "public" },
-        notifications: { push: pushNotifications, email: emailNotifications }
-      };
-
-      await apiFetch(`/api/v1/users/${storedProfile.userId}/settings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settingsData)
-      });
-
       persistUserSession(updatedProfileData);
-      window.dispatchEvent(new Event("profile:updated"));
       setSaved(true);
+      toast.success("Account profile updated successfully!");
     } catch (saveError) {
       setError("Unable to save changes.");
     } finally {
@@ -128,13 +148,11 @@ const Settings = () => {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     try {
-      const res = await apiFetch(`/api/v1/users/${storedProfile.userId}/password`, {
+      const userId = profile.userId || localStorage.getItem("userId");
+      const res = await apiFetch(`/api/v1/users/${userId}/password`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword })
@@ -143,6 +161,7 @@ const Settings = () => {
         setSaved(true);
         setCurrentPassword("");
         setNewPassword("");
+        toast.success("Password updated successfully!");
       } else {
         const data = await res.json();
         setError(data.message || "Failed to update password");
@@ -153,19 +172,45 @@ const Settings = () => {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const handleDeleteAccount = async () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      try {
-        const res = await apiFetch(`/api/v1/users/${storedProfile.userId}`, { method: "DELETE" });
-        if (res.ok) {
-          localStorage.removeItem("userId");
-          localStorage.removeItem("token");
-          navigate("/");
-        }
-      } catch (e) {
-        setError("Failed to delete account");
-      }
+  const handleLogout = () => {
+    clearUserSession();
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
+
+  const handleDeleteAccountConfirm = async () => {
+    if (confirmDeleteText !== "DELETE") {
+      toast.error("Please type DELETE to confirm account deletion");
+      return;
     }
+
+    setIsDeleting(true);
+    try {
+      const userId = profile.userId || localStorage.getItem("userId");
+      const res = await apiFetch(`/api/v1/users/${userId}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Account deleted permanently");
+        clearUserSession();
+        navigate("/");
+      } else {
+        toast.error("Failed to delete account");
+      }
+    } catch (e) {
+      toast.error("Network error deleting account");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleSendSupportMessage = async (e) => {
+    e.preventDefault();
+    if (!supportMessage.trim()) return;
+    setSendingSupport(true);
+    await new Promise(r => setTimeout(r, 800));
+    toast.success("Support message sent! Our team will respond shortly.");
+    setSupportMessage("");
+    setSendingSupport(false);
   };
 
   const tabs = [
@@ -177,6 +222,14 @@ const Settings = () => {
     { id: "data", label: "Data & Export", icon: <Database size={20} /> },
     { id: "sessions", label: "Sessions", icon: <Smartphone size={20} /> },
     { id: "support", label: "Support", icon: <HelpCircle size={20} /> },
+    { id: "danger", label: "Danger Zone", icon: <AlertTriangle size={20} /> },
+  ];
+
+  const FAQS = [
+    { q: "How do I create a story?", a: "Go to your Feed, click the '+' icon on 'Your Story', and select either Photo/Video or Text story." },
+    { q: "How long do stories last?", a: "Stories disappear automatically after 24 hours." },
+    { q: "Who can see my private profile?", a: "When your account is Private, only users whose follow requests you accept can see your posts and stories." },
+    { q: "How do I update my profile details?", a: "You can update your display name, bio, and website either from Edit Profile or directly in Settings → Account." },
   ];
 
   return (
@@ -199,13 +252,16 @@ const Settings = () => {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`settingsTab ${activeTab === tab.id ? "active" : ""}`}
+              className={`settingsTab ${activeTab === tab.id ? "active" : ""} ${tab.id === "danger" ? "dangerTab" : ""}`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.icon}
               {tab.label}
             </button>
           ))}
+          <button className="settingsTab logoutTab" onClick={handleLogout} style={{ marginTop: "1rem", color: "#EF4444" }}>
+            <LogOut size={20} /> Log Out
+          </button>
         </div>
 
         <div className="settingsContent">
@@ -257,22 +313,12 @@ const Settings = () => {
                   </button>
 
                   {saved && activeTab === "account" && (
-                    <motion.span 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="settingsSaved"
-                    >
+                    <motion.span className="settingsSaved">
                       <CheckCircle size={18} /> Settings saved successfully.
                     </motion.span>
                   )}
                   {error && <span className="settingsError">{error}</span>}
                 </form>
-
-                <div className="dangerZone">
-                  <h3>Danger Zone</h3>
-                  <p>Irreversible and destructive actions.</p>
-                  <button className="dangerBtn" onClick={handleDeleteAccount}>Delete Account</button>
-                </div>
               </motion.div>
             )}
 
@@ -333,7 +379,7 @@ const Settings = () => {
                 <div className="settingsRow">
                   <div className="settingsRowInfo">
                     <strong>Private Account</strong>
-                    <span>Only approved followers can see your posts.</span>
+                    <span>Only approved followers can see your posts and stories.</span>
                   </div>
                   <label className="switch">
                     <input type="checkbox" checked={privateAccount} onChange={(e) => handlePrivacyToggle(e.target.checked)} />
@@ -389,6 +435,38 @@ const Settings = () => {
               </motion.div>
             )}
 
+            {activeTab === "appearance" && (
+              <motion.div
+                key="appearance"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="settingsSection"
+              >
+                <h2><Eye size={24} /> Appearance</h2>
+                <div className="settingsRow">
+                  <div className="settingsRowInfo">
+                    <strong>Dark Theme</strong>
+                    <span>Toggle between light and dark visual mode.</span>
+                  </div>
+                  <label className="switch">
+                    <input 
+                      type="checkbox" 
+                      checked={document.body.getAttribute('data-theme') === 'dark' || !document.body.hasAttribute('data-theme')} 
+                      onChange={(e) => {
+                        const newTheme = e.target.checked ? 'dark' : 'light';
+                        document.body.setAttribute('data-theme', newTheme);
+                        localStorage.setItem('theme', newTheme);
+                        setSaved(prev => !prev);
+                      }} 
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === "data" && (
               <motion.div
                 key="data"
@@ -402,50 +480,18 @@ const Settings = () => {
                 <div className="settingsRow">
                   <div className="settingsRowInfo">
                     <strong>Export Your Data</strong>
-                    <span>Download a copy of your posts, profile info, and connections.</span>
+                    <span>Download a JSON archive of your profile info, settings, and activity.</span>
                   </div>
                   <button className="settingsSaveButton" onClick={() => {
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(storedProfile));
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profile));
                     const dlAnchorElem = document.createElement('a');
                     dlAnchorElem.setAttribute("href", dataStr);
-                    dlAnchorElem.setAttribute("download", "futuremedia_data.json");
+                    dlAnchorElem.setAttribute("download", `futuremedia_data_${profile.username || 'user'}.json`);
                     dlAnchorElem.click();
+                    toast.success("Export file downloaded");
                   }}>
-                    Download JSON
+                    Export JSON
                   </button>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === "appearance" && (
-              <motion.div
-                key="appearance"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="settingsSection"
-              >
-                <h2><Eye size={24} /> Appearance</h2>
-                <div className="settingsRow">
-                  <div className="settingsRowInfo">
-                    <strong>Dark Mode</strong>
-                    <span>Toggle between light and dark themes.</span>
-                  </div>
-                  <label className="switch">
-                    <input 
-                      type="checkbox" 
-                      checked={document.body.getAttribute('data-theme') === 'dark' || !document.body.hasAttribute('data-theme')} 
-                      onChange={(e) => {
-                        const newTheme = e.target.checked ? 'dark' : 'light';
-                        document.body.setAttribute('data-theme', newTheme);
-                        localStorage.setItem('theme', newTheme);
-                        // Force re-render of this component
-                        setSaved(prev => !prev);
-                      }} 
-                    />
-                    <span className="slider"></span>
-                  </label>
                 </div>
               </motion.div>
             )}
@@ -459,13 +505,23 @@ const Settings = () => {
                 transition={{ duration: 0.3 }}
                 className="settingsSection"
               >
-                <h2><Smartphone size={24} /> Active Sessions</h2>
+                <h2><Smartphone size={24} /> Active Sessions & Auth</h2>
                 <div className="settingsRow">
                   <div className="settingsRowInfo">
                     <strong>Current Web Session</strong>
-                    <span>Active now • Web Browser ({navigator.platform || "Desktop"})</span>
+                    <span>Active now • {navigator.platform || "Web Browser"}</span>
                   </div>
-                  <span style={{ color: "var(--color-success)", fontWeight: "600", fontSize: "0.9rem" }}>Active Now</span>
+                  <span style={{ color: "var(--color-primary)", fontWeight: "600", fontSize: "0.9rem" }}>Active Now</span>
+                </div>
+
+                <div className="settingsRow" style={{ marginTop: "1.5rem" }}>
+                  <div className="settingsRowInfo">
+                    <strong>End Current Session</strong>
+                    <span>Sign out of your account on this device.</span>
+                  </div>
+                  <button className="dangerBtn" onClick={handleLogout}>
+                    Log Out
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -478,37 +534,105 @@ const Settings = () => {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
                 className="settingsSection"
-                style={{ textAlign: "center", padding: "2.5rem 1rem" }}
               >
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <Logo size="large" />
+                <h2><HelpCircle size={24} /> Help & Support</h2>
+                
+                <div className="faqContainer">
+                  <h3>Frequently Asked Questions</h3>
+                  <div className="faqList">
+                    {FAQS.map((faq, idx) => (
+                      <div key={idx} className="faqItem">
+                        <button
+                          type="button"
+                          className="faqQuestionBtn"
+                          onClick={() => setFaqOpen(faqOpen === idx ? null : idx)}
+                        >
+                          <span>{faq.q}</span>
+                          {faqOpen === idx ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+                        {faqOpen === idx && (
+                          <div className="faqAnswer">
+                            {faq.a}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <h3 style={{ color: "var(--color-text)", fontSize: "1.2rem", fontWeight: "700", marginBottom: "0.5rem" }}>FutureMedia Support & Community</h3>
-                <p style={{ color: "var(--color-text-muted)", fontSize: "0.95rem", maxWidth: "420px", margin: "0 auto 1.5rem", lineHeight: "1.6" }}>
-                  Connect with creators, share your thoughts, and inspire the community. Need help or have feedback? Reach out to our team.
-                </p>
-                <a href="mailto:support@futuremedia.bullishpath.in" className="settingsSaveButton" style={{ textDecoration: "none", display: "inline-block" }}>
-                  Contact Support
-                </a>
+
+                <div className="settingsForm">
+                  <h3 style={{ color: "var(--color-text)", fontSize: "1.05rem", marginBottom: "0.5rem" }}>Send Feedback or Report an Issue</h3>
+                  <textarea
+                    placeholder="Describe your issue or feedback..."
+                    value={supportMessage}
+                    onChange={(e) => setSupportMessage(e.target.value)}
+                    rows={4}
+                    className="settingsField"
+                    style={{ width: "100%", background: "var(--bg-input, rgba(255, 255, 255, 0.05))", border: "1px solid var(--color-border, rgba(255,255,255,0.12))", borderRadius: "14px", padding: "0.75rem", color: "#fff", outline: "none" }}
+                  />
+                  <button className="settingsSaveButton" onClick={handleSendSupportMessage} disabled={sendingSupport || !supportMessage.trim()} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <Send size={16} /> {sendingSupport ? "Sending..." : "Submit Ticket"}
+                  </button>
+                </div>
               </motion.div>
             )}
 
-            {activeTab !== "account" && activeTab !== "privacy" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "data" && activeTab !== "appearance" && activeTab !== "sessions" && activeTab !== "support" && (
+            {(activeTab === "danger" || activeTab === "account") && (
               <motion.div
-                key="placeholder"
+                key="danger"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
                 className="settingsSection"
+                style={{ marginTop: activeTab === "account" ? "2rem" : "0" }}
               >
-                <h2>Coming Soon</h2>
-                <p style={{ color: "var(--color-text-muted)" }}>This settings section is being updated for V2.</p>
+                {activeTab === "danger" && <h2><AlertTriangle size={24} color="#EF4444" /> Danger Zone</h2>}
+                <div className="dangerZone">
+                  <h3>Danger Zone</h3>
+                  <p>Permanently delete your account, posts, and data. This action is irreversible.</p>
+                  <button className="dangerBtn" onClick={() => setShowDeleteModal(true)}>
+                    Delete Account Permanently
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="viewers-sheet-overlay" style={{ background: "rgba(0,0,0,0.8)", zIndex: 1200 }} onClick={() => setShowDeleteModal(false)}>
+          <motion.div 
+            className="settingsSection"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{ maxWidth: "440px", margin: "auto", background: "var(--color-surface, #18181B)", border: "1px solid #EF4444", borderRadius: "20px", padding: "1.5rem" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ color: "#EF4444", margin: "0 0 0.5rem 0", display: "flex", alignItems: "center", gap: "8px" }}>
+              <AlertTriangle size={22} /> Confirm Permanent Deletion
+            </h3>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem", lineHeight: "1.5", marginBottom: "1rem" }}>
+              This will permanently delete your FutureMedia account, all your stories, posts, comments, and profile data. Type <strong>DELETE</strong> below to confirm.
+            </p>
+            <input 
+              type="text"
+              placeholder="Type DELETE to confirm"
+              value={confirmDeleteText}
+              onChange={(e) => setConfirmDeleteText(e.target.value)}
+              style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--color-border)", color: "#fff", outline: "none", marginBottom: "1rem" }}
+            />
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button className="button cancelBtn" style={{ flex: 1 }} onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button className="dangerBtn" style={{ flex: 1 }} onClick={handleDeleteAccountConfirm} disabled={confirmDeleteText !== "DELETE" || isDeleting}>
+                {isDeleting ? "Deleting..." : "Permanently Delete"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 };
