@@ -198,7 +198,7 @@
 /* Text Story Canvas Preview */
 .text-story-canvas {
   width: 100%;
-  height: 260px;
+  height: 240px;
   border-radius: var(--radius-card, 20px);
   display: flex;
   align-items: center;
@@ -237,6 +237,52 @@
   background: rgba(0, 0, 0, 0.4);
   padding: 2px 8px;
   border-radius: 10px;
+}
+
+/* Typography Tools Row */
+.typography-tools-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.alignment-group, .font-family-group {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-input, rgba(255, 255, 255, 0.05));
+  padding: 4px;
+  border-radius: var(--radius-button, 12px);
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+}
+
+.tool-btn {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--color-text-muted, #a1a1aa);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.825rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tool-btn.active {
+  background: var(--color-primary, #4F46E5);
+  color: #ffffff;
+  font-weight: 700;
 }
 
 /* Control Options */
