@@ -3,7 +3,7 @@ import "./Profile.css";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
-import { getStoredUserProfile } from "../../utils/session";
+import { getStoredUserProfile, resolveAvatar } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
 import { toast } from "react-toastify";
 import { Lock, Heart, MessageCircle, Check, X, ShieldAlert, Settings as SettingsIcon } from "lucide-react";
@@ -188,10 +188,7 @@ const Profile = () => {
     </div>
   );
 
-  const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
-  const avatarUrl = user.profilePicture
-    ? user.profilePicture.startsWith("/") ? `${API_BASE}${user.profilePicture}` : user.profilePicture
-    : ProfileImage;
+  const avatarUrl = resolveAvatar(user);
 
   return (
     <motion.div 
@@ -350,6 +347,7 @@ const Profile = () => {
                     const media = post.media && post.media.length > 0 ? post.media[0] : null;
                     const image = media ? media.url : post.imageUrl;
                     const isVideo = media ? media.type === "video" : (image && image.match(/\.(mp4|webm|ogg)$/i));
+                    const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
                     const fullUrl = image ? (image.startsWith("http") ? image : `${API_BASE}${image}`) : null;
 
                     return (
