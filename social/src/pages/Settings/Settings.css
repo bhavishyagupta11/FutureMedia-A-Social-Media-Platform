@@ -1,17 +1,19 @@
+/* ─── Settings Page ──────────────────────────────────────────────────── */
 .SettingsPage {
-  padding: 2rem;
+  padding: clamp(1rem, 3vw, 2rem);
   max-width: 1200px;
   margin: 0 auto;
   min-height: calc(100vh - 80px);
   box-sizing: border-box;
+  width: 100%;
 }
 
 .settingsHeader {
-  margin-bottom: 2rem;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
 }
 
 .settingsHeader h1 {
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 3vw, 2rem);
   font-weight: 800;
   color: var(--color-text, #ffffff);
   margin: 0 0 0.5rem 0;
@@ -23,28 +25,40 @@
   margin: 0;
 }
 
+/* ─── Layout: Sidebar + Content ──────────────────────────────────────── */
 .settingsLayout {
   display: grid;
   grid-template-columns: 260px 1fr;
-  gap: 2rem;
+  gap: clamp(1rem, 2vw, 2rem);
+  align-items: start;
 }
 
+/* ─── Sidebar Navigation ─────────────────────────────────────────────── */
 .settingsSidebar {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   background: var(--color-surface, #18181B);
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
   border-radius: var(--radius-card, 20px);
-  padding: 1rem;
+  padding: 0.75rem;
   height: fit-content;
+  position: sticky;
+  top: 1rem;
 }
 
+/* ─── Unified Settings Tab Button ─────────────────────────────────────
+   Every navigation item MUST use this single class.
+   Width, padding, gap, min-height, icon sizing are identical.
+   Only color/background differ for special states.
+──────────────────────────────────────────────────────────────────────── */
 .settingsTab {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 1rem;
   background: transparent;
   border: none;
   border-radius: var(--radius-button, 14px);
@@ -52,9 +66,18 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   text-align: left;
-  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Icon container: fixed width so all labels start at same X position */
+.settingsTab svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .settingsTab:hover {
@@ -68,21 +91,37 @@
   box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
 }
 
-.settingsTab.dangerTab:hover, .settingsTab.dangerTab.active {
+/* Danger Zone tab: red tint */
+.settingsTab.dangerTab:hover,
+.settingsTab.dangerTab.active {
   background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  box-shadow: none;
+}
+
+/* Log Out tab: red text, same geometry */
+.settingsTab.logoutTab {
   color: #EF4444;
 }
 
+.settingsTab.logoutTab:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+}
+
+/* ─── Content Panel ──────────────────────────────────────────────────── */
 .settingsContent {
   background: var(--color-surface, #18181B);
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
   border-radius: var(--radius-card, 20px);
-  padding: 2rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
   min-height: 480px;
+  min-width: 0;
 }
 
+/* ─── Section Headings ───────────────────────────────────────────────── */
 .settingsSection h2 {
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
   font-weight: 700;
   color: var(--color-text, #ffffff);
   margin: 0 0 1.5rem 0;
@@ -91,11 +130,13 @@
   gap: 0.75rem;
 }
 
+/* ─── Form Layout ────────────────────────────────────────────────────── */
 .settingsForm {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   max-width: 580px;
+  width: 100%;
 }
 
 .settingsField {
@@ -119,9 +160,11 @@
   padding: 0.75rem 1rem;
   color: var(--color-text, #ffffff);
   font-size: 0.95rem;
+  font-family: inherit;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.2s ease;
+  resize: vertical;
 }
 
 .settingsField input:focus,
@@ -129,6 +172,7 @@
   border-color: var(--color-primary, #4F46E5);
 }
 
+/* ─── Save Button ────────────────────────────────────────────────────── */
 .settingsSaveButton {
   align-self: flex-start;
   padding: 0.75rem 1.75rem;
@@ -137,16 +181,23 @@
   border: none;
   border-radius: var(--radius-button, 14px);
   font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
 }
 
-.settingsSaveButton:hover {
+.settingsSaveButton:hover:not(:disabled) {
   background: var(--color-primary-dark, #4338CA);
   transform: translateY(-1px);
 }
 
+.settingsSaveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Status Messages ────────────────────────────────────────────────── */
 .settingsSaved {
   display: flex;
   align-items: center;
@@ -162,10 +213,12 @@
   font-weight: 600;
 }
 
+/* ─── Settings Row (Toggle rows) ─────────────────────────────────────── */
 .settingsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   padding: 1.25rem 0;
   border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
 }
@@ -174,6 +227,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .settingsRowInfo strong {
@@ -184,9 +239,10 @@
 .settingsRowInfo span {
   color: var(--color-text-muted, #a1a1aa);
   font-size: 0.85rem;
+  word-wrap: break-word;
 }
 
-/* FAQ Styles */
+/* ─── FAQ Styles ─────────────────────────────────────────────────────── */
 .faqContainer {
   margin-bottom: 1.5rem;
 }
@@ -218,11 +274,22 @@
   color: var(--color-text, #ffffff);
   font-weight: 600;
   font-size: 0.9rem;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   cursor: pointer;
   text-align: left;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.faqQuestionBtn span {
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 .faqAnswer {
@@ -232,10 +299,10 @@
   line-height: 1.5;
 }
 
-/* Danger Zone */
+/* ─── Danger Zone ────────────────────────────────────────────────────── */
 .dangerZone {
   margin-top: 2rem;
-  padding: 1.5rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-card, 16px);
   background: rgba(239, 68, 68, 0.04);
@@ -260,15 +327,23 @@
   border: none;
   border-radius: var(--radius-button, 12px);
   font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
+  min-height: 44px;
+  box-sizing: border-box;
 }
 
-.dangerBtn:hover {
+.dangerBtn:hover:not(:disabled) {
   background: #DC2626;
 }
 
-/* Switch Toggle */
+.dangerBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Switch Toggle ──────────────────────────────────────────────────── */
 .switch {
   position: relative;
   display: inline-block;
@@ -312,29 +387,106 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-@media (max-width: 768px) {
-  .SettingsPage {
-    padding: 1rem;
-  }
-
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Tablet (769px to 1024px)
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
   .settingsLayout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 220px 1fr;
   }
 
   .settingsSidebar {
-    display: flex;
+    position: static;
+  }
+
+  .settingsTab {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile (≤768px)
+   Sidebar becomes horizontal scrollable tab bar
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .settingsLayout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .settingsSidebar {
     flex-direction: row;
     overflow-x: auto;
-    white-space: nowrap;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
     padding: 0.5rem;
+    gap: 0.25rem;
+    position: static;
+  }
+
+  .settingsSidebar::-webkit-scrollbar {
+    display: none;
   }
 
   .settingsTab {
     flex-shrink: 0;
     width: auto;
+    min-width: fit-content;
+    scroll-snap-align: start;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+    border-radius: 12px;
   }
 
   .settingsContent {
-    padding: 1.25rem;
+    min-height: auto;
+  }
+
+  .settingsForm {
+    max-width: 100%;
+  }
+
+  .settingsRow {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Small Mobile (≤480px)
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .SettingsPage {
+    padding: 0.75rem;
+  }
+
+  .settingsTab {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.8rem;
+    gap: 0.5rem;
+  }
+
+  .settingsContent {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .settingsSidebar {
+    border-radius: 16px;
+  }
+
+  .dangerZone {
+    padding: 1rem;
+  }
+
+  .settingsSaveButton {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    display: flex;
   }
 }
