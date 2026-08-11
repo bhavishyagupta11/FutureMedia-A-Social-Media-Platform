@@ -1,16 +1,42 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Profile Page — Responsive Design System
+   Uses clamp(), flex, grid, CSS variables for smooth scaling.
+   No separate mobile/desktop implementations.
+   ═══════════════════════════════════════════════════════════════════════ */
+
 .ProfilePage {
   width: 100%;
   max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 var(--space-4) var(--space-4);
+  margin: clamp(1rem, 2vw, 2rem) auto;
+  padding: 0 clamp(0.5rem, 3vw, 2rem) clamp(1rem, 2vw, 2rem);
+  box-sizing: border-box;
 }
 
+/* ─── Loading / Error States ─────────────────────────────────────────── */
+.profileLoading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.profileLoadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Private Profile Card ───────────────────────────────────────────── */
 .private-profile-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
   margin-top: 2rem;
   background: var(--color-surface, #131B2E);
   border: 1px solid var(--color-border, #1E293B);
@@ -45,31 +71,16 @@
   line-height: 1.5;
 }
 
-.profileLoading {
-  display: flex;
-  justify-content: center;
-  padding: 4rem;
-}
-
-.profileLoadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
+/* ─── Profile Header ─────────────────────────────────────────────────── */
 .profileHeader {
   display: flex;
   align-items: flex-start;
-  gap: 6rem;
-  margin-bottom: 3rem;
-  padding: 2rem 2rem 0;
+  gap: clamp(1.5rem, 5vw, 6rem);
+  margin-bottom: clamp(1.5rem, 3vw, 3rem);
+  padding: clamp(1rem, 2vw, 2rem) clamp(1rem, 2vw, 2rem) 0;
 }
 
+/* ─── Avatar ─────────────────────────────────────────────────────────── */
 .profileAvatarWrapper {
   flex-shrink: 0;
   border-radius: 50%;
@@ -89,35 +100,42 @@
 }
 
 .profileAvatar {
-  width: 150px;
-  height: 150px;
+  width: clamp(86px, 15vw, 150px);
+  height: clamp(86px, 15vw, 150px);
   border-radius: 50%;
   object-fit: cover;
   display: block;
+  aspect-ratio: 1;
 }
 
+/* ─── Profile Info ───────────────────────────────────────────────────── */
 .profileInfo {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
   flex: 1;
+  min-width: 0;
 }
 
 .profileHeaderTop {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  flex-wrap: wrap;
 }
 
 .profileUsername {
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
   color: var(--color-text);
+  white-space: nowrap;
 }
 
+/* ─── Profile Action Buttons ─────────────────────────────────────────── */
 .profileActions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .profileBtn {
@@ -128,6 +146,9 @@
   cursor: pointer;
   border: none;
   transition: var(--transition-smooth);
+  white-space: nowrap;
+  min-height: 36px;
+  box-sizing: border-box;
 }
 
 .editBtn, .settingsBtn {
@@ -155,6 +176,25 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.requestedBtn {
+  background: var(--bg-hover-light);
+  color: var(--color-text-muted, #a1a1aa);
+  border: 1px solid var(--color-border);
+}
+.requestedBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cancelReqBtn {
+  background: transparent;
+  color: var(--color-error, #EF4444);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-size: 0.85rem;
+}
+.cancelReqBtn:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
 .messageBtn {
   background: var(--bg-hover-light);
   color: var(--color-text);
@@ -163,9 +203,10 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* ─── Stats ──────────────────────────────────────────────────────────── */
 .profileStats {
   display: flex;
-  gap: 2rem;
+  gap: clamp(1rem, 3vw, 2rem);
   align-items: center;
 }
 
@@ -187,10 +228,18 @@
   color: var(--color-text-muted);
 }
 
+/* ─── Bio Section ────────────────────────────────────────────────────── */
 .profileBioSection {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+}
+
+.profileName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
 }
 
 .profileDisplayName {
@@ -199,11 +248,25 @@
   color: var(--color-text);
 }
 
+.profileProfession {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
 .profileBio {
   font-size: 1rem;
   color: var(--color-text);
   line-height: 1.5;
   white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+.profileLocation {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
 .profileWebsite {
@@ -216,10 +279,10 @@
   font-weight: 600;
 }
 
-/* Tabs */
+/* ─── Tabs ───────────────────────────────────────────────────────────── */
 .profileTabs {
   display: flex;
-  gap: 1rem;
+  gap: 0;
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 2rem;
   position: relative;
@@ -228,19 +291,38 @@
 .tab {
   background: none;
   border: none;
-  padding: 1rem 1.5rem;
+  padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.5rem, 2vw, 1.5rem);
   color: var(--color-text-muted);
-  font-size: 1rem;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-smooth);
   position: relative;
+  white-space: nowrap;
+  flex: 1;
+  text-align: center;
 }
 
 .tab:hover {
   color: var(--color-text);
 }
 
+.tab.active {
+  color: var(--color-primary);
+}
+
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 3px 3px 0 0;
+}
+
+/* Legacy class kept for compatibility */
 .activeTab {
   color: var(--color-primary);
 }
@@ -255,11 +337,11 @@
   border-radius: 3px 3px 0 0;
 }
 
-/* Instagram-style Post Grid */
+/* ─── Instagram-style Post Grid ──────────────────────────────────────── */
 .profileGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  gap: clamp(2px, 0.5vw, 4px);
   margin-top: 0.5rem;
 }
 
@@ -325,14 +407,14 @@
   overflow: hidden;
 }
 
-/* Empty state */
+/* ─── Empty State ────────────────────────────────────────────────────── */
 .emptyState {
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
   color: var(--color-text-muted, #a1a1aa);
   gap: 1rem;
 }
@@ -341,7 +423,7 @@
   font-size: 1rem;
 }
 
-/* User list for followers/following tabs */
+/* ─── User List (followers/following) ────────────────────────────────── */
 .userList {
   grid-column: 1 / -1;
   display: flex;
@@ -368,6 +450,7 @@
   height: 44px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .userListItem span {
@@ -376,17 +459,20 @@
   color: var(--color-text, #fff);
 }
 
-/* ─── Edit Profile ──────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════
+   Edit Profile
+   ═══════════════════════════════════════════════════════════════════════ */
 .EditProfilePage {
   display: flex;
   justify-content: center;
-  padding: 2rem 1rem 4rem;
+  padding: clamp(1rem, 3vw, 2rem) clamp(0.75rem, 2vw, 1rem) clamp(2rem, 5vw, 4rem);
 }
 
 .editProfileCard {
   background: transparent;
   padding: var(--space-4) 0;
   width: 100%;
+  max-width: 600px;
 }
 
 .editProfileCard h2 {
@@ -394,7 +480,7 @@
   color: var(--color-text);
   text-align: center;
   font-weight: 800;
-  font-size: 1.8rem;
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
 }
 
 .editAvatarSection {
@@ -405,8 +491,8 @@
 
 .editAvatarWrapper {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: clamp(90px, 15vw, 120px);
+  height: clamp(90px, 15vw, 120px);
   cursor: pointer;
   border-radius: 50%;
   overflow: hidden;
@@ -466,9 +552,12 @@
   padding: 1rem;
   color: var(--color-text);
   font-size: 1rem;
+  font-family: inherit;
   resize: vertical;
   outline: none;
   transition: var(--transition-smooth);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .editField input:focus,
@@ -492,7 +581,10 @@
   border-radius: var(--radius-button);
   cursor: pointer;
   font-weight: 600;
+  font-family: inherit;
   transition: var(--transition-smooth);
+  min-height: 48px;
+  box-sizing: border-box;
 }
 .cancelBtn:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -508,7 +600,10 @@
   cursor: pointer;
   font-weight: 700;
   font-size: 1rem;
+  font-family: inherit;
   transition: var(--transition-smooth);
+  min-height: 48px;
+  box-sizing: border-box;
 }
 
 .saveBtn:hover:not(:disabled) {
@@ -519,23 +614,15 @@
   cursor: not-allowed;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile (≤768px)
+   Profile header stacks vertically with center alignment
+   ═══════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .ProfilePage {
-    padding: 0 var(--space-1) var(--space-2);
-    margin: 1rem auto;
-  }
-
   .profileHeader {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 1.5rem;
-    padding: 1rem 1rem 0;
-  }
-
-  .profileAvatar {
-    width: 86px;
-    height: 86px;
   }
 
   .profileHeaderTop {
@@ -558,25 +645,27 @@
     align-items: center;
   }
 
-  .profileGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-  }
-
   .profileTabs {
     gap: 0;
-    justify-content: space-around;
+    justify-content: stretch;
   }
 
-  .tab {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.85rem;
+  .editProfileActions {
+    flex-direction: column;
+  }
+
+  .cancelBtn, .saveBtn {
+    flex: none;
+    width: 100%;
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Tablet (769px to 1024px)
+   ═══════════════════════════════════════════════════════════════════════ */
 @media (min-width: 769px) and (max-width: 1024px) {
   .profileGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
   }
 }
