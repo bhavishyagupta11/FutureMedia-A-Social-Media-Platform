@@ -259,7 +259,7 @@ const Settings = () => {
               {tab.label}
             </button>
           ))}
-          <button className="settingsTab logoutTab" onClick={handleLogout} style={{ marginTop: "1rem", color: "#EF4444" }}>
+          <button className="settingsTab logoutTab" onClick={handleLogout}>
             <LogOut size={20} /> Log Out
           </button>
         </div>
