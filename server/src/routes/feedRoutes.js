@@ -14,9 +14,17 @@ router.get("/home", protect, asyncHandler(async (req, res) => {
 }));
 
 router.get("/explore", protect, asyncHandler(async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 20;
-  const result = await feedService.getExploreFeed(req.user.id, limit);
+  const limit = Math.min(parseInt(req.query.limit, 10) || 20, 50);
+  const skip = parseInt(req.query.skip, 10) || 0;
+  const result = await feedService.getExploreFeed(req.user.id, limit, skip);
   return successResponse(res, 200, "Explore feed fetched", result);
+}));
+
+router.get("/trending/hashtags", protect, asyncHandler(async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit, 10) || 15, 30);
+  const days = Math.min(parseInt(req.query.days, 10) || 7, 30);
+  const result = await feedService.getTrendingHashtags(limit, days);
+  return successResponse(res, 200, "Trending hashtags fetched", result);
 }));
 
 module.exports = router;
