@@ -12,4 +12,7 @@ const hashtagSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+hashtagSchema.index({ trendScore: -1, lastUsed: -1 });
+hashtagSchema.index({ postCount: -1, lastUsed: -1 });
+
 module.exports = mongoose.model("Hashtag", hashtagSchema);
