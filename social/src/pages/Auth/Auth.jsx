@@ -241,7 +241,7 @@ function Authenticate() {
     },
     onSuccess: async ({ payload }) => {
       toast.success("Account created successfully! Please check your email to verify your account.");
-      navigate("/");
+      navigate("/login");
     },
     onError: (error) => {
       if (error.isValidation) {
@@ -346,7 +346,7 @@ function Authenticate() {
 
           <div className="authFooterRow">
             <span className="switchAuthText">
-              Already on FM? <Link to={"/"}>Log in</Link>
+              Already on FM? <Link to={"/login"}>Log in</Link>
             </span>
             <button className="infoButton" disabled={signupMutation.isPending}>
               {signupMutation.isPending ? "Signing up..." : "Sign up"}
@@ -377,7 +377,7 @@ function ForgotPassword() {
     },
     onSuccess: () => {
       toast.success("Password reset email sent! Check your inbox.");
-      navigate("/");
+      navigate("/login");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -395,7 +395,7 @@ function ForgotPassword() {
               <input type="email" className="infoInput" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="authFooterRow" style={{ marginTop: "1rem" }}>
-              <span className="switchAuthText"><Link to="/">Back to Login</Link></span>
+              <span className="switchAuthText"><Link to="/login">Back to Login</Link></span>
               <button className="infoButton" disabled={forgotMutation.isPending}>
                 {forgotMutation.isPending ? "Sending..." : "Send Link"}
               </button>
@@ -429,7 +429,7 @@ function ResetPassword() {
     },
     onSuccess: () => {
       toast.success("Password reset successful! Please log in.");
-      navigate("/");
+      navigate("/login");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -459,7 +459,7 @@ function ResetPassword() {
               <input type="password" className="infoInput" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} />
             </div>
             <div className="authFooterRow" style={{ marginTop: "1rem" }}>
-              <span className="switchAuthText"><Link to="/">Back to Login</Link></span>
+              <span className="switchAuthText"><Link to="/login">Back to Login</Link></span>
               <button className="infoButton" disabled={resetMutation.isPending}>
                 {resetMutation.isPending ? "Resetting..." : "Reset"}
               </button>

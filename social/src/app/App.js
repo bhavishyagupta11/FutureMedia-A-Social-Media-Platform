@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "../components/Navigation/AppLayout";
 
 // Lazy load routes for performance
+import Landing from "../pages/Landing/Landing";
 import { Auth, SignUp, ForgotPassword, ResetPassword } from "../pages/Auth/Auth";
 const VerifyEmail = lazy(() => import("../pages/Auth/VerifyEmail"));
 const Home = lazy(() => import("../pages/Auth/Home/Home"));
@@ -45,7 +46,8 @@ function App() {
         />
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<Auth />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/verify/:token" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
