@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../utils/api';
 import ProfileImage from '../../img/profileImg.jpg';
+import { CREATORS } from '../../constants/mediaAssets';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import './SuggestedUsers.css';
 
+const DEFAULT_SUGGESTIONS = [
+  { _id: 'snehil-default', username: CREATORS.snehil.username, displayName: CREATORS.snehil.name, profilePicture: CREATORS.snehil.avatar },
+  { _id: 'sahil-default', username: CREATORS.sahil.username, displayName: CREATORS.sahil.name, profilePicture: CREATORS.sahil.avatar },
+  { _id: 'garvit-default', username: CREATORS.garvit.username, displayName: CREATORS.garvit.name, profilePicture: CREATORS.garvit.avatar },
+  { _id: 'vipul-default', username: CREATORS.vipul.username, displayName: CREATORS.vipul.name, profilePicture: CREATORS.vipul.avatar },
+  { _id: 'priya-default', username: CREATORS.priya.username, displayName: CREATORS.priya.name, profilePicture: CREATORS.priya.avatar },
+];
+
 const SuggestedUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusMap, setStatusMap] = useState({}); // userId -> "none" | "requested" | "following"
+  const [statusMap, setStatusMap] = useState({});
   const [loadingFollow, setLoadingFollow] = useState({});
 
   useEffect(() => {
@@ -18,17 +27,19 @@ const SuggestedUsers = () => {
         if (res.ok) {
           const payload = await res.json();
           const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          const slicedData = data.slice(0, 5);
-          setUsers(slicedData);
+          const finalUsers = data.length > 0 ? data.slice(0, 5) : DEFAULT_SUGGESTIONS;
+          setUsers(finalUsers);
 
           const initialStatusMap = {};
-          slicedData.forEach((u) => {
+          finalUsers.forEach((u) => {
             initialStatusMap[u._id] = u.status || (u.isFollowing ? "following" : (u.isRequested ? "requested" : "none"));
           });
           setStatusMap(initialStatusMap);
+        } else {
+          setUsers(DEFAULT_SUGGESTIONS);
         }
       } catch (err) {
-        console.error("Failed to fetch suggested users:", err);
+        setUsers(DEFAULT_SUGGESTIONS);
       } finally {
         setLoading(false);
       }
@@ -39,6 +50,13 @@ const SuggestedUsers = () => {
   const handleFollowToggle = async (user) => {
     const userId = user._id;
     const currentStatus = statusMap[userId] || "none";
+
+    if (String(userId).endsWith("-default")) {
+      const nextStatus = currentStatus === "following" ? "none" : "following";
+      setStatusMap((prev) => ({ ...prev, [userId]: nextStatus }));
+      toast.success(nextStatus === "following" ? `Following @${user.username}!` : `Unfollowed @${user.username}`, { autoClose: 1500 });
+      return;
+    }
 
     try {
       setLoadingFollow((prev) => ({ ...prev, [userId]: true }));
@@ -75,10 +93,10 @@ const SuggestedUsers = () => {
     }
   };
 
-  if (loading) return <div className="glass-card suggested-loading">Loading suggestions...</div>;
+  if (loading) return <div className="SuggestedUsers suggested-loading">Loading suggestions...</div>;
 
   return (
-    <div className="glass-card SuggestedUsers">
+    <div className="SuggestedUsers">
       <h3>Suggested for you</h3>
       <div className="suggestions-list">
         {users.length === 0 ? (

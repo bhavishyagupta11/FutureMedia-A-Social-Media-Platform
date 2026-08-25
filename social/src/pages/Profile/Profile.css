@@ -5,9 +5,9 @@
 
 .ProfilePage {
   width: 100%;
-  max-width: 1100px;
-  margin: clamp(1rem, 2vw, 2rem) auto;
-  padding: 0 clamp(0.5rem, 3vw, 2rem) 6rem;
+  max-width: 1000px;
+  margin: clamp(1rem, 2.5vw, 2rem) auto;
+  padding: 0 clamp(0.75rem, 3vw, 1.5rem) 6rem;
   box-sizing: border-box;
 }
 
@@ -15,12 +15,13 @@
 .profileLoading {
   display: flex;
   justify-content: center;
-  padding: 4rem;
+  align-items: center;
+  min-height: 350px;
 }
 
 .profileLoadingSpinner {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border: 3.5px solid var(--fm-primary-soft);
   border-top-color: var(--fm-primary);
   border-radius: 50%;
@@ -29,58 +30,29 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Private Profile Card ─── */
-.private-profile-card {
+/* ─── Incoming Follow Request Banner ─── */
+.incoming-request-banner {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
-  margin-top: 2rem;
-  background: var(--fm-surface);
-  border: 1px solid var(--fm-border);
+  justify-content: space-between;
+  padding: 1rem 1.4rem;
+  margin-bottom: 1.5rem;
   border-radius: var(--radius-card);
-  text-align: center;
-  box-shadow: var(--shadow-card);
-}
-
-.private-icon-pill {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
   background: var(--fm-primary-pale);
-  border: 1px solid var(--fm-primary-soft);
-  color: var(--fm-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.2rem;
+  border: 1.5px solid var(--fm-primary-soft);
+  box-shadow: var(--shadow-sm);
 }
 
-.private-profile-card h3 {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--fm-text);
-  margin-bottom: 0.5rem;
-}
-
-.private-profile-card p {
-  color: var(--fm-text-secondary);
-  font-size: 0.92rem;
-  max-width: 360px;
-  line-height: 1.5;
-}
-
-/* ─── Profile Header (White Card) ─── */
+/* ─── Profile Header (Solid White Card) ─── */
 .profileHeader {
   background: var(--fm-surface);
   border: 1px solid var(--fm-border);
   border-radius: var(--radius-card);
-  padding: clamp(1.2rem, 3vw, 2.5rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
   box-shadow: var(--shadow-card);
   display: flex;
   align-items: flex-start;
-  gap: clamp(1.5rem, 4vw, 4rem);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
   margin-bottom: clamp(1.5rem, 3vw, 2rem);
 }
 
@@ -104,8 +76,8 @@
 }
 
 .profileAvatar {
-  width: clamp(80px, 14vw, 130px);
-  height: clamp(80px, 14vw, 130px);
+  width: clamp(86px, 15vw, 130px);
+  height: clamp(86px, 15vw, 130px);
   border-radius: 50%;
   object-fit: cover;
   display: block;
@@ -118,7 +90,7 @@
 .profileInfo {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.6rem, 1.5vw, 1.2rem);
+  gap: clamp(0.7rem, 1.8vw, 1.2rem);
   flex: 1;
   min-width: 0;
 }
@@ -126,12 +98,12 @@
 .profileHeaderTop {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
 .profileUsername {
-  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+  font-size: clamp(1.3rem, 2.5vw, 1.75rem);
   font-weight: 800;
   color: var(--fm-text);
   letter-spacing: -0.02em;
@@ -141,113 +113,170 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.profileFollowBtn,
-.profileEditBtn {
-  background: var(--fm-primary);
-  color: #FFFFFF;
+/* Profile Action Buttons */
+.profileBtn {
+  background: var(--fm-surface-soft);
+  color: var(--fm-text);
   font-weight: 700;
   font-size: 0.88rem;
   padding: 8px 18px;
   border-radius: var(--radius-pill);
-  border: none;
+  border: 1px solid var(--fm-border);
   cursor: pointer;
   transition: var(--transition-smooth);
   box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.profileFollowBtn:hover,
-.profileEditBtn:hover {
-  background: var(--fm-primary-hover);
+.profileBtn:hover {
+  background: var(--fm-border);
   transform: translateY(-1px);
 }
 
-.profileFollowBtn.following {
+.profileBtn.followBtn {
+  background: var(--fm-primary);
+  color: #FFFFFF;
+  border-color: var(--fm-primary);
+}
+
+.profileBtn.followBtn:hover {
+  background: var(--fm-primary-hover);
+  border-color: var(--fm-primary-hover);
+}
+
+.profileBtn.unfollowBtn {
   background: var(--fm-surface-soft);
   color: var(--fm-text);
-  border: 1px solid var(--fm-border);
-  box-shadow: none;
+  border-color: var(--fm-border);
 }
 
-.profileFollowBtn.following:hover {
-  background: var(--fm-border);
-}
-
-.profileFollowBtn.requested {
+.profileBtn.requestedBtn {
   background: var(--fm-warning-soft);
   color: var(--fm-warning);
-  border: 1px solid #F5D3AC;
-  box-shadow: none;
+  border-color: #F5D3AC;
 }
 
+.profileBtn.messageBtn {
+  background: var(--fm-primary-pale);
+  color: var(--fm-primary);
+  border-color: var(--fm-primary-soft);
+}
+
+.profileBtn.messageBtn:hover {
+  background: var(--fm-primary);
+  color: #FFFFFF;
+}
+
+/* ─── Profile Stats ─── */
 .profileStats {
   display: flex;
-  gap: clamp(1.2rem, 3vw, 2.5rem);
+  gap: clamp(1.5rem, 4vw, 3rem);
 }
 
-.profileStatItem {
+.stat {
   display: flex;
-  gap: 5px;
-  font-size: 0.92rem;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.95rem;
   color: var(--fm-text-secondary);
 }
 
-.profileStatItem strong {
+.statValue {
   color: var(--fm-text);
   font-weight: 800;
+  font-size: 1.05rem;
 }
 
-.profileBio {
+.statLabel {
+  color: var(--fm-text-secondary);
+  font-weight: 500;
+}
+
+/* ─── Profile Bio ─── */
+.profileBioSection {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.profileName {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--fm-text);
+  margin: 0;
+}
+
+.profileProfession {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fm-primary);
+  margin: 0;
+}
+
+.profileBio {
   font-size: 0.92rem;
   line-height: 1.5;
   color: var(--fm-text);
+  margin: 2px 0 0;
+  white-space: pre-line;
 }
 
-.profileFullName {
-  font-weight: 700;
+.profileLocation {
+  font-size: 0.85rem;
+  color: var(--fm-text-muted);
+  margin: 4px 0 0;
 }
 
 /* ─── Profile Navigation Tabs ─── */
+.profileContentSection {
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
 .profileTabs {
   display: flex;
   justify-content: center;
   gap: clamp(1rem, 4vw, 3rem);
-  border-bottom: 1px solid var(--fm-border);
-  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--fm-divider);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.profileTab {
+.tab {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 16px;
+  padding: 10px 18px;
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 2.5px solid transparent;
   color: var(--fm-text-muted);
   font-weight: 700;
-  font-size: 0.9rem;
-  text-transform: uppercase;
+  font-size: 0.88rem;
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.profileTab:hover {
+.tab:hover {
   color: var(--fm-primary);
 }
 
-.profileTab.active {
+.tab.active {
   color: var(--fm-primary);
   border-bottom-color: var(--fm-primary);
 }
 
-/* ─── Profile Media Grid ─── */
-.profilePostsGrid {
+/* ─── Profile Posts Grid ─── */
+.profileGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(8px, 1.5vw, 16px);
@@ -259,10 +288,10 @@
   overflow: hidden;
   position: relative;
   cursor: pointer;
-  background: var(--fm-surface);
+  background: var(--fm-surface-soft);
   border: 1px solid var(--fm-border);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .profileGridItem:hover {
@@ -278,7 +307,7 @@
   display: block;
 }
 
-.profileGridOverlay {
+.gridOverlay {
   position: absolute;
   inset: 0;
   background: rgba(37, 37, 37, 0.45);
@@ -288,21 +317,97 @@
   gap: 16px;
   color: #FFFFFF;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
-.profileGridItem:hover .profileGridOverlay {
+.profileGridItem:hover .gridOverlay {
   opacity: 1;
 }
 
-.profileNoPosts {
+.gridStats {
+  display: flex;
+  gap: 16px;
+}
+
+.gridStat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.emptyState {
   text-align: center;
-  padding: 3rem;
+  padding: 3.5rem 1rem;
   color: var(--fm-text-muted);
   font-weight: 600;
   font-size: 1rem;
+}
+
+/* ─── Followers & Following List ─── */
+.userFollowList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userFollowItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--fm-surface-soft);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--fm-border);
+}
+
+.userFollowAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--fm-border);
+}
+
+.userFollowInfo {
+  flex: 1;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.userFollowInfo strong {
+  font-size: 0.94rem;
+  color: var(--fm-text);
+  cursor: pointer;
+}
+
+.userFollowInfo span {
+  font-size: 0.8rem;
+  color: var(--fm-text-muted);
+}
+
+/* ─── Private Profile Guard ─── */
+.privateProfileGuard {
+  background: var(--fm-surface-soft);
+  border: 1.5px dashed var(--fm-border);
+  border-radius: var(--radius-card);
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+}
+
+.lockIconCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--fm-primary-pale);
+  border: 1px solid var(--fm-primary-soft);
+  color: var(--fm-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.2rem;
 }
 
 @media (max-width: 768px) {
@@ -321,11 +426,11 @@
     justify-content: center;
   }
 
-  .profileBio {
+  .profileBioSection {
     align-items: center;
   }
 
-  .profilePostsGrid {
+  .profileGrid {
     grid-template-columns: repeat(3, 1fr);
     gap: 4px;
   }

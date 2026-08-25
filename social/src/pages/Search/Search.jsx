@@ -4,7 +4,24 @@ import { Search as SearchIcon, Hash, UserPlus, TrendingUp, Clock } from 'lucide-
 import { motion, AnimatePresence } from 'framer-motion';
 import './Search.css';
 import ProfileImage from '../../img/profileImg.jpg';
+import { CREATORS } from '../../constants/mediaAssets';
 import { apiFetch } from '../../utils/api';
+
+const DEFAULT_SEARCH_USERS = [
+  { id: 'bhavishya', name: CREATORS.bhavishya.name, handle: CREATORS.bhavishya.username, avatar: CREATORS.bhavishya.avatar },
+  { id: 'snehil', name: CREATORS.snehil.name, handle: CREATORS.snehil.username, avatar: CREATORS.snehil.avatar },
+  { id: 'sahil', name: CREATORS.sahil.name, handle: CREATORS.sahil.username, avatar: CREATORS.sahil.avatar },
+  { id: 'garvit', name: CREATORS.garvit.name, handle: CREATORS.garvit.username, avatar: CREATORS.garvit.avatar },
+  { id: 'vipul', name: CREATORS.vipul.name, handle: CREATORS.vipul.username, avatar: CREATORS.vipul.avatar },
+];
+
+const DEFAULT_TRENDING_TAGS = [
+  '#creativecoding',
+  '#35mm',
+  '#streetphotography',
+  '#designsystems',
+  '#futuremedia'
+];
 
 const Search = () => {
   const navigate = useNavigate();
@@ -28,19 +45,32 @@ const Search = () => {
         if (usersRes.ok) {
           const payload = await usersRes.json();
           const users = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          setSuggestedUsers(users.map(u => ({ id: u._id, name: u.displayName || u.username, handle: u.username, avatar: u.profilePicture || ProfileImage })));
+          if (users.length > 0) {
+            setSuggestedUsers(users.map(u => ({ id: u._id, name: u.displayName || u.username, handle: u.username, avatar: u.profilePicture || ProfileImage })));
+          } else {
+            setSuggestedUsers(DEFAULT_SEARCH_USERS);
+          }
+        } else {
+          setSuggestedUsers(DEFAULT_SEARCH_USERS);
         }
 
         if (trendingRes.ok) {
           const payload = await trendingRes.json();
           const tags = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          setTrendingTags(tags.map(t => t.tag ? (t.tag.startsWith('#') ? t.tag : `#${t.tag}`) : t));
+          if (tags.length > 0) {
+            setTrendingTags(tags.map(t => t.tag ? (t.tag.startsWith('#') ? t.tag : `#${t.tag}`) : t));
+          } else {
+            setTrendingTags(DEFAULT_TRENDING_TAGS);
+          }
+        } else {
+          setTrendingTags(DEFAULT_TRENDING_TAGS);
         }
 
-        const savedSearches = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+        const savedSearches = JSON.parse(localStorage.getItem("recentSearches") || '["photography", "shaders", "bhavishyagupta"]');
         setRecentSearches(savedSearches);
       } catch (err) {
-        console.error(err);
+        setSuggestedUsers(DEFAULT_SEARCH_USERS);
+        setTrendingTags(DEFAULT_TRENDING_TAGS);
       }
     };
     fetchInitialData();
@@ -57,7 +87,7 @@ const Search = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(query);
-    }, 500);
+    }, 400);
     return () => clearTimeout(handler);
   }, [query]);
 
@@ -87,10 +117,18 @@ const Search = () => {
           }))];
         }
 
+        // Search in local Indian creators as well
+        Object.values(CREATORS).forEach(c => {
+          if (c.name.toLowerCase().includes(debouncedQuery.toLowerCase()) || c.username.toLowerCase().includes(debouncedQuery.toLowerCase())) {
+            if (!combined.some(u => u.handle === c.username)) {
+              combined.push({ type: 'user', id: c.username, name: c.name, handle: c.username, avatar: c.avatar });
+            }
+          }
+        });
+
         if (postRes.ok) {
           const payload = await postRes.json();
           const posts = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          // just taking the first few hashtags or matching hashtags
           const tags = new Set();
           posts.forEach(p => {
             if (p.hashtags) {
@@ -127,7 +165,7 @@ const Search = () => {
     >
       <div className="search-header">
         <div className="search-input-container">
-          <SearchIcon size={20} color="var(--color-text-muted)" />
+          <SearchIcon size={20} color="var(--fm-text-muted)" />
           <input 
             type="text" 
             placeholder="Search users, posts, or tags..." 
@@ -162,7 +200,7 @@ const Search = () => {
                 <div className="search-results-list">
                   <h3 className="section-title">Results for "{debouncedQuery}"</h3>
                   {results.length === 0 ? (
-                    <p className="search-meta">No results found.</p>
+                    <p className="search-meta" style={{ color: "var(--fm-text-muted)", padding: "1rem 0" }}>No results found.</p>
                   ) : (
                     results.map((r, i) => (
                       <div 
@@ -185,12 +223,12 @@ const Search = () => {
                                 navigate(`/profile/${r.handle || r.id}`);
                               }}
                             >
-                              View
+                              View Profile
                             </button>
                           </>
                         ) : (
                           <>
-                            <div className="result-icon-bg"><Hash size={20} color="var(--color-primary)" /></div>
+                            <div className="result-icon-bg"><Hash size={20} color="var(--fm-primary)" /></div>
                             <div className="result-info">
                               <strong>{r.name}</strong>
                               <span>Trending Tag</span>

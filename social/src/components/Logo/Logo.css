@@ -1,39 +1,47 @@
 .futuremedia-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   user-select: none;
   cursor: pointer;
+  text-decoration: none;
 }
 
-.futuremedia-logo .fm-brand-img {
-  height: 40px;
-  width: 40px;
-  object-fit: cover;
-  border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(255, 138, 76, 0.25);
-  border: 1.5px solid var(--fm-border);
-  transition: transform 0.25s ease;
+.fm-logo-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FF8A4C 0%, #F9783A 100%);
+  color: #FFFFFF;
+  font-weight: 900;
+  font-family: "Plus Jakarta Sans", "Inter", -apple-system, sans-serif;
+  letter-spacing: -0.04em;
+  box-shadow: 0 4px 14px rgba(255, 138, 76, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.futuremedia-logo:hover .fm-brand-img {
-  transform: scale(1.04);
+.futuremedia-logo:hover .fm-logo-badge {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(255, 138, 76, 0.45);
 }
 
-.futuremedia-logo.small .fm-brand-img {
+.futuremedia-logo.small .fm-logo-badge {
   height: 32px;
   width: 32px;
   border-radius: 9px;
+  font-size: 0.82rem;
 }
 
-.futuremedia-logo.normal .fm-brand-img {
-  height: 40px;
-  width: 40px;
-  border-radius: 12px;
+.futuremedia-logo.normal .fm-logo-badge {
+  height: 38px;
+  width: 38px;
+  border-radius: 11px;
+  font-size: 0.98rem;
 }
 
-.futuremedia-logo.large .fm-brand-img {
-  height: 64px;
-  width: 64px;
-  border-radius: 18px;
+.futuremedia-logo.large .fm-logo-badge {
+  height: 54px;
+  width: 54px;
+  border-radius: 16px;
+  font-size: 1.4rem;
 }

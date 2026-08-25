@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { Heart, Pencil, Trash2 } from "lucide-react";
 import ActionBar from "../Actions/ActionBar";
 
+import { CREATORS, POST_MEDIA } from "../../constants/mediaAssets";
+
 const normalizePost = (post) => {
   const source = post || {};
   const id = source._id || `post-${Math.random().toString(36).slice(2, 10)}`;
@@ -46,8 +48,77 @@ const normalizePost = (post) => {
   };
 };
 
+const DEFAULT_FEED_POSTS = [
+  {
+    _id: "demo-bhavishya-1",
+    ownerId: "bhavishya-gupta-id",
+    name: CREATORS.bhavishya.name,
+    username: CREATORS.bhavishya.username,
+    avatar: CREATORS.bhavishya.avatar,
+    desc: "Working on generative shader transitions and clean editorial typography for the new update. What do you all think? ✨ #FutureMedia #GenerativeDesign #BuildInPublic",
+    likes: ["demo1", "demo2", "demo3", "demo4"],
+    comments: [
+      {
+        _id: "local-c1",
+        userId: "sahil-id",
+        userName: CREATORS.sahil.name,
+        text: "The motion curves look incredibly fluid! Loving this direction.",
+      },
+      {
+        _id: "local-c2",
+        userId: "ananya-id",
+        userName: CREATORS.ananya.name,
+        text: "Great work with the WebGL palette. Truly inspiring.",
+      }
+    ],
+    format: "image",
+    mediaArray: [POST_MEDIA.creativeCoding],
+    imageUrl: POST_MEDIA.creativeCoding,
+    isDemo: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+  },
+  {
+    _id: "demo-snehil-1",
+    ownerId: "snehil-khokhar-id",
+    name: CREATORS.snehil.name,
+    username: CREATORS.snehil.username,
+    avatar: CREATORS.snehil.avatar,
+    desc: "Evening street lights and golden shadows. Captured on 35mm prime. #StreetPhotography #35mm #LightAndShadow",
+    likes: ["demo1", "demo2", "demo3"],
+    comments: [
+      {
+        _id: "local-c3",
+        userId: "priya-id",
+        userName: CREATORS.priya.name,
+        text: "That shadow roll-off is pure art!",
+      }
+    ],
+    format: "image",
+    mediaArray: [POST_MEDIA.streetPhoto],
+    imageUrl: POST_MEDIA.streetPhoto,
+    isDemo: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+  },
+  {
+    _id: "demo-sahil-1",
+    ownerId: "sahil-singh-id",
+    name: CREATORS.sahil.name,
+    username: CREATORS.sahil.username,
+    avatar: CREATORS.sahil.avatar,
+    desc: "Desk setup check. Organizing design tokens and physical sketches for our spatial UI architecture. #ProductDesign #Workspace #DesignCraft",
+    likes: ["demo1", "demo2"],
+    comments: [],
+    format: "image",
+    mediaArray: [POST_MEDIA.designWorkspace],
+    imageUrl: POST_MEDIA.designWorkspace,
+    isDemo: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+  }
+];
+
 const withDemoFallback = (realPosts) => {
   const normalized = Array.isArray(realPosts) ? realPosts : [];
+  if (normalized.length === 0) return DEFAULT_FEED_POSTS;
   return normalized;
 };
 

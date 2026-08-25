@@ -6,12 +6,12 @@ import { apiFetch } from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const GRADIENTS = [
-  { name: 'Indigo Purple', bg: 'linear-gradient(135deg, #4F46E5, #7C3AED)' },
-  { name: 'Pink Violet', bg: 'linear-gradient(135deg, #EC4899, #8B5CF6)' },
-  { name: 'Sunset Red', bg: 'linear-gradient(135deg, #F97316, #EF4444)' },
-  { name: 'Emerald Cyan', bg: 'linear-gradient(135deg, #10B981, #06B6D4)' },
-  { name: 'Midnight', bg: 'linear-gradient(135deg, #1E1B4B, #0F172A)' },
-  { name: 'Golden Amber', bg: 'linear-gradient(135deg, #F59E0B, #D97706)' },
+  { name: 'Peach Glow', bg: 'linear-gradient(135deg, #FF8A4C, #F9783A)' },
+  { name: 'Warm Sunset', bg: 'linear-gradient(135deg, #FF8A4C, #F5D8DC)' },
+  { name: 'Sage Meadow', bg: 'linear-gradient(135deg, #A8C98F, #648D47)' },
+  { name: 'Lavender Dream', bg: 'linear-gradient(135deg, #E6DDF0, #B899D8)' },
+  { name: 'Charcoal Minimal', bg: 'linear-gradient(135deg, #3A3632, #252525)' },
+  { name: 'Warm Apricot', bg: 'linear-gradient(135deg, #FFE2D2, #FF8A4C)' },
 ];
 
 const FONTS = [

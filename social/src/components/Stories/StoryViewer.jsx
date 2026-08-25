@@ -234,7 +234,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
             {story.mediaType === 'text' ? (
               <div 
                 className="story-text-container" 
-                style={{ background: story.background || 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
+                style={{ background: story.background || 'linear-gradient(135deg, #FF8A4C, #F9783A)' }}
               >
                 <span 
                   className="story-text-content" 

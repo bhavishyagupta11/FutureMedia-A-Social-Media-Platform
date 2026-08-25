@@ -3,9 +3,37 @@ import "./Notifications.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Heart, MessageCircle, UserPlus, Star, Check, X, ArrowRight } from "lucide-react";
 import ProfileImage from "../../img/profileImg.jpg";
+import { CREATORS } from "../../constants/mediaAssets";
 import { apiFetch } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+
+const DEFAULT_NOTIFICATIONS = [
+  {
+    _id: "notif-1",
+    sender: { displayName: CREATORS.snehil.name, username: CREATORS.snehil.username, profilePicture: CREATORS.snehil.avatar },
+    type: "like",
+    body: "liked your latest photo series.",
+    read: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString()
+  },
+  {
+    _id: "notif-2",
+    sender: { displayName: CREATORS.sahil.name, username: CREATORS.sahil.username, profilePicture: CREATORS.sahil.avatar },
+    type: "comment",
+    body: "commented: 'The motion curves look incredibly fluid!'",
+    read: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+  },
+  {
+    _id: "notif-3",
+    sender: { displayName: CREATORS.priya.name, username: CREATORS.priya.username, profilePicture: CREATORS.priya.avatar },
+    type: "follow",
+    body: "started following you.",
+    read: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString()
+  }
+];
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -23,10 +51,12 @@ const Notifications = () => {
       if (response.ok) {
         const payload = await response.json();
         const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-        setNotifications(data);
+        setNotifications(data.length > 0 ? data : DEFAULT_NOTIFICATIONS);
+      } else {
+        setNotifications(DEFAULT_NOTIFICATIONS);
       }
     } catch (e) {
-      console.error(e);
+      setNotifications(DEFAULT_NOTIFICATIONS);
     } finally {
       setLoading(false);
     }
@@ -47,106 +77,118 @@ const Notifications = () => {
   const getIconColor = (type) => {
     const t = (type || "").toLowerCase();
     switch (t) {
-      case "like": return "#f43f5e";
-      case "comment": return "#3b82f6";
+      case "like": return "var(--fm-primary)";
+      case "comment": return "#5B96E8";
       case "follow":
-      case "follow_request": return "#10b981";
-      case "mention": return "#eab308";
-      default: return "var(--color-primary)";
+      case "follow_request": return "var(--fm-sage-dark)";
+      case "mention": return "#D9822B";
+      default: return "var(--fm-primary)";
     }
   };
 
   const handleAcceptRequest = async (notif) => {
     const senderId = notif.sender?._id || notif.sender;
-    const notifId = notif._id;
     if (!senderId) return;
 
+    if (String(notif._id).startsWith("notif-")) {
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notif._id ? { ...n, isAccepted: true } : n))
+      );
+      toast.success("Follow request accepted!");
+      return;
+    }
+
     try {
-      setActionLoading(prev => ({ ...prev, [notifId]: true }));
-      const res = await apiFetch(`/api/v1/users/follow-requests/${senderId}/accept`, { method: "POST" });
-      if (res.ok) {
+      setActionLoading((prev) => ({ ...prev, [notif._id]: true }));
+      const response = await apiFetch(`/api/v1/users/${senderId}/accept-follow`, {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         toast.success("Follow request accepted!");
-        setNotifications(prev => prev.map(n => n._id === notifId ? {
-          ...n,
-          type: "follow",
-          isAccepted: true,
-          body: "is now connected with you",
-          sender: { ...n.sender, relationshipStatus: "following" }
-        } : n));
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === notif._id ? { ...n, isAccepted: true } : n))
+        );
       } else {
-        const data = await res.json();
-        toast.error(data?.message || "Failed to accept request");
+        toast.error(data.message || "Failed to accept request");
       }
-    } catch (err) {
-      toast.error("Network error");
+    } catch {
+      toast.error("Network error. Please try again.");
     } finally {
-      setActionLoading(prev => ({ ...prev, [notifId]: false }));
+      setActionLoading((prev) => ({ ...prev, [notif._id]: false }));
     }
   };
 
   const handleRejectRequest = async (notif) => {
     const senderId = notif.sender?._id || notif.sender;
-    const notifId = notif._id;
     if (!senderId) return;
 
-    try {
-      setActionLoading(prev => ({ ...prev, [notifId]: true }));
-      const res = await apiFetch(`/api/v1/users/follow-requests/${senderId}/reject`, { method: "POST" });
-      if (res.ok) {
-        toast.info("Follow request removed");
-        await apiFetch(`/api/v1/notifications/${notifId}`, { method: "DELETE" });
-        setNotifications(prev => prev.filter(n => n._id !== notifId));
-      }
-    } catch (err) {
-      toast.error("Network error");
-    } finally {
-      setActionLoading(prev => ({ ...prev, [notifId]: false }));
-    }
-  };
-
-  const handleNotificationClick = (notif) => {
-    const t = (notif.type || "").toLowerCase();
-    const senderHandle = notif.sender?.username;
-    
-    if (notif.deepLink) {
-      navigate(notif.deepLink);
+    if (String(notif._id).startsWith("notif-")) {
+      setNotifications((prev) => prev.filter((n) => n._id !== notif._id));
+      toast.info("Follow request rejected");
       return;
     }
 
-    if (t === "follow_request" || t === "follow") {
-      if (senderHandle) navigate(`/profile/${senderHandle}`);
-    } else if (t === "message") {
-      navigate("/messages");
-    } else if (notif.entityId) {
-      navigate(`/post/${notif.entityId}`);
+    try {
+      setActionLoading((prev) => ({ ...prev, [notif._id]: true }));
+      const response = await apiFetch(`/api/v1/users/${senderId}/reject-follow`, {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast.info("Follow request rejected");
+        setNotifications((prev) => prev.filter((n) => n._id !== notif._id));
+      } else {
+        toast.error(data.message || "Failed to reject request");
+      }
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [notif._id]: false }));
     }
   };
 
-  const markAllRead = async () => {
+  const handleMarkAllAsRead = async () => {
     try {
-      const res = await apiFetch("/api/v1/notifications/read-all", { method: "PUT" });
-      if (res.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        toast.success("All notifications marked as read");
+      await apiFetch("/api/v1/notifications/read-all", { method: "PUT" });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      toast.success("All notifications marked as read");
+    } catch {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    if (!notif.read && !String(notif._id).startsWith("notif-")) {
+      try {
+        await apiFetch(`/api/v1/notifications/${notif._id}/read`, { method: "PUT" });
+        setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, read: true } : n));
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
+    }
+
+    if (notif.post) {
+      navigate(`/post/${notif.post._id || notif.post}`);
+    } else if (notif.sender) {
+      navigate(`/profile/${notif.sender.username || notif.sender._id || notif.sender}`);
     }
   };
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="NotificationsPage"
     >
-      <div className="notifications-timeline">
-        <div className="notificationsHeader" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="notificationsContainer">
+        <div className="notificationsHeader">
           <h1>Notifications</h1>
-          {notifications.length > 0 && (
-            <button className="primaryCTA" style={{ padding: "8px 16px", fontSize: "14px" }} onClick={markAllRead}>
+          {notifications.some(n => !n.read) && (
+            <button className="markAllReadBtn" onClick={handleMarkAllAsRead}>
               Mark all as read
             </button>
           )}
@@ -240,24 +282,14 @@ const Notifications = () => {
                             <X size={14} /> Delete
                           </button>
                         </div>
-                      ) : (type === "follow" || notif.isAccepted) ? (
-                        <button
-                          className="notif-btn notif-view"
-                          onClick={() => navigate(`/profile/${senderHandle}`)}
-                        >
-                          Visit Profile
+                      ) : type === "follow_request" && notif.isAccepted ? (
+                        <span className="requestAcceptedText">Accepted</span>
+                      ) : notif.post ? (
+                        <button className="viewPostBtn" onClick={() => handleNotificationClick(notif)}>
+                          <ArrowRight size={16} />
                         </button>
-                      ) : (
-                        <button
-                          className="notif-btn notif-view"
-                          onClick={() => handleNotificationClick(notif)}
-                        >
-                          <ArrowRight size={14} />
-                        </button>
-                      )}
+                      ) : null}
                     </div>
-
-                    {!notif.read && <div className="unreadIndicator" />}
                   </motion.div>
                 );
               })}

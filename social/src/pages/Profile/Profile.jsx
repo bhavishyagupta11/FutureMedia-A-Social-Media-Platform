@@ -5,9 +5,64 @@ import { useParams, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
 import { getStoredUserProfile, resolveAvatar } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
+import { CREATORS, POST_MEDIA } from "../../constants/mediaAssets";
 import { toast } from "react-toastify";
 import { Lock, Heart, MessageCircle, Check, X, ShieldAlert, Settings as SettingsIcon } from "lucide-react";
 import StoryViewer from "../../components/Stories/StoryViewer";
+
+const CREATORS_PROFILES_MAP = {
+  bhavishyagupta: {
+    _id: "bhavishya-gupta-id",
+    username: CREATORS.bhavishya.username,
+    displayName: CREATORS.bhavishya.name,
+    profession: "Digital creator • Photography • Technology",
+    bio: "Building ideas for the future. Exploring generative design systems, photography, and creative code.",
+    location: "Bangalore, India",
+    profilePicture: CREATORS.bhavishya.avatar,
+    followers: ["u1", "u2", "u3", "u4"],
+    following: ["u1", "u2"],
+    isPrivate: false,
+    mockPosts: [
+      { _id: "b-p1", imageUrl: POST_MEDIA.creativeCoding, caption: "Kinetic WebGL shaders running at 60fps", likes: [1,2,3,4], comments: [1,2] },
+      { _id: "b-p2", imageUrl: POST_MEDIA.urbanSunset, caption: "City dusk sunset and atmospheric skyline", likes: [1,2,3], comments: [1] },
+      { _id: "b-p3", imageUrl: POST_MEDIA.galleryPhoto3, caption: "Micro shader experiments in real-time", likes: [1,2,3,4,5], comments: [1,2,3] }
+    ]
+  },
+  snehilkhokhar: {
+    _id: "snehil-khokhar-id",
+    username: CREATORS.snehil.username,
+    displayName: CREATORS.snehil.name,
+    profession: "Street & Documentary Photographer",
+    bio: "Chasing evening light, 35mm prime grain, and geometry in urban spaces.",
+    location: "Delhi, India",
+    profilePicture: CREATORS.snehil.avatar,
+    followers: ["u1", "u2", "u3"],
+    following: ["u1"],
+    isPrivate: false,
+    mockPosts: [
+      { _id: "s-p1", imageUrl: POST_MEDIA.streetPhoto, caption: "Street Light Study on 35mm f/1.4", likes: [1,2,3], comments: [1] },
+      { _id: "s-p2", imageUrl: POST_MEDIA.galleryPhoto2, caption: "Dusk Waves & long exposure shadows", likes: [1,2], comments: [] },
+      { _id: "s-p3", imageUrl: POST_MEDIA.cameraLens, caption: "Shadows 02 series", likes: [1,2,3,4], comments: [1,2] }
+    ]
+  },
+  sahilsingh: {
+    _id: "sahil-singh-id",
+    username: CREATORS.sahil.username,
+    displayName: CREATORS.sahil.name,
+    profession: "Spatial UI & Design Systems Architect",
+    bio: "Obsessed with micro-interactions, layout physics, and tactile software.",
+    location: "Mumbai, India",
+    profilePicture: CREATORS.sahil.avatar,
+    followers: ["u1", "u2", "u3", "u4"],
+    following: ["u1", "u2", "u3"],
+    isPrivate: false,
+    mockPosts: [
+      { _id: "sa-p1", imageUrl: POST_MEDIA.designWorkspace, caption: "Design system tokens and workspace setup", likes: [1,2,3], comments: [1] },
+      { _id: "sa-p2", imageUrl: POST_MEDIA.abstractShapes, caption: "Geometric abstraction study", likes: [1,2], comments: [] },
+      { _id: "sa-p3", imageUrl: POST_MEDIA.architecture, caption: "Architectural minimal forms", likes: [1,2,3,4], comments: [1] }
+    ]
+  }
+};
 
 const Profile = () => {
   const { username: profileIdentifier } = useParams();
@@ -29,6 +84,7 @@ const Profile = () => {
   useEffect(() => {
     setError(false);
     const identifier = profileIdentifier || "me";
+    const normalizedKey = identifier.toLowerCase().replace("@", "");
 
     apiFetch(`/api/v1/users/${identifier}`)
       .then((r) => {
@@ -53,7 +109,6 @@ const Profile = () => {
           }));
         }
 
-        // Fetch logged-in user profile to check if target user sent us an incoming request
         if (currentUserId && String(userData._id) !== String(currentUserId)) {
           apiFetch(`/api/v1/users/${currentUserId}`)
             .then(res => res.ok ? res.json() : null)
@@ -68,7 +123,7 @@ const Profile = () => {
             })
             .catch(console.error);
         }
-        // Fetch target user's active stories for story ring
+
         apiFetch(`/api/v1/stories/user/${userData._id}`)
           .then(res => res.ok ? res.json() : null)
           .then(storiesPayload => {
@@ -82,25 +137,50 @@ const Profile = () => {
       })
       .catch((err) => {
         console.error(err);
-        setError(true);
+        if (CREATORS_PROFILES_MAP[normalizedKey]) {
+          const creatorData = CREATORS_PROFILES_MAP[normalizedKey];
+          setUser(creatorData);
+          setPosts(creatorData.mockPosts || []);
+          setError(false);
+        } else {
+          setError(true);
+        }
       });
 
     fetchUserPosts(identifier);
   }, [profileIdentifier, currentUserId]);
 
   const fetchUserPosts = (identifier) => {
+    const normalizedKey = identifier.toLowerCase().replace("@", "");
     apiFetch(`/api/v1/posts/user/${identifier}`)
       .then((r) => r.ok ? r.json() : [])
       .then((payload) => {
         const postsData = payload.data || payload;
-        setPosts(Array.isArray(postsData) ? postsData : []);
+        const finalPosts = Array.isArray(postsData) ? postsData : [];
+        if (finalPosts.length > 0) {
+          setPosts(finalPosts);
+        } else if (CREATORS_PROFILES_MAP[normalizedKey]) {
+          setPosts(CREATORS_PROFILES_MAP[normalizedKey].mockPosts || []);
+        }
       })
-      .catch(console.error);
+      .catch(() => {
+        if (CREATORS_PROFILES_MAP[normalizedKey]) {
+          setPosts(CREATORS_PROFILES_MAP[normalizedKey].mockPosts || []);
+        }
+      });
   };
 
   const handleFollow = async () => {
     try {
       setLoadingFollow(true);
+      const isMock = String(user?._id).endsWith("-id");
+
+      if (isMock) {
+        setIsFollowing(!isFollowing);
+        toast.success(isFollowing ? "Unfollowed creator" : "Following creator!");
+        return;
+      }
+
       const endpoint = (isFollowing || isRequested)
         ? `/api/v1/users/${user?._id || profileIdentifier}/unfollow`
         : `/api/v1/users/${user?._id || profileIdentifier}/follow`;
@@ -118,33 +198,38 @@ const Profile = () => {
       if (payload.requested || payload.status === "requested") {
         setIsRequested(true);
         setIsFollowing(false);
-        toast.info(`Follow request sent to @${user?.username}!`);
+        toast.info("Follow request sent");
       } else if (payload.following || payload.status === "following") {
         setIsFollowing(true);
         setIsRequested(false);
-        toast.success(`Now following @${user?.username}! 🎉`, { autoClose: 1500 });
-        fetchUserPosts(user?._id || profileIdentifier);
+        toast.success("Following user");
       } else {
         setIsFollowing(false);
         setIsRequested(false);
-        toast.info(payload.message || `Unfollowed @${user?.username}`);
+        toast.info("Unfollowed user");
       }
-    } catch { 
-      toast.error("Network error"); 
-    } finally { 
-      setLoadingFollow(false); 
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setLoadingFollow(false);
     }
   };
 
   const handleAcceptIncomingRequest = async () => {
     try {
       setLoadingFollow(true);
-      const res = await apiFetch(`/api/v1/users/follow-requests/${user._id}/accept`, { method: "POST" });
+      const res = await apiFetch(`/api/v1/users/${user._id}/accept-follow`, { method: "POST" });
       if (res.ok) {
-        toast.success(`Accepted follow request from @${user.username}!`);
         setHasIncomingRequest(false);
-        setIsFollowing(true);
-        fetchUserPosts(user._id);
+        toast.success("Follow request accepted!");
+        if (user.followers && !user.followers.some(f => String(f._id || f) === String(currentUserId))) {
+          setUser(prev => ({
+            ...prev,
+            followers: [...(prev.followers || []), currentUserId]
+          }));
+        }
+      } else {
+        toast.error("Failed to accept request");
       }
     } catch {
       toast.error("Network error");
@@ -156,10 +241,12 @@ const Profile = () => {
   const handleRejectIncomingRequest = async () => {
     try {
       setLoadingFollow(true);
-      const res = await apiFetch(`/api/v1/users/follow-requests/${user._id}/reject`, { method: "POST" });
+      const res = await apiFetch(`/api/v1/users/${user._id}/reject-follow`, { method: "POST" });
       if (res.ok) {
-        toast.info(`Declined follow request from @${user.username}`);
         setHasIncomingRequest(false);
+        toast.info("Follow request rejected");
+      } else {
+        toast.error("Failed to reject request");
       }
     } catch {
       toast.error("Network error");
@@ -168,43 +255,44 @@ const Profile = () => {
     }
   };
 
-  const isOwnProfile = user 
-    ? (String(user._id) === String(currentUserId) || user.username === storedUser.username)
-    : false;
+  if (error) {
+    return (
+      <div className="ProfilePage">
+        <div className="emptyState" style={{ background: "var(--fm-surface)", borderRadius: "var(--radius-card)", border: "1px solid var(--fm-border)" }}>
+          <h2>Profile Not Found</h2>
+          <p>The user you are looking for does not exist or has been removed.</p>
+          <button className="primaryCTA" onClick={() => navigate("/home")} style={{ marginTop: "1rem" }}>
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const isAuthorized = isOwnProfile || !user?.isPrivate || isFollowing;
+  if (!user) {
+    return (
+      <div className="ProfilePage">
+        <div className="profileLoading">
+          <div className="profileLoadingSpinner" />
+        </div>
+      </div>
+    );
+  }
 
-  if (error) return (
-    <div className="profileLoading" style={{ color: "var(--color-text)", textAlign: "center", padding: "2rem" }}>
-      <h2>User not found</h2>
-      <p>The profile you are looking for does not exist or has been removed.</p>
-      <button className="primaryCTA" onClick={() => navigate("/home")} style={{ marginTop: "1rem" }}>Return Home</button>
-    </div>
-  );
-
-  if (!user) return (
-    <div className="profileLoading">
-      <div className="profileLoadingSpinner" />
-    </div>
-  );
-
+  const isOwnProfile = String(user._id) === String(currentUserId) || (!profileIdentifier || profileIdentifier === "me");
+  const isAuthorized = !user.isPrivate || isFollowing || isOwnProfile;
   const avatarUrl = resolveAvatar(user);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="ProfilePage"
-    >
+    <div className="ProfilePage">
       {/* INCOMING FOLLOW REQUEST BANNER */}
       {hasIncomingRequest && (
-        <div className="glass-card incoming-request-banner" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.5rem", marginBottom: "1.5rem", borderRadius: "16px", background: "rgba(124, 58, 237, 0.12)", border: "1px solid var(--color-primary)" }}>
+        <div className="incoming-request-banner">
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <ShieldAlert color="var(--color-primary)" size={24} />
+            <ShieldAlert color="var(--fm-primary)" size={24} />
             <div>
-              <strong style={{ color: "var(--color-text)", display: "block" }}>Follow Request</strong>
-              <span style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>@{user.username} wants to follow your account.</span>
+              <strong style={{ color: "var(--fm-text)", display: "block" }}>Follow Request</strong>
+              <span style={{ color: "var(--fm-text-secondary)", fontSize: "0.9rem" }}>@{user.username} wants to follow your account.</span>
             </div>
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
@@ -316,12 +404,12 @@ const Profile = () => {
         </div>
 
         {!isAuthorized ? (
-          <div className="glass-card privateProfileGuard" style={{ padding: "4rem 2rem", textAlign: "center", marginTop: "1rem" }}>
-            <div className="lockIconCircle" style={{ margin: "0 auto 1.5rem", width: "70px", height: "70px", borderRadius: "50%", background: "rgba(124, 58, 237, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Lock size={32} color="var(--color-primary)" />
+          <div className="privateProfileGuard">
+            <div className="lockIconCircle">
+              <Lock size={32} color="var(--fm-primary)" />
             </div>
-            <h2 style={{ color: "var(--color-text)", fontSize: "1.5rem", marginBottom: "0.5rem" }}>This Account is Private</h2>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "1rem", maxWidth: "450px", margin: "0 auto 1.5rem" }}>
+            <h2>This Account is Private</h2>
+            <p>
               Follow @{user.username} to see their photos, videos, and social updates.
             </p>
             {isRequested ? (
@@ -353,21 +441,21 @@ const Profile = () => {
                     return (
                       <div 
                         key={post._id} 
-                        className="gridItem"
+                        className="profileGridItem"
                         onClick={() => navigate(`/post/${post._id}`)}
                       >
                         {fullUrl ? (
                           isVideo ? (
                             <video src={fullUrl} className="gridMedia" />
                           ) : (
-                            <img src={fullUrl} alt="Post" className="gridMedia" />
+                            <img src={fullUrl} alt="Post" className="gridMedia" loading="lazy" />
                           )
                         ) : (
-                          <div className="textPostPreview">
+                          <div className="textPostPreview" style={{ padding: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center", height: "100%", textAlign: "center", fontWeight: 600, color: "var(--fm-text)" }}>
                             <p>{post.caption || "Text Post"}</p>
                           </div>
                         )}
-                        <div className="gridItemOverlay">
+                        <div className="gridOverlay">
                           <span><Heart size={18} fill="#fff" /> {post.likes?.length || 0}</span>
                           <span><MessageCircle size={18} fill="#fff" /> {post.comments?.length || 0}</span>
                         </div>
@@ -379,45 +467,57 @@ const Profile = () => {
             )}
 
             {activeTab === "followers" && (
-              <div className="userList">
+              <div className="userFollowList">
                 {user.followers?.length === 0 ? (
                   <div className="emptyState"><p>No followers yet</p></div>
                 ) : (
-                  user.followers?.map((follower) => (
-                    <div 
-                      key={follower._id || follower} 
-                      className="userListItem"
-                      onClick={() => navigate(`/profile/${follower.username || follower._id}`)}
-                    >
-                      <img src={follower.profilePicture || ProfileImage} alt="Avatar" />
-                      <div>
-                        <strong style={{ display: "block", color: "var(--color-text)" }}>{follower.displayName || follower.username}</strong>
-                        <span>@{follower.username}</span>
+                  user.followers?.map((follower) => {
+                    const fName = follower.displayName || follower.username || "User";
+                    const fHandle = follower.username || follower._id || "user";
+                    const fAvatar = follower.profilePicture || ProfileImage;
+                    return (
+                      <div
+                        key={follower._id || follower}
+                        className="userFollowItem"
+                        onClick={() => navigate(`/profile/${fHandle}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <img src={fAvatar} alt={fName} className="userFollowAvatar" />
+                        <div className="userFollowInfo">
+                          <strong style={{ color: "var(--fm-text)" }}>{fName}</strong>
+                          <span>@{fHandle}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             )}
 
             {activeTab === "following" && (
-              <div className="userList">
+              <div className="userFollowList">
                 {user.following?.length === 0 ? (
                   <div className="emptyState"><p>Not following anyone yet</p></div>
                 ) : (
-                  user.following?.map((followed) => (
-                    <div 
-                      key={followed._id || followed} 
-                      className="userListItem"
-                      onClick={() => navigate(`/profile/${followed.username || followed._id}`)}
-                    >
-                      <img src={followed.profilePicture || ProfileImage} alt="Avatar" />
-                      <div>
-                        <strong style={{ display: "block", color: "var(--color-text)" }}>{followed.displayName || followed.username}</strong>
-                        <span>@{followed.username}</span>
+                  user.following?.map((followed) => {
+                    const fName = followed.displayName || followed.username || "User";
+                    const fHandle = followed.username || followed._id || "user";
+                    const fAvatar = followed.profilePicture || ProfileImage;
+                    return (
+                      <div
+                        key={followed._id || followed}
+                        className="userFollowItem"
+                        onClick={() => navigate(`/profile/${fHandle}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <img src={fAvatar} alt={fName} className="userFollowAvatar" />
+                        <div className="userFollowInfo">
+                          <strong style={{ color: "var(--fm-text)" }}>{fName}</strong>
+                          <span>@{fHandle}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             )}
@@ -432,7 +532,7 @@ const Profile = () => {
           onClose={() => setShowStoryViewer(false)}
         />
       )}
-    </motion.div>
+    </div>
   );
 };
 

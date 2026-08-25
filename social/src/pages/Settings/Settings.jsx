@@ -567,8 +567,7 @@ const Settings = () => {
                     value={supportMessage}
                     onChange={(e) => setSupportMessage(e.target.value)}
                     rows={4}
-                    className="settingsField"
-                    style={{ width: "100%", background: "var(--bg-input, rgba(255, 255, 255, 0.05))", border: "1px solid var(--color-border, rgba(255,255,255,0.12))", borderRadius: "14px", padding: "0.75rem", color: "#fff", outline: "none" }}
+                    className="formInput"
                   />
                   <button className="settingsSaveButton" onClick={handleSendSupportMessage} disabled={sendingSupport || !supportMessage.trim()} style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                     <Send size={16} /> {sendingSupport ? "Sending..." : "Submit Ticket"}
@@ -603,18 +602,18 @@ const Settings = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="viewers-sheet-overlay" style={{ background: "rgba(0,0,0,0.8)", zIndex: 1200 }} onClick={() => setShowDeleteModal(false)}>
+        <div className="viewers-sheet-overlay" style={{ background: "rgba(37,37,37,0.6)", backdropFilter: "blur(4px)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowDeleteModal(false)}>
           <motion.div 
-            className="settingsSection"
+            className="settingsContent"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            style={{ maxWidth: "440px", margin: "auto", background: "var(--color-surface, #18181B)", border: "1px solid #EF4444", borderRadius: "20px", padding: "1.5rem" }}
+            style={{ maxWidth: "440px", margin: "auto", background: "#FFFFFF", border: "1.5px solid #EF4444", borderRadius: "20px", padding: "1.8rem" }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ color: "#EF4444", margin: "0 0 0.5rem 0", display: "flex", alignItems: "center", gap: "8px" }}>
               <AlertTriangle size={22} /> Confirm Permanent Deletion
             </h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem", lineHeight: "1.5", marginBottom: "1rem" }}>
+            <p style={{ color: "var(--fm-text-secondary)", fontSize: "0.9rem", lineHeight: "1.5", marginBottom: "1rem" }}>
               This will permanently delete your FutureMedia account, all your stories, posts, comments, and profile data. Type <strong>DELETE</strong> below to confirm.
             </p>
             <input 
@@ -622,11 +621,12 @@ const Settings = () => {
               placeholder="Type DELETE to confirm"
               value={confirmDeleteText}
               onChange={(e) => setConfirmDeleteText(e.target.value)}
-              style={{ width: "100%", padding: "0.75rem", borderRadius: "12px", background: "rgba(255,255,255,0.05)", border: "1px solid var(--color-border)", color: "#fff", outline: "none", marginBottom: "1rem" }}
+              className="formInput"
+              style={{ width: "100%", marginBottom: "1rem" }}
             />
             <div style={{ display: "flex", gap: "10px" }}>
-              <button className="button cancelBtn" style={{ flex: 1 }} onClick={() => setShowDeleteModal(false)}>Cancel</button>
-              <button className="dangerBtn" style={{ flex: 1 }} onClick={handleDeleteAccountConfirm} disabled={confirmDeleteText !== "DELETE" || isDeleting}>
+              <button className="settingsTab" style={{ flex: 1, justifyContent: "center", background: "var(--fm-surface-soft)", textAlign: "center" }} onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button className="dangerBtn" style={{ flex: 1, textAlign: "center" }} onClick={handleDeleteAccountConfirm} disabled={confirmDeleteText !== "DELETE" || isDeleting}>
                 {isDeleting ? "Deleting..." : "Permanently Delete"}
               </button>
             </div>

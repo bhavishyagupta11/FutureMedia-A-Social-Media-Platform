@@ -1,11 +1,11 @@
 /* ════════════════════════════════════════════════════════════════════════════
    FutureMedia — Settings Page Responsive Styles
-   Warm Cream Canvas with Solid White Navigation and Content Panels, Peach Toggles
+   Warm Cream Canvas with Solid White Navigation and Content Panels, Peach Accents
    ════════════════════════════════════════════════════════════════════════════ */
 
 .SettingsPage {
   padding: clamp(1rem, 3vw, 2rem);
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
   min-height: calc(100vh - 80px);
   box-sizing: border-box;
@@ -13,14 +13,14 @@
 }
 
 .settingsHeader {
-  margin-bottom: clamp(1rem, 3vw, 2rem);
+  margin-bottom: clamp(1.2rem, 3vw, 2rem);
 }
 
 .settingsHeader h1 {
-  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 800;
   color: var(--fm-text);
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.35rem 0;
   letter-spacing: -0.02em;
 }
 
@@ -123,146 +123,298 @@
   background: var(--fm-surface);
   border: 1px solid var(--fm-border);
   border-radius: var(--radius-card);
-  padding: clamp(1.25rem, 3vw, 2.5rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
   min-height: 480px;
   min-width: 0;
   box-shadow: var(--shadow-card);
 }
 
-.settingsPanel {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.settingsPanel h2 {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--fm-text);
-  margin: 0 0 0.4rem 0;
-}
-
-.settingsPanel p {
-  color: var(--fm-text-secondary);
-  font-size: 0.92rem;
-  margin: 0;
-}
-
 .settingsSection {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--fm-divider);
+  gap: 1.5rem;
 }
 
-.settingsSection:first-of-type {
-  border-top: none;
-  padding-top: 0;
-}
-
-.settingsSection h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
+.settingsSection h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
   color: var(--fm-text);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.01em;
 }
 
-/* ─── Form Controls & Inputs ─── */
-.formGroup {
+.settingsSection h2 svg {
+  color: var(--fm-primary);
+}
+
+/* ─── Forms & Fields ─── */
+.settingsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.settingsField {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  width: 100%;
 }
 
-.formGroup label {
+.settingsField label {
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--fm-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--fm-text);
+  letter-spacing: 0.02em;
 }
 
-.formInput {
+.settingsField input,
+.settingsField textarea {
+  width: 100%;
+  box-sizing: border-box;
   background: var(--fm-surface-soft);
   border: 1.5px solid var(--fm-border);
   border-radius: var(--radius-button);
   padding: 10px 14px;
   color: var(--fm-text);
   font-size: 0.95rem;
+  font-family: inherit;
   outline: none;
   transition: var(--transition-smooth);
 }
 
-.formInput:focus {
+.settingsField input:focus,
+.settingsField textarea:focus {
   background: #FFFFFF;
   border-color: var(--fm-primary);
   box-shadow: var(--shadow-focus);
 }
 
-/* ─── Toggle Switch (Peach Active) ─── */
-.settingToggleRow {
+.settingsField textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ─── Action Buttons ─── */
+.settingsSaveButton {
+  align-self: flex-start;
+  background: var(--fm-primary);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+  margin-top: 0.5rem;
+}
+
+.settingsSaveButton:hover:not(:disabled) {
+  background: var(--fm-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.settingsSaveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settingsSaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fm-success);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.settingsError {
+  display: block;
+  color: var(--fm-error);
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* ─── Settings Row & Toggle Switch ─── */
+.settingsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 12px 0;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--fm-divider);
 }
 
-.toggleLabel {
+.settingsRow:last-child {
+  border-bottom: none;
+}
+
+.settingsRowInfo {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.toggleLabel strong {
-  font-size: 0.95rem;
+.settingsRowInfo strong {
+  font-size: 0.96rem;
+  font-weight: 700;
   color: var(--fm-text);
 }
 
-.toggleLabel span {
-  font-size: 0.84rem;
+.settingsRowInfo span {
+  font-size: 0.85rem;
   color: var(--fm-text-secondary);
 }
 
-.toggleSwitch {
+/* Switch */
+.switch {
   position: relative;
+  display: inline-block;
   width: 48px;
   height: 28px;
-  background: var(--fm-border);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: background 0.25s ease;
   flex-shrink: 0;
-  border: none;
-  padding: 0;
 }
 
-.toggleSwitch.on {
-  background: var(--fm-primary);
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.toggleSlider {
+.slider {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: transform 0.25s ease;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--fm-border);
+  transition: 0.25s ease;
+  border-radius: 14px;
 }
 
-.toggleSwitch.on .toggleSlider {
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.25s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+input:checked + .slider {
+  background-color: var(--fm-primary);
+}
+
+input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-.saveSettingsBtn {
-  align-self: flex-start;
-  margin-top: 1rem;
+/* ─── Danger Zone ─── */
+.dangerZone {
+  background: var(--fm-error-soft);
+  border: 1.5px solid #FBCFE8;
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
+.dangerZone h3 {
+  margin: 0;
+  color: var(--fm-error);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.dangerZone p {
+  margin: 0;
+  color: var(--fm-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.dangerBtn {
+  align-self: flex-start;
+  background: var(--fm-error);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.dangerBtn:hover {
+  background: #DC2626;
+}
+
+/* ─── FAQs ─── */
+.faqContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.faqContainer h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--fm-text);
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.faqItem {
+  background: var(--fm-surface-soft);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.faqQuestionBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  color: var(--fm-text);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.faqAnswer {
+  padding: 0 16px 14px;
+  color: var(--fm-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+/* ─── Responsive Viewports ─── */
 @media (max-width: 900px) {
   .settingsLayout {
     grid-template-columns: 1fr;

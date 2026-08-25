@@ -33,7 +33,7 @@ import {
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import Logo from "../../components/Logo/Logo";
-import ProfileImage from "../../img/profileImg.jpg";
+import { CREATORS, POST_MEDIA } from "../../constants/mediaAssets";
 import { apiFetch } from "../../utils/api";
 import { getSessionUserId, persistUserSession } from "../../utils/session";
 import "./Landing.css";
@@ -69,61 +69,61 @@ const Landing = () => {
 
   const isLoggedIn = Boolean(getSessionUserId());
 
-  // Editorial Media Visuals for the Hero Showcase (CSS/SVG based, warm & creative)
+  // Editorial Media Visuals for the Hero Showcase (Real photography assets)
   const heroVisuals = [
     {
       id: 1,
       title: "Generative Shaders & Kinetic Flow",
       category: "Creative Coding",
-      gradient: "linear-gradient(135deg, #FFE2D2 0%, #FF8A4C 45%, #E6DDF0 100%)",
-      accent: "#FF8A4C",
+      image: POST_MEDIA.creativeCoding,
       stats: "60 FPS • WebGL 2.0",
       tag: "#generative"
     },
     {
       id: 2,
-      title: "Atmospheric Dusk & Shadow Roll-off",
+      title: "Atmospheric Dusk & Street Shadow",
       category: "35mm Photography",
-      gradient: "linear-gradient(135deg, #E6F0E0 0%, #A8C98F 50%, #FFE2D2 100%)",
-      accent: "#648D47",
+      image: POST_MEDIA.streetPhoto,
       stats: "35mm Prime • f/1.4",
       tag: "#streetphoto"
     },
     {
       id: 3,
-      title: "Micro-Interactions & Fluid Design",
-      category: "UI Architecture",
-      gradient: "linear-gradient(135deg, #F4F0F8 0%, #F5D8DC 50%, #FFD8B8 100%)",
-      accent: "#D96C6C",
-      stats: "Design Tokens • Tokens Studio",
+      title: "Minimal Architecture & Space",
+      category: "Product Design",
+      image: POST_MEDIA.architecture,
+      stats: "Design Systems • Studio",
       tag: "#designsystems"
     }
   ];
 
   const storyDemos = [
     {
-      name: "Aria Sterling",
-      time: "4h ago",
-      avatar: ProfileImage,
-      quote: '"Working on a new generative shader series today. Trying to keep the geometry clean."',
+      name: CREATORS.snehil.name,
+      time: "2h ago",
+      avatar: CREATORS.snehil.avatar,
+      quote: '"Took the 35mm out at dusk to test the new lens coating. Loving the shadow roll-off."',
+      image: POST_MEDIA.streetPhoto,
       views: "482 views",
       reactions: "❤️ 94",
       accent: "#FF8A4C"
     },
     {
-      name: "Julian Ross",
-      time: "2h ago",
-      avatar: ProfileImage,
-      quote: '"Took the 35mm out at dusk to test the new lens coating. Loving the shadow roll-off."',
+      name: CREATORS.sahil.name,
+      time: "3h ago",
+      avatar: CREATORS.sahil.avatar,
+      quote: '"Exploring spatial UI transitions, physics curves, and interactive typography."',
+      image: POST_MEDIA.designWorkspace,
       views: "312 views",
       reactions: "🔥 76",
       accent: "#A8C98F"
     },
     {
-      name: "Maya Lin",
+      name: CREATORS.ananya.name,
       time: "1h ago",
-      avatar: ProfileImage,
-      quote: '"Testing particle physics at 60fps in the browser. Code link coming soon in the thread."',
+      avatar: CREATORS.ananya.avatar,
+      quote: '"Testing particle physics and kinetic math art at 60fps in the browser."',
+      image: POST_MEDIA.creativeCoding,
       views: "594 views",
       reactions: "✨ 128",
       accent: "#E6DDF0"
@@ -374,7 +374,7 @@ const Landing = () => {
                   Log In
                 </button>
                 <button className="fm-btn-primary fm-btn-nav" onClick={() => openModal("signup")}>
-                  Get Started <ArrowRight size={15} />
+                  Join FutureMedia <ArrowRight size={15} />
                 </button>
               </>
             )}
@@ -425,7 +425,7 @@ const Landing = () => {
                       Log In
                     </button>
                     <button className="fm-btn-primary full-width" onClick={() => openModal("signup")}>
-                      Get Started <ArrowRight size={16} />
+                      Join FutureMedia <ArrowRight size={16} />
                     </button>
                   </>
                 )}
@@ -466,7 +466,7 @@ const Landing = () => {
               className="fm-hero-actions"
             >
               <button className="fm-btn-primary fm-btn-large" onClick={() => openModal("signup")}>
-                Create Account <ArrowRight size={17} />
+                Create Your Profile <ArrowRight size={17} />
               </button>
               <button
                 className="fm-btn-secondary fm-btn-large"
@@ -476,7 +476,7 @@ const Landing = () => {
               </button>
             </motion.div>
 
-            {/* Factual Capability Indicators */}
+            {/* Capability Indicators */}
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
@@ -513,10 +513,10 @@ const Landing = () => {
                 className="fm-float-card fm-float-story"
               >
                 <div className="fm-story-ring-active">
-                  <img src={ProfileImage} alt="Elena Vance" className="fm-story-avatar" />
+                  <img src={CREATORS.snehil.avatar} alt={CREATORS.snehil.name} className="fm-story-avatar" />
                 </div>
                 <div className="fm-story-info">
-                  <div className="fm-story-name">Elena Vance</div>
+                  <div className="fm-story-name">{CREATORS.snehil.name}</div>
                   <div className="fm-story-time">
                     <Clock size={11} /> 2h ago • Story
                   </div>
@@ -549,14 +549,14 @@ const Landing = () => {
               <div className="fm-center-post-card">
                 <div className="fm-post-header">
                   <div className="fm-post-author-box">
-                    <img src={ProfileImage} alt="Creator" className="fm-post-avatar" />
+                    <img src={CREATORS.bhavishya.avatar} alt={CREATORS.bhavishya.name} className="fm-post-avatar" />
                     <div>
                       <div className="fm-author-name-row">
-                        <span className="fm-author-name">Aria Sterling</span>
+                        <span className="fm-author-name">{CREATORS.bhavishya.name}</span>
                         <span className="fm-verified-badge" title="Verified Creator">✓</span>
                         <span className="fm-post-time">• 18m ago</span>
                       </div>
-                      <div className="fm-author-handle">@ariasterling</div>
+                      <div className="fm-author-handle">{CREATORS.bhavishya.handle}</div>
                     </div>
                   </div>
                   <div className="fm-audience-pill">
@@ -572,20 +572,20 @@ const Landing = () => {
 
                 {/* Editorial Visual Artwork Preview */}
                 <div className="fm-post-media-container">
-                  <div
-                    className="fm-post-art-canvas"
-                    style={{ background: heroVisuals[activeMediaSlide].gradient }}
-                  >
-                    <div className="fm-art-inner">
-                      <div className="fm-art-badge-top">
-                        <Sparkles size={13} />
-                        <span>{heroVisuals[activeMediaSlide].category}</span>
-                      </div>
-                      <h4 className="fm-art-title">{heroVisuals[activeMediaSlide].title}</h4>
-                      <div className="fm-art-footer">
-                        <span className="fm-art-tag">{heroVisuals[activeMediaSlide].tag}</span>
-                        <span className="fm-art-stats">{heroVisuals[activeMediaSlide].stats}</span>
-                      </div>
+                  <img
+                    src={heroVisuals[activeMediaSlide].image}
+                    alt={heroVisuals[activeMediaSlide].title}
+                    className="fm-post-art-img"
+                  />
+                  <div className="fm-art-floating-badge">
+                    <div className="fm-art-badge-top">
+                      <Sparkles size={13} />
+                      <span>{heroVisuals[activeMediaSlide].category}</span>
+                    </div>
+                    <h4 className="fm-art-title">{heroVisuals[activeMediaSlide].title}</h4>
+                    <div className="fm-art-footer">
+                      <span className="fm-art-tag">{heroVisuals[activeMediaSlide].tag}</span>
+                      <span className="fm-art-stats">{heroVisuals[activeMediaSlide].stats}</span>
                     </div>
                   </div>
 
@@ -644,9 +644,9 @@ const Landing = () => {
 
                 {/* Inline Comment Preview */}
                 <div className="fm-post-comment-preview">
-                  <img src={ProfileImage} alt="Julian" className="fm-comment-avatar" />
+                  <img src={CREATORS.sahil.avatar} alt="Sahil Singh" className="fm-comment-avatar" />
                   <div className="fm-comment-content">
-                    <span className="fm-commenter-name">Julian Ross:</span>
+                    <span className="fm-commenter-name">{CREATORS.sahil.name}:</span>
                     <span className="fm-comment-text">The motion curves on slide 2 are breathtaking. Absolutely inspiring! 🔥</span>
                   </div>
                 </div>
@@ -668,7 +668,7 @@ const Landing = () => {
                     <span className="fm-dot" />
                     <span className="fm-dot" />
                     <span className="fm-dot" />
-                    <span className="fm-typing-label">Marcus is typing...</span>
+                    <span className="fm-typing-label">Garvit is typing...</span>
                   </div>
                 </div>
               </motion.div>
@@ -768,12 +768,18 @@ const Landing = () => {
 
                 <div className="fm-bento-visual-preview">
                   <div className="fm-bento-media-stack">
-                    <div className="stack-card main-card" style={{ background: "linear-gradient(135deg, #FFE2D2, #FF8A4C)" }}>
-                      <Sparkles size={20} color="#FFFFFF" />
-                      <span>Interactive Shader 01</span>
+                    <div className="stack-card main-card">
+                      <img src={POST_MEDIA.abstractShapes} alt="Abstract Art" className="fm-stack-img" />
+                      <div className="fm-stack-overlay">
+                        <Sparkles size={16} color="#FFFFFF" />
+                        <span>Interactive Flow</span>
+                      </div>
                     </div>
-                    <div className="stack-card sub-card" style={{ background: "linear-gradient(135deg, #E6F0E0, #A8C98F)" }}>
-                      <span>Dusk Palette</span>
+                    <div className="stack-card sub-card">
+                      <img src={POST_MEDIA.architecture} alt="Architecture" className="fm-stack-img" />
+                      <div className="fm-stack-overlay">
+                        <span>Clean Geometry</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -794,10 +800,10 @@ const Landing = () => {
 
                 <div className="fm-bento-story-mini">
                   <div className="fm-mini-story-ring">
-                    <img src={ProfileImage} alt="Story User" />
+                    <img src={CREATORS.snehil.avatar} alt="Snehil Khokhar" />
                   </div>
                   <div className="fm-mini-story-text">
-                    "Working on some new sketches today..."
+                    "Chasing evening light on 35mm..."
                   </div>
                   <div className="fm-mini-story-stat">
                     <Eye size={12} /> 482 viewers
@@ -865,10 +871,10 @@ const Landing = () => {
 
                 <div className="fm-bento-profile-snippet">
                   <div className="fm-mini-profile-card">
-                    <img src={ProfileImage} alt="Profile" className="fm-mini-p-avatar" />
+                    <img src={CREATORS.bhavishya.avatar} alt={CREATORS.bhavishya.name} className="fm-mini-p-avatar" />
                     <div>
-                      <div className="fm-mini-p-name">Aria Sterling ✓</div>
-                      <div className="fm-mini-p-handle">@ariasterling • 14.8k followers</div>
+                      <div className="fm-mini-p-name">{CREATORS.bhavishya.name} ✓</div>
+                      <div className="fm-mini-p-handle">{CREATORS.bhavishya.handle} • 14.8k followers</div>
                     </div>
                   </div>
                 </div>
@@ -936,7 +942,7 @@ const Landing = () => {
                 </div>
 
                 <button className="fm-btn-primary fm-btn-inline" onClick={() => openModal("signup")}>
-                  Create an account <ChevronRight size={16} />
+                  Join FutureMedia <ChevronRight size={16} />
                 </button>
               </div>
 
@@ -944,7 +950,7 @@ const Landing = () => {
               <div className="fm-showcase-visual">
                 <div className="fm-composer-mockup">
                   <div className="fm-composer-header">
-                    <img src={ProfileImage} alt="User avatar" className="fm-mock-avatar" />
+                    <img src={CREATORS.snehil.avatar} alt={CREATORS.snehil.name} className="fm-mock-avatar" />
                     <div className="fm-composer-input-sim">
                       <span className="fm-input-text">Capturing golden hour in the city with the new prime lens...</span>
                       <span className="fm-input-tags"> #streetphotography #35mm #goldenhour</span>
@@ -952,11 +958,13 @@ const Landing = () => {
                   </div>
 
                   <div className="fm-composer-media-grid">
-                    <div className="fm-media-slot main-slot" style={{ background: "linear-gradient(135deg, #FFE2D2, #FF8A4C)" }}>
+                    <div className="fm-media-slot main-slot">
+                      <img src={POST_MEDIA.streetPhoto} alt="Street Light Study" className="fm-composer-slot-img" />
                       <div className="fm-slot-badge">Cover Image</div>
                       <div className="fm-slot-text">Street Light Study</div>
                     </div>
-                    <div className="fm-media-slot sub-slot" style={{ background: "linear-gradient(135deg, #E6F0E0, #A8C98F)" }}>
+                    <div className="fm-media-slot sub-slot">
+                      <img src={POST_MEDIA.cameraLens} alt="Shadows 02" className="fm-composer-slot-img" />
                       <div className="fm-slot-text">Shadows 02</div>
                     </div>
                   </div>
@@ -1002,6 +1010,7 @@ const Landing = () => {
 
                   {/* Active Story View */}
                   <div className="fm-story-viewer-demo">
+                    <img src={storyDemos[activeStoryIdx].image} alt="Story Background" className="fm-story-hero-img" />
                     <div className="fm-story-bars">
                       <div className="fm-bar fill" />
                       <div className="fm-bar progress" />
@@ -1075,7 +1084,7 @@ const Landing = () => {
                 </div>
 
                 <button className="fm-btn-primary fm-btn-inline" onClick={() => openModal("signup")}>
-                  Try Stories <ChevronRight size={16} />
+                  Explore Stories <ChevronRight size={16} />
                 </button>
               </div>
             </div>
@@ -1131,11 +1140,11 @@ const Landing = () => {
                   <div className="fm-chat-header">
                     <div className="fm-chat-user-status">
                       <div className="fm-chat-avatar-wrap">
-                        <img src={ProfileImage} alt="Marcus" />
+                        <img src={CREATORS.vipul.avatar} alt="Vipul Agarwal" />
                         <div className="fm-online-indicator" />
                       </div>
                       <div>
-                        <div className="fm-chat-user-name">Marcus Vance</div>
+                        <div className="fm-chat-user-name">{CREATORS.vipul.name}</div>
                         <div className="fm-chat-user-sub">Active now in Creative Guild</div>
                       </div>
                     </div>
@@ -1146,12 +1155,12 @@ const Landing = () => {
 
                   <div className="fm-chat-message-list">
                     <div className="fm-chat-msg incoming">
-                      <p>Hey Aria! Did you see the new community challenge topic?</p>
+                      <p>Hey Bhavishya! Did you see the new generative shader topic in the guild?</p>
                       <span className="fm-msg-time">10:42 AM</span>
                     </div>
 
                     <div className="fm-chat-msg outgoing">
-                      <p>Yes! Just submitted the generative typography series we worked on last night 🚀</p>
+                      <p>Yes! Just submitted the kinetic interactive preview we worked on last night 🚀</p>
                       <span className="fm-msg-time">10:44 AM • Read</span>
                     </div>
 
@@ -1166,7 +1175,7 @@ const Landing = () => {
                         <span />
                         <span />
                       </div>
-                      <span className="fm-typing-text">Marcus is typing...</span>
+                      <span className="fm-typing-text">{CREATORS.vipul.name} is typing...</span>
                     </div>
                   </div>
 
@@ -1204,33 +1213,34 @@ const Landing = () => {
 
             <div className="fm-creator-portfolio-card">
               <div className="fm-creator-banner">
+                <img src={POST_MEDIA.urbanSunset} alt="Creator Banner" className="fm-creator-banner-img" />
                 <div className="fm-banner-badge">Featured Profile</div>
               </div>
 
               <div className="fm-creator-profile-row">
                 <div className="fm-creator-avatar-box">
-                  <img src={ProfileImage} alt="Aria Sterling" className="fm-creator-main-avatar" />
+                  <img src={CREATORS.bhavishya.avatar} alt={CREATORS.bhavishya.name} className="fm-creator-main-avatar" />
                   <div className="fm-creator-verified-icon">✓</div>
                 </div>
 
                 <div className="fm-creator-details">
                   <div className="fm-creator-name-row">
-                    <h3 className="fm-c-name">Aria Sterling</h3>
-                    <span className="fm-c-handle">@ariasterling</span>
+                    <h3 className="fm-c-name">{CREATORS.bhavishya.name}</h3>
+                    <span className="fm-c-handle">{CREATORS.bhavishya.handle}</span>
                   </div>
                   <p className="fm-c-bio">
-                    Digital artist exploring motion, generative visuals, and interactive experiments.
+                    {CREATORS.bhavishya.bio}
                   </p>
 
                   <div className="fm-c-metrics-row">
                     <div className="fm-c-metric">
-                      <strong>14.8k</strong> <span>Followers</span>
+                      <strong>{CREATORS.bhavishya.followers}</strong> <span>Followers</span>
                     </div>
                     <div className="fm-c-metric">
-                      <strong>428</strong> <span>Following</span>
+                      <strong>{CREATORS.bhavishya.following}</strong> <span>Following</span>
                     </div>
                     <div className="fm-c-metric">
-                      <strong>92</strong> <span>Posts</span>
+                      <strong>{CREATORS.bhavishya.postsCount}</strong> <span>Posts</span>
                     </div>
                   </div>
                 </div>
@@ -1242,7 +1252,7 @@ const Landing = () => {
                   <button
                     className="fm-btn-secondary fm-btn-msg-icon"
                     onClick={() => openModal("login")}
-                    aria-label="Message Aria"
+                    aria-label={`Message ${CREATORS.bhavishya.name}`}
                   >
                     <MessageCircleMore size={17} />
                   </button>
@@ -1251,9 +1261,10 @@ const Landing = () => {
 
               {/* Creator Editorial Media Gallery */}
               <div className="fm-creator-media-gallery">
-                <div className="fm-gallery-item" style={{ background: "linear-gradient(135deg, #FFE2D2, #FF8A4C)" }} onClick={() => openModal("login")}>
-                  <div className="fm-gallery-inner">
-                    <Sparkles size={20} color="#FFF" />
+                <div className="fm-gallery-item" onClick={() => openModal("login")}>
+                  <img src={POST_MEDIA.galleryPhoto1} alt="Kinetic Series" />
+                  <div className="fm-gallery-tag-badge">
+                    <Sparkles size={14} color="#FFF" />
                     <span>Kinetic Series</span>
                   </div>
                   <div className="fm-gallery-overlay">
@@ -1261,8 +1272,10 @@ const Landing = () => {
                     <span>💬 84</span>
                   </div>
                 </div>
-                <div className="fm-gallery-item" style={{ background: "linear-gradient(135deg, #E6F0E0, #A8C98F)" }} onClick={() => openModal("login")}>
-                  <div className="fm-gallery-inner">
+
+                <div className="fm-gallery-item" onClick={() => openModal("login")}>
+                  <img src={POST_MEDIA.galleryPhoto2} alt="Dusk Waves" />
+                  <div className="fm-gallery-tag-badge">
                     <span>Dusk Waves</span>
                   </div>
                   <div className="fm-gallery-overlay">
@@ -1270,8 +1283,10 @@ const Landing = () => {
                     <span>💬 46</span>
                   </div>
                 </div>
-                <div className="fm-gallery-item" style={{ background: "linear-gradient(135deg, #F4F0F8, #F5D8DC)" }} onClick={() => openModal("login")}>
-                  <div className="fm-gallery-inner">
+
+                <div className="fm-gallery-item" onClick={() => openModal("login")}>
+                  <img src={POST_MEDIA.galleryPhoto3} alt="Micro Shader" />
+                  <div className="fm-gallery-tag-badge">
                     <span>Micro Shader</span>
                   </div>
                   <div className="fm-gallery-overlay">
@@ -1312,82 +1327,79 @@ const Landing = () => {
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
-                    <img src={ProfileImage} alt="User 1" />
-                    <img src={ProfileImage} alt="User 2" />
+                    <img src={CREATORS.ananya.avatar} alt={CREATORS.ananya.name} />
+                    <img src={CREATORS.vipul.avatar} alt={CREATORS.vipul.name} />
                   </div>
                   <span className="fm-active-indicator">+142 active today</span>
                 </div>
                 <div className="fm-comm-tags-row">
-                  <span>#webgl</span>
-                  <span>#shaders</span>
-                  <span>#generative</span>
-                </div>
-              </div>
-
-              <div className="fm-comm-card featured">
-                <div className="fm-comm-card-top">
-                  <div className="fm-comm-badge-cat peach">Featured Community</div>
-                  <div className="fm-comm-members-count">
-                    <Users size={13} /> 41.2k members
-                  </div>
-                </div>
-                <h3 className="fm-comm-name">Independent Photographers</h3>
-                <p className="fm-comm-desc">
-                  Share recent work, talk gear, and find people shooting in the same direction.
-                </p>
-                <div className="fm-comm-avatars-row">
-                  <div className="fm-avatar-stack">
-                    <img src={ProfileImage} alt="User 1" />
-                    <img src={ProfileImage} alt="User 2" />
-                  </div>
-                  <span className="fm-active-indicator">+390 active today</span>
-                </div>
-                <div className="fm-comm-tags-row">
-                  <span>#streetphoto</span>
-                  <span>#35mm</span>
-                  <span>#monochrome</span>
+                  <span className="fm-tag-pill">#shaders</span>
+                  <span className="fm-tag-pill">#creativecoding</span>
                 </div>
               </div>
 
               <div className="fm-comm-card">
                 <div className="fm-comm-card-top">
-                  <div className="fm-comm-badge-cat lavender">Design & Tech</div>
+                  <div className="fm-comm-badge-cat peach">Photography</div>
                   <div className="fm-comm-members-count">
-                    <Users size={13} /> 19.8k members
+                    <Users size={13} /> 19.4k members
                   </div>
                 </div>
-                <h3 className="fm-comm-name">Design Systems & UI Engineering</h3>
+                <h3 className="fm-comm-name">35mm & Street Photography</h3>
                 <p className="fm-comm-desc">
-                  Patterns, components, accessibility, and the details behind good interfaces.
+                  Discussing natural light, framing, and street captures across modern cities.
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
-                    <img src={ProfileImage} alt="User 1" />
-                    <img src={ProfileImage} alt="User 2" />
+                    <img src={CREATORS.snehil.avatar} alt={CREATORS.snehil.name} />
+                    <img src={CREATORS.priya.avatar} alt={CREATORS.priya.name} />
                   </div>
-                  <span className="fm-active-indicator">+88 active today</span>
+                  <span className="fm-active-indicator">+98 active today</span>
                 </div>
                 <div className="fm-comm-tags-row">
-                  <span>#designsystems</span>
-                  <span>#ui</span>
-                  <span>#react</span>
+                  <span className="fm-tag-pill">#35mm</span>
+                  <span className="fm-tag-pill">#streetphotography</span>
+                </div>
+              </div>
+
+              <div className="fm-comm-card">
+                <div className="fm-comm-card-top">
+                  <div className="fm-comm-badge-cat lavender">Product Design</div>
+                  <div className="fm-comm-members-count">
+                    <Users size={13} /> 22.1k members
+                  </div>
+                </div>
+                <h3 className="fm-comm-name">Design Systems & Craft</h3>
+                <p className="fm-comm-desc">
+                  Typography, tokens, micro-interactions, and spatial interface architecture.
+                </p>
+                <div className="fm-comm-avatars-row">
+                  <div className="fm-avatar-stack">
+                    <img src={CREATORS.sahil.avatar} alt={CREATORS.sahil.name} />
+                    <img src={CREATORS.garvit.avatar} alt={CREATORS.garvit.name} />
+                  </div>
+                  <span className="fm-active-indicator">+115 active today</span>
+                </div>
+                <div className="fm-comm-tags-row">
+                  <span className="fm-tag-pill">#designsystems</span>
+                  <span className="fm-tag-pill">#ui</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ─── 9. Perspectives / Social Proof ─────────────────────────────── */}
-        <section className="fm-section fm-creators-section">
+        {/* ─── 9. Authentic Community Voices ───────────────────────────────── */}
+        <section className="fm-section fm-voices-section">
           <div className="fm-container">
             <div className="fm-section-header">
-              <div className="fm-section-tag">PERSPECTIVES</div>
+              <div className="fm-section-tag">COMMUNITY VOICES</div>
               <h2 className="fm-section-title">
-                How people use <br />
-                <span className="fm-gradient-text">FutureMedia.</span>
+                What people are saying <br />
+                <span className="fm-gradient-text">about FutureMedia.</span>
               </h2>
               <p className="fm-section-description">
-                A few notes from creators and community members on why they post here.
+                Thoughts from the photographers, designers, and developers building here.
               </p>
             </div>
 
@@ -1395,13 +1407,13 @@ const Landing = () => {
               <div className="fm-quote-card">
                 <div className="fm-quote-mark">“</div>
                 <p className="fm-quote-text">
-                  I wanted somewhere I could post the work without having to turn every post into an advertisement.
+                  The photo carousel support with full fidelity makes sharing high-fidelity 35mm series feel natural.
                 </p>
                 <div className="fm-quote-author">
-                  <img src={ProfileImage} alt="Aria Sterling" className="fm-quote-avatar" />
+                  <img src={CREATORS.snehil.avatar} alt={CREATORS.snehil.name} className="fm-quote-avatar" />
                   <div>
-                    <div className="fm-quote-name">Aria Sterling</div>
-                    <div className="fm-quote-role">Generative Visual Artist</div>
+                    <div className="fm-quote-name">{CREATORS.snehil.name}</div>
+                    <div className="fm-quote-role">Street & Documentary Photographer</div>
                   </div>
                 </div>
               </div>
@@ -1409,13 +1421,13 @@ const Landing = () => {
               <div className="fm-quote-card">
                 <div className="fm-quote-mark">“</div>
                 <p className="fm-quote-text">
-                  The mix of 24h stories and full photo posts lets me share daily process without cluttering my grid.
+                  The mix of 24h stories, clean feeds, and fast real-time messaging gives FutureMedia an editorial and human feel.
                 </p>
                 <div className="fm-quote-author">
-                  <img src={ProfileImage} alt="Marcus Vance" className="fm-quote-avatar" />
+                  <img src={CREATORS.bhavishya.avatar} alt={CREATORS.bhavishya.name} className="fm-quote-avatar" />
                   <div>
-                    <div className="fm-quote-name">Marcus Vance</div>
-                    <div className="fm-quote-role">Photographer & Writer</div>
+                    <div className="fm-quote-name">{CREATORS.bhavishya.name}</div>
+                    <div className="fm-quote-role">Digital Creator & Technologist</div>
                   </div>
                 </div>
               </div>
@@ -1423,13 +1435,13 @@ const Landing = () => {
               <div className="fm-quote-card">
                 <div className="fm-quote-mark">“</div>
                 <p className="fm-quote-text">
-                  Most of my conversations start with something someone shared in one of the community feeds.
+                  Most of my collaborations start with something someone shared in one of the creative coding or shader feeds.
                 </p>
                 <div className="fm-quote-author">
-                  <img src={ProfileImage} alt="Maya Lin" className="fm-quote-avatar" />
+                  <img src={CREATORS.ananya.avatar} alt={CREATORS.ananya.name} className="fm-quote-avatar" />
                   <div>
-                    <div className="fm-quote-name">Maya Lin</div>
-                    <div className="fm-quote-role">Creative Technologist</div>
+                    <div className="fm-quote-name">{CREATORS.ananya.name}</div>
+                    <div className="fm-quote-role">Generative Artist & Creative Coder</div>
                   </div>
                 </div>
               </div>
@@ -1452,7 +1464,7 @@ const Landing = () => {
 
                 <div className="fm-cta-buttons">
                   <button className="fm-btn-primary fm-btn-large" onClick={() => openModal("signup")}>
-                    Create Account <ArrowRight size={17} />
+                    Create Your Profile <ArrowRight size={17} />
                   </button>
                   <button
                     className="fm-btn-secondary fm-btn-large"
@@ -1598,21 +1610,17 @@ const Landing = () => {
                   {unverifiedEmail && (
                     <div className="fm-modal-alert warning">
                       <AlertCircle size={18} className="fm-alert-icon" />
-                      <div className="fm-alert-text">
-                        <strong>Email Verification Required</strong>
-                        <p>Your account is registered but not verified yet.</p>
-                        {resendStatus.success ? (
-                          <span className="fm-alert-success">✓ Fresh verification email sent! Check your inbox.</span>
-                        ) : (
-                          <button
-                            type="button"
-                            className="fm-alert-btn"
-                            onClick={handleResendFromLogin}
-                            disabled={resendStatus.loading}
-                          >
-                            {resendStatus.loading ? "Sending..." : "Resend Verification Link"}
-                          </button>
-                        )}
+                      <div>
+                        <strong>Email not verified</strong>
+                        <p>Please check your inbox or request a new verification link.</p>
+                        <button
+                          type="button"
+                          className="fm-resend-link-btn"
+                          onClick={handleResendFromLogin}
+                          disabled={resendStatus.loading}
+                        >
+                          {resendStatus.loading ? "Sending link..." : "Resend Verification Email"}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -1622,7 +1630,7 @@ const Landing = () => {
                     <input
                       id="modal-login-id"
                       type="text"
-                      placeholder="@username or email"
+                      placeholder="Username or email address"
                       className="fm-form-input"
                       value={loginIdentifier}
                       onChange={(e) => setLoginIdentifier(e.target.value)}
@@ -1632,20 +1640,20 @@ const Landing = () => {
                   </div>
 
                   <div className="fm-input-group">
-                    <div className="fm-label-row">
+                    <div className="fm-input-label-row">
                       <label htmlFor="modal-login-pw">Password</label>
                       <button
                         type="button"
-                        className="fm-text-btn"
+                        className="fm-forgot-link"
                         onClick={() => setAuthModal("forgot-password")}
                       >
-                        Forgot password?
+                        Forgot?
                       </button>
                     </div>
                     <input
                       id="modal-login-pw"
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="••••••••"
                       className="fm-form-input"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
@@ -1662,13 +1670,13 @@ const Landing = () => {
                   </button>
 
                   <div className="fm-modal-footer">
-                    <span>Don't have an account?</span>
+                    <span>New to FutureMedia?</span>
                     <button
                       type="button"
                       className="fm-switch-btn"
                       onClick={() => setAuthModal("signup")}
                     >
-                      Sign up for free
+                      Create Account
                     </button>
                   </div>
                 </form>
