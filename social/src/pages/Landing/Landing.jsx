@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles,
   ArrowRight,
   Compass,
   MessageCircleMore,
@@ -27,14 +26,18 @@ import {
   Eye,
   Send,
   BadgeCheck,
-  Grid
+  Grid,
+  AlertCircle
 } from "lucide-react";
+import { toast } from "react-toastify";
+import { useMutation } from "@tanstack/react-query";
 import Logo from "../../components/Logo/Logo";
 import ProfileImage from "../../img/profileImg.jpg";
 import PostPic1 from "../../img/postpic1.jpg";
 import PostPic2 from "../../img/postpic2.jpg";
 import PostPic3 from "../../img/postpic3.JPG";
-import { getSessionUserId } from "../../utils/session";
+import { apiFetch } from "../../utils/api";
+import { getSessionUserId, persistUserSession } from "../../utils/session";
 import "./Landing.css";
 
 const Landing = () => {
@@ -47,8 +50,26 @@ const Landing = () => {
   const [activeStoryIdx, setActiveStoryIdx] = useState(0);
   const [activeMediaSlide, setActiveMediaSlide] = useState(0);
 
-  const isLoggedIn = Boolean(getSessionUserId());
+  // Auth Modal State: null | "login" | "signup" | "forgot-password"
+  const [authModal, setAuthModal] = useState(null);
 
+  // Login form state
+  const [loginIdentifier, setLoginIdentifier] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
+  const [resendStatus, setResendStatus] = useState({ loading: false, success: false, error: "" });
+
+  // Signup form state
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupUsername, setSignupUsername] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
+  const [signupFieldErrors, setSignupFieldErrors] = useState({});
+
+  // Forgot password form state
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  const isLoggedIn = Boolean(getSessionUserId());
   const heroMediaSlides = [PostPic1, PostPic2, PostPic3];
 
   const storyDemos = [
@@ -56,7 +77,7 @@ const Landing = () => {
       name: "Aria Sterling",
       time: "4h ago",
       avatar: ProfileImage,
-      quote: '"The best ideas arrive when you give yourself permission to experiment without a final destination in mind."',
+      quote: '"Working on a new generative shader series today. Trying to keep the geometry clean."',
       views: "482 views",
       reactions: "❤️ 94"
     },
@@ -64,7 +85,7 @@ const Landing = () => {
       name: "Julian Ross",
       time: "2h ago",
       avatar: PostPic1,
-      quote: '"Exploring texture and golden hour light through the 35mm lens in the old quarters."',
+      quote: '"Took the 35mm out at dusk to test the new lens coating. Loving the shadow roll-off."',
       views: "312 views",
       reactions: "🔥 76"
     },
@@ -72,12 +93,13 @@ const Landing = () => {
       name: "Maya Lin",
       time: "1h ago",
       avatar: PostPic2,
-      quote: '"Generative shader experiment #42 — reactive particle flows responding to ambient audio."',
+      quote: '"Testing particle physics at 60fps in the browser. Code link coming soon in the thread."',
       views: "594 views",
       reactions: "✨ 128"
     }
   ];
 
+  // Scroll listener for sticky navbar glass style
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
@@ -85,6 +107,29 @@ const Landing = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Lock background scroll while modal is open
+  useEffect(() => {
+    if (authModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [authModal]);
+
+  // Escape key closes modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && authModal) {
+        setAuthModal(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [authModal]);
 
   const handleHeroLike = () => {
     if (likedHeroPost) {
@@ -104,16 +149,169 @@ const Landing = () => {
     }
   };
 
+  const openModal = (mode) => {
+    setMobileMenuOpen(false);
+    setUnverifiedEmail("");
+    setSignupFieldErrors({});
+    setAuthModal(mode);
+  };
+
+  // Login Mutation
+  const loginMutation = useMutation({
+    mutationFn: async (formData) => {
+      const response = await apiFetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        const err = new Error(data.message || "Login failed");
+        err.code = data.code;
+        throw err;
+      }
+      return data;
+    },
+    onSuccess: (data) => {
+      persistUserSession(data.data || data);
+      toast.success("Welcome back!");
+      setAuthModal(null);
+      navigate("/home");
+    },
+    onError: (error) => {
+      if (error.code === "EMAIL_NOT_VERIFIED") {
+        setUnverifiedEmail(loginIdentifier.trim());
+        toast.error("Please verify your email address to log in.");
+      } else {
+        toast.error(error.message || "Invalid credentials.");
+      }
+    },
+  });
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    const normalizedIdentifier = loginIdentifier.trim();
+    if (!normalizedIdentifier || !loginPassword) {
+      toast.warn("Username/email and password are required.");
+      return;
+    }
+    loginMutation.mutate({ username: normalizedIdentifier, password: loginPassword });
+  };
+
+  const handleResendFromLogin = async () => {
+    if (!unverifiedEmail) return;
+    setResendStatus({ loading: true, success: false, error: "" });
+    try {
+      const res = await apiFetch("/api/v1/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: unverifiedEmail })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResendStatus({ loading: false, success: true, error: "" });
+        toast.success("Verification email sent! Please check your inbox.");
+      } else {
+        setResendStatus({ loading: false, success: false, error: data.message || "Failed to resend email." });
+        toast.error(data.message || "Failed to resend link.");
+      }
+    } catch {
+      setResendStatus({ loading: false, success: false, error: "Network error. Please try again." });
+    }
+  };
+
+  // Signup Mutation
+  const signupMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await apiFetch("/api/v1/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        if (data.errors && Array.isArray(data.errors)) {
+          const formattedErrors = {};
+          data.errors.forEach(err => { formattedErrors[err.field] = err.message; });
+          const err = new Error(data.message);
+          err.isValidation = true;
+          err.errors = formattedErrors;
+          throw err;
+        }
+        throw new Error(data.message || "Registration failed");
+      }
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Account created successfully! Please check your email to verify.");
+      setAuthModal("login");
+    },
+    onError: (error) => {
+      if (error.isValidation) {
+        setSignupFieldErrors(error.errors || {});
+        toast.error(error.message || "Please fix the validation errors.");
+      } else {
+        toast.error(error.message || "Network or server error.");
+      }
+    },
+  });
+
+  const handleSignupSubmit = (e) => {
+    e.preventDefault();
+    setSignupFieldErrors({});
+
+    if (signupPassword !== signupConfirmPassword) {
+      setSignupFieldErrors({ confirmPassword: "Passwords do not match." });
+      return;
+    }
+
+    signupMutation.mutate({
+      email: signupEmail.trim(),
+      username: signupUsername.trim(),
+      password: signupPassword,
+    });
+  };
+
+  // Forgot Password Mutation
+  const forgotMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await apiFetch("/api/v1/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to send reset email");
+      }
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Password reset email sent! Check your inbox.");
+      setAuthModal("login");
+    },
+    onError: (error) => toast.error(error.message || "Failed to send reset link"),
+  });
+
+  const handleForgotSubmit = (e) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) {
+      toast.warn("Please enter your email address.");
+      return;
+    }
+    forgotMutation.mutate({ email: forgotEmail.trim() });
+  };
+
   return (
     <div className="fm-landing">
-      {/* ─── Ambient Atmospheric Lighting ─────────────────────────────────── */}
+      {/* ─── Ambient Atmospheric Background ───────────────────────────────── */}
       <div className="fm-ambient-glow glow-1" />
       <div className="fm-ambient-glow glow-2" />
       <div className="fm-ambient-glow glow-3" />
       <div className="fm-ambient-glow glow-4" />
       <div className="fm-grid-overlay" />
 
-      {/* ─── 1. Refined Sticky Navbar ─────────────────────────────────────── */}
+      {/* ─── 1. Sticky Navigation ─────────────────────────────────────────── */}
       <header className={`fm-navbar ${scrolled ? "scrolled" : ""}`}>
         <div className="fm-nav-container">
           <div className="fm-nav-left" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
@@ -148,26 +346,26 @@ const Landing = () => {
               </button>
             ) : (
               <>
-                <Link to="/login" className="fm-nav-signin">
-                  Sign In
-                </Link>
-                <Link to="/signup" className="fm-btn-primary fm-btn-nav">
-                  Get Started Free <ArrowRight size={15} />
-                </Link>
+                <button className="fm-nav-signin" onClick={() => openModal("login")}>
+                  Log In
+                </button>
+                <button className="fm-btn-primary fm-btn-nav" onClick={() => openModal("signup")}>
+                  Get Started <ArrowRight size={15} />
+                </button>
               </>
             )}
 
             <button
               className="fm-mobile-toggle"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle navigation"
+              aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Mobile Drawer */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
@@ -181,10 +379,10 @@ const Landing = () => {
                 Features
               </button>
               <button className="fm-mobile-link" onClick={() => scrollToSection("stories")}>
-                24-Hour Stories
+                Stories
               </button>
               <button className="fm-mobile-link" onClick={() => scrollToSection("conversations")}>
-                Real-Time Messaging
+                Messaging
               </button>
               <button className="fm-mobile-link" onClick={() => scrollToSection("communities")}>
                 Communities
@@ -199,12 +397,12 @@ const Landing = () => {
                   </button>
                 ) : (
                   <>
-                    <Link to="/login" className="fm-btn-secondary full-width" onClick={() => setMobileMenuOpen(false)}>
-                      Sign In
-                    </Link>
-                    <Link to="/signup" className="fm-btn-primary full-width" onClick={() => setMobileMenuOpen(false)}>
-                      Get Started Free <ArrowRight size={16} />
-                    </Link>
+                    <button className="fm-btn-secondary full-width" onClick={() => openModal("login")}>
+                      Log In
+                    </button>
+                    <button className="fm-btn-primary full-width" onClick={() => openModal("signup")}>
+                      Get Started <ArrowRight size={16} />
+                    </button>
                   </>
                 )}
               </div>
@@ -217,20 +415,10 @@ const Landing = () => {
         {/* ─── 2. Hero Section ────────────────────────────────────────────── */}
         <section className="fm-hero-section">
           <div className="fm-hero-container">
-            <motion.div
+            <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="fm-hero-badge"
-            >
-              <Sparkles size={13} className="fm-badge-icon" />
-              <span>THE NEXT-GENERATION CREATOR & SOCIAL PLATFORM</span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.6 }}
               className="fm-hero-title"
             >
               Connect. <br />
@@ -239,25 +427,23 @@ const Landing = () => {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
               className="fm-hero-subtitle"
             >
-              FutureMedia brings creators, passionate communities, and live conversations
-              together in one unified home — built for expressing your visual world, discovering original craft,
-              and belonging to something alive.
+              A place for the things you make, the people you know, and the conversations you want to keep up with.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               className="fm-hero-actions"
             >
-              <Link to="/signup" className="fm-btn-primary fm-btn-large">
-                Start Your Journey <ArrowRight size={18} />
-              </Link>
+              <button className="fm-btn-primary fm-btn-large" onClick={() => openModal("signup")}>
+                Create Account <ArrowRight size={18} />
+              </button>
               <button
                 className="fm-btn-secondary fm-btn-large"
                 onClick={() => scrollToSection("features")}
@@ -266,39 +452,39 @@ const Landing = () => {
               </button>
             </motion.div>
 
-            {/* 3 Core Trust Pillars */}
+            {/* Factual Product Indicators */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
               className="fm-hero-pillars"
             >
               <div className="fm-pillar-item">
                 <div className="fm-pillar-dot" />
-                <span>Real-Time Interaction</span>
+                <span>Real-Time Chat</span>
               </div>
               <div className="fm-pillar-divider" />
               <div className="fm-pillar-item">
                 <div className="fm-pillar-dot" />
-                <span>Creator-First Identity</span>
+                <span>Photos, Video & Stories</span>
               </div>
               <div className="fm-pillar-divider" />
               <div className="fm-pillar-item">
                 <div className="fm-pillar-dot" />
-                <span>Community-Driven</span>
+                <span>Community Spaces</span>
               </div>
             </motion.div>
 
             {/* ─── 3. Hero Layered Social Ecosystem Visual ────────────────── */}
             <motion.div
-              initial={{ opacity: 0, y: 35 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
               className="fm-hero-composition"
             >
               {/* Floating Layer 1: Top-Left Story Ring */}
               <motion.div
-                animate={{ y: [0, -7, 0] }}
+                animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
                 className="fm-float-card fm-float-story"
               >
@@ -316,7 +502,7 @@ const Landing = () => {
 
               {/* Floating Layer 2: Top-Right Community Guild */}
               <motion.div
-                animate={{ y: [0, 8, 0] }}
+                animate={{ y: [0, 7, 0] }}
                 transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
                 className="fm-float-card fm-float-community"
               >
@@ -391,6 +577,7 @@ const Landing = () => {
                     <button
                       className={`fm-eng-btn ${likedHeroPost ? "active-like" : ""}`}
                       onClick={handleHeroLike}
+                      aria-label="Like post"
                     >
                       <Heart
                         size={17}
@@ -399,11 +586,15 @@ const Landing = () => {
                       />
                       <span>{likeCount.toLocaleString()}</span>
                     </button>
-                    <button className="fm-eng-btn" onClick={() => scrollToSection("conversations")}>
+                    <button
+                      className="fm-eng-btn"
+                      onClick={() => scrollToSection("conversations")}
+                      aria-label="View comments"
+                    >
                       <MessageCircleMore size={17} />
                       <span>84</span>
                     </button>
-                    <button className="fm-eng-btn">
+                    <button className="fm-eng-btn" aria-label="Share post">
                       <Share2 size={17} />
                       <span>312</span>
                     </button>
@@ -411,6 +602,7 @@ const Landing = () => {
                   <button
                     className={`fm-eng-btn fm-save-btn ${savedHeroPost ? "active-save" : ""}`}
                     onClick={() => setSavedHeroPost(!savedHeroPost)}
+                    aria-label="Save post"
                   >
                     <Bookmark size={17} fill={savedHeroPost ? "var(--color-primary)" : "none"} />
                   </button>
@@ -428,7 +620,7 @@ const Landing = () => {
 
               {/* Floating Layer 3: Bottom-Left Direct Message */}
               <motion.div
-                animate={{ y: [0, -8, 0] }}
+                animate={{ y: [0, -7, 0] }}
                 transition={{ duration: 5.6, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
                 className="fm-float-card fm-float-chat"
               >
@@ -449,7 +641,7 @@ const Landing = () => {
 
               {/* Floating Layer 4: Bottom-Right Trending Tag */}
               <motion.div
-                animate={{ y: [0, 7, 0] }}
+                animate={{ y: [0, 6, 0] }}
                 transition={{ duration: 4.9, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
                 className="fm-float-card fm-float-trending"
               >
@@ -467,83 +659,77 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 4. Qualitative Architecture & Product Trust Bar ────────────── */}
+        {/* ─── 4. Product Trust / Capabilities Bar ────────────────────────── */}
         <section className="fm-trust-section">
           <div className="fm-trust-container">
-            <p className="fm-trust-eyebrow">BUILT FOR CREATORS, COMMUNITIES & CURIOUS MINDS</p>
             <div className="fm-trust-grid">
               <div className="fm-trust-card">
                 <div className="fm-trust-icon">
                   <Zap size={22} />
                 </div>
-                <div className="fm-trust-num">Instant</div>
-                <div className="fm-trust-label">Real-Time Socket.IO Messaging & Live Presence</div>
+                <div className="fm-trust-num">Live Chat</div>
+                <div className="fm-trust-label">Fast 1-on-1 and group messaging</div>
               </div>
 
               <div className="fm-trust-card">
                 <div className="fm-trust-icon">
                   <Clock size={22} />
                 </div>
-                <div className="fm-trust-num">24-Hour</div>
-                <div className="fm-trust-label">Ephemeral Stories with Automatic TTL Expiration</div>
+                <div className="fm-trust-num">24h Stories</div>
+                <div className="fm-trust-label">Share moments that expire in a day</div>
               </div>
 
               <div className="fm-trust-card">
                 <div className="fm-trust-icon">
                   <TrendingUp size={22} />
                 </div>
-                <div className="fm-trust-num">Weighted</div>
-                <div className="fm-trust-label">Dynamic Velocity & Creator Diversity Discovery</div>
+                <div className="fm-trust-num">Explore Feeds</div>
+                <div className="fm-trust-label">Find work and topics you care about</div>
               </div>
 
               <div className="fm-trust-card">
                 <div className="fm-trust-icon">
                   <ShieldCheck size={22} />
                 </div>
-                <div className="fm-trust-num">8 Layers</div>
-                <div className="fm-trust-label">Defense-in-Depth Privacy & Object-Level Access</div>
+                <div className="fm-trust-num">Audience Control</div>
+                <div className="fm-trust-label">Choose who sees every post</div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ─── 5. Editorial Bento Capabilities Grid ───────────────────────── */}
+        {/* ─── 5. Bento Capabilities Grid ─────────────────────────────────── */}
         <section className="fm-section" id="features">
           <div className="fm-container">
             <div className="fm-section-header">
-              <div className="fm-section-tag">
-                <Sparkles size={13} /> CAPABILITIES
-              </div>
+              <div className="fm-section-tag">FEATURES</div>
               <h2 className="fm-section-title">
-                Everything creators need to <br />
-                <span className="fm-gradient-text">share, connect & be discovered.</span>
+                Share more than <br />
+                <span className="fm-gradient-text">just a photo.</span>
               </h2>
               <p className="fm-section-description">
-                A unified creative canvas designed for high-resolution visual storytelling,
-                low-latency conversations, and authentic community belonging.
+                Photos, videos, 24h stories, direct messaging, and finding people with shared interests.
               </p>
             </div>
 
             {/* Asymmetrical Bento Grid */}
             <div className="fm-bento-grid">
-              {/* Bento 1: Dominant Flagship Feature (2 Columns Wide) */}
+              {/* Bento 1: Multi-Media Posts */}
               <div className="fm-bento-card bento-wide bento-highlight">
                 <div className="fm-bento-glow" />
                 <div className="fm-bento-content">
                   <div className="fm-bento-top">
-                    <div className="fm-bento-badge">Flagship Feature</div>
+                    <div className="fm-bento-badge">Media Posts</div>
                     <div className="fm-feature-num">01</div>
                   </div>
-                  <h3 className="fm-bento-title">Multi-Media Expression & Visual Feeds</h3>
+                  <h3 className="fm-bento-title">Multi-Photo & Video Posts</h3>
                   <p className="fm-bento-desc">
-                    Publish multi-photo carousels, 4K video clips, location tags, and automated
-                    Unicode hashtag parsing. Experience edge-to-edge media clarity engineered without heavy compression artifacts.
+                    Post photos, video, and the things you're working on without squeezing everything into one format. Slide carousels, hashtags, and clean resolution.
                   </p>
-
                   <div className="fm-bento-tags-row">
-                    <span className="fm-bento-chip"><ImageIcon size={13} /> Multi-Slide Carousels</span>
-                    <span className="fm-bento-chip"><Video size={13} /> 4K Video Support</span>
-                    <span className="fm-bento-chip"><Hash size={13} /> Auto Hashtag Extraction</span>
+                    <span className="fm-bento-chip"><ImageIcon size={13} /> Photo Carousels</span>
+                    <span className="fm-bento-chip"><Video size={13} /> Video Clips</span>
+                    <span className="fm-bento-chip"><Hash size={13} /> Auto Hashtags</span>
                   </div>
                 </div>
 
@@ -555,7 +741,7 @@ const Landing = () => {
                 </div>
               </div>
 
-              {/* Bento 2: Ephemeral 24h Stories */}
+              {/* Bento 2: Ephemeral Stories */}
               <div className="fm-bento-card bento-tall">
                 <div className="fm-bento-top">
                   <div className="fm-feature-icon-wrap">
@@ -563,21 +749,20 @@ const Landing = () => {
                   </div>
                   <div className="fm-feature-num">02</div>
                 </div>
-                <h3 className="fm-bento-title">24-Hour Ephemeral Stories</h3>
+                <h3 className="fm-bento-title">Some posts don't need to stay.</h3>
                 <p className="fm-bento-desc">
-                  Share spontaneous reflections, typography thoughts, and behind-the-scenes snapshots with real-time viewer tracking that naturally disappear after 24 hours.
+                  Share something for the moment and let it disappear after 24 hours. See who watched with real-time viewer lists.
                 </p>
 
-                {/* Mini Interactive Story Simulation */}
                 <div className="fm-bento-story-mini">
                   <div className="fm-mini-story-ring">
                     <img src={ProfileImage} alt="Story User" />
                   </div>
                   <div className="fm-mini-story-text">
-                    "Creating without expectations..."
+                    "Working on some new sketches today..."
                   </div>
                   <div className="fm-mini-story-stat">
-                    <Eye size={12} /> 482 live viewers
+                    <Eye size={12} /> 482 viewers
                   </div>
                 </div>
               </div>
@@ -590,17 +775,17 @@ const Landing = () => {
                   </div>
                   <div className="fm-feature-num">03</div>
                 </div>
-                <h3 className="fm-bento-title">Real-Time Messaging</h3>
+                <h3 className="fm-bento-title">Talk while it's happening.</h3>
                 <p className="fm-bento-desc">
-                  Low-latency 1-on-1 and group direct chats with Socket.IO room isolation, media attachments, live typing indicators, and instant read receipts.
+                  Keep conversations moving with direct messages, media sharing, and live typing activity.
                 </p>
                 <div className="fm-bento-chat-indicator">
                   <div className="fm-chat-online-dot" />
-                  <span>Room-Isolated WebSocket Pipeline</span>
+                  <span>Live message delivery</span>
                 </div>
               </div>
 
-              {/* Bento 4: Dynamic Discovery & Trending */}
+              {/* Bento 4: Dynamic Discovery */}
               <div className="fm-bento-card">
                 <div className="fm-bento-top">
                   <div className="fm-feature-icon-wrap">
@@ -608,19 +793,19 @@ const Landing = () => {
                   </div>
                   <div className="fm-feature-num">04</div>
                 </div>
-                <h3 className="fm-bento-title">Dynamic Discovery</h3>
+                <h3 className="fm-bento-title">See what's getting people talking.</h3>
                 <p className="fm-bento-desc">
-                  Personalized Explore feeds ranked by engagement velocity, recency decay, and creator diversity algorithms to prevent repetitive echo chambers.
+                  Find posts, creators, and conversations based on what people are actually sharing.
                 </p>
                 <div className="fm-bento-tag-cloud">
                   <span>#generative</span>
                   <span>#35mm</span>
-                  <span>#webgl</span>
+                  <span>#design</span>
                   <span>#creativecoding</span>
                 </div>
               </div>
 
-              {/* Bento 5: Creator Identity (2 Columns Wide) */}
+              {/* Bento 5: Creator Identity */}
               <div className="fm-bento-card bento-wide">
                 <div className="fm-bento-content">
                   <div className="fm-bento-top">
@@ -629,13 +814,13 @@ const Landing = () => {
                     </div>
                     <div className="fm-feature-num">05</div>
                   </div>
-                  <h3 className="fm-bento-title">Creator Identity & Portfolio Showcase</h3>
+                  <h3 className="fm-bento-title">Make your profile yours.</h3>
                   <p className="fm-bento-desc">
-                    Establish your distinct presence with custom avatars, verified creator badges, curated portfolio grids, saved collections, and granular follower insights.
+                    Show your work, your interests, and the things you want people to find. Pin your best posts and customize your bio.
                   </p>
                   <div className="fm-bento-tags-row">
                     <span className="fm-bento-chip"><BadgeCheck size={13} /> Verified Creator Badge</span>
-                    <span className="fm-bento-chip"><Grid size={13} /> Curated Grid Showcase</span>
+                    <span className="fm-bento-chip"><Grid size={13} /> Custom Profile Grid</span>
                     <span className="fm-bento-chip"><Bookmark size={13} /> Saved Collections</span>
                   </div>
                 </div>
@@ -651,7 +836,7 @@ const Landing = () => {
                 </div>
               </div>
 
-              {/* Bento 6: Granular Privacy Controls */}
+              {/* Bento 6: Privacy Controls */}
               <div className="fm-bento-card">
                 <div className="fm-bento-top">
                   <div className="fm-feature-icon-wrap">
@@ -659,9 +844,9 @@ const Landing = () => {
                   </div>
                   <div className="fm-feature-num">06</div>
                 </div>
-                <h3 className="fm-bento-title">Privacy & Audience Control</h3>
+                <h3 className="fm-bento-title">Choose who sees it.</h3>
                 <p className="fm-bento-desc">
-                  Toggle seamlessly between public reach and followers-only privacy, review pending follow requests, and control who can view and interact with your media.
+                  Keep a post public, share it with followers, or keep it private. You decide.
                 </p>
                 <div className="fm-bento-privacy-toggle">
                   <span className="active"><Globe size={12} /> Public</span>
@@ -672,55 +857,52 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 6. Alternating Deep-Dive Product Story Showcases ────────────── */}
+        {/* ─── 6. Product Story Showcases ──────────────────────────────────── */}
 
         {/* Showcase A: Content Creation */}
         <section className="fm-showcase-section" id="showcase-create">
           <div className="fm-container">
             <div className="fm-showcase-grid">
               <div className="fm-showcase-content">
-                <div className="fm-section-tag">
-                  <Sparkles size={13} /> CONTENT STUDIO
-                </div>
+                <div className="fm-section-tag">POSTS</div>
                 <h2 className="fm-showcase-title">
-                  Create without <br />
-                  <span className="fm-gradient-text">shrinking the story.</span>
+                  Post the moment. <br />
+                  <span className="fm-gradient-text">Keep the memory.</span>
                 </h2>
                 <p className="fm-showcase-desc">
-                  Whether dropping a 10-slide architectural photography carousel, sharing a high-frame-rate
-                  video moment, or starting an in-depth creative thread, our intuitive composer gives you the creative freedom to express your story with full media fidelity.
+                  Drop a photo carousel, share a video, or start a thread. Clean layout, full resolution, no clutter.
                 </p>
 
                 <div className="fm-showcase-points">
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Drag-and-Drop Media Carousels</strong>
-                      <p>Seamlessly upload and preview multi-asset collections with smart aspect ratios.</p>
+                      <strong>Multi-Photo Carousels</strong>
+                      <p>Upload and preview multiple photos in a single post.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Audience & Privacy Switcher</strong>
-                      <p>Toggle post visibility instantly between Public reach and Private follower access.</p>
+                      <strong>Audience Switcher</strong>
+                      <p>Choose between Public reach and Private followers-only view.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Automatic Hashtag Indexing</strong>
-                      <p>Hashtags are auto-extracted from captions and aggregated into real-time discovery channels.</p>
+                      <strong>Hashtag Indexing</strong>
+                      <p>Tags in your captions connect your post to topic feeds automatically.</p>
                     </div>
                   </div>
                 </div>
 
-                <Link to="/signup" className="fm-btn-primary fm-btn-inline">
-                  Start Creating on FM <ChevronRight size={16} />
-                </Link>
+                <button className="fm-btn-primary fm-btn-inline" onClick={() => openModal("signup")}>
+                  Create an account <ChevronRight size={16} />
+                </button>
               </div>
 
-              {/* Interactive Mockup: Composer UI */}
+              {/* Mockup: Composer UI */}
               <div className="fm-showcase-visual">
                 <div className="fm-composer-mockup glass-card">
                   <div className="fm-composer-header">
@@ -743,13 +925,13 @@ const Landing = () => {
 
                   <div className="fm-composer-toolbar">
                     <div className="fm-tool-icons">
-                      <button className="fm-tool-btn active"><ImageIcon size={17} /></button>
-                      <button className="fm-tool-btn"><Video size={17} /></button>
-                      <button className="fm-tool-btn"><Hash size={17} /></button>
+                      <button className="fm-tool-btn active" aria-label="Photo upload"><ImageIcon size={17} /></button>
+                      <button className="fm-tool-btn" aria-label="Video upload"><Video size={17} /></button>
+                      <button className="fm-tool-btn" aria-label="Hashtags"><Hash size={17} /></button>
                     </div>
                     <div className="fm-composer-actions">
                       <div className="fm-mock-pill"><Globe size={12} /> Public</div>
-                      <button className="fm-mock-post-btn">Post</button>
+                      <button className="fm-mock-post-btn" onClick={() => openModal("signup")}>Post</button>
                     </div>
                   </div>
                 </div>
@@ -836,45 +1018,42 @@ const Landing = () => {
               </div>
 
               <div className="fm-showcase-content">
-                <div className="fm-section-tag">
-                  <Clock size={13} /> 24-HOUR MOMENTS
-                </div>
+                <div className="fm-section-tag">STORIES</div>
                 <h2 className="fm-showcase-title">
                   Some moments are <br />
                   <span className="fm-gradient-text">meant to disappear.</span>
                 </h2>
                 <p className="fm-showcase-desc">
-                  Not every creative thought needs to stay permanently on your grid. Stories give you the freedom
-                  to share ephemeral thoughts, behind-the-scenes snapshots, and spontaneous reflections with your inner circle.
+                  Not everything belongs permanently on your grid. Stories give you an easy way to share daily thoughts, work in progress, and quick updates.
                 </p>
 
                 <div className="fm-showcase-points">
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Rich Typography & Gradients</strong>
-                      <p>Create full-screen typographic text stories with customizable alignments and color themes.</p>
+                      <strong>Text & Photo Moments</strong>
+                      <p>Share fullscreen typographic thoughts or photo snapshots.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Real-Time Viewer Analytics</strong>
-                      <p>Inspect who has viewed your story with timestamped viewer logs and instant reactions.</p>
+                      <strong>Viewer Lists & Reactions</strong>
+                      <p>See who checked out your story with viewer logs and quick reactions.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Automatic Database TTL Cleanup</strong>
-                      <p>Expired stories automatically disappear after 24 hours through high-efficiency database TTL indexing.</p>
+                      <strong>24-Hour Expiration</strong>
+                      <p>Stories automatically clear out after 24 hours.</p>
                     </div>
                   </div>
                 </div>
 
-                <Link to="/signup" className="fm-btn-primary fm-btn-inline">
-                  Try Stories on FM <ChevronRight size={16} />
-                </Link>
+                <button className="fm-btn-primary fm-btn-inline" onClick={() => openModal("signup")}>
+                  Try Stories <ChevronRight size={16} />
+                </button>
               </div>
             </div>
           </div>
@@ -885,45 +1064,42 @@ const Landing = () => {
           <div className="fm-container">
             <div className="fm-showcase-grid">
               <div className="fm-showcase-content">
-                <div className="fm-section-tag">
-                  <MessageCircleMore size={13} /> DIRECT & GROUP CHAT
-                </div>
+                <div className="fm-section-tag">MESSAGING</div>
                 <h2 className="fm-showcase-title">
-                  Conversations move at the <br />
-                  <span className="fm-gradient-text">speed of the moment.</span>
+                  Talk while <br />
+                  <span className="fm-gradient-text">it's happening.</span>
                 </h2>
                 <p className="fm-showcase-desc">
-                  Deepen relationships through real-time direct messaging. Send high-res media,
-                  collaborate on creative projects, and experience instantaneous communication powered by Socket.IO room isolation.
+                  Direct and group messaging built right into the platform. Share media, send quick replies, and stay connected.
                 </p>
 
                 <div className="fm-showcase-points">
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Room-Isolated WebSocket Delivery</strong>
-                      <p>Targeted user socket rooms ensure private, zero-leakage message distribution.</p>
+                      <strong>Live Chat</strong>
+                      <p>Fast 1-on-1 and group message delivery.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Live Typing & Delivery Status</strong>
-                      <p>Natural conversation flow with animated typing bubbles and read receipts.</p>
+                      <strong>Typing Feedback</strong>
+                      <p>See when people are writing back in real time.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
                     <CheckCircle2 size={18} className="fm-point-icon" />
                     <div>
-                      <strong>Media Attachments & Rich Previews</strong>
-                      <p>Share photos, video clips, and creative links directly within your conversation stream.</p>
+                      <strong>Media Previews</strong>
+                      <p>Share photos, videos, and links directly in conversation.</p>
                     </div>
                   </div>
                 </div>
 
-                <Link to="/signup" className="fm-btn-primary fm-btn-inline">
+                <button className="fm-btn-primary fm-btn-inline" onClick={() => openModal("signup")}>
                   Start Chatting <ChevronRight size={16} />
-                </Link>
+                </button>
               </div>
 
               {/* Visual: Chat Interface Mockup */}
@@ -979,7 +1155,9 @@ const Landing = () => {
                       readOnly
                       value="Can't wait to see the final community renders!"
                     />
-                    <button className="fm-chat-send-btn"><Send size={16} /></button>
+                    <button className="fm-chat-send-btn" onClick={() => openModal("login")} aria-label="Send message">
+                      <Send size={16} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -987,26 +1165,24 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 7. Creator Spotlight & Identity Showcase ────────────────────── */}
+        {/* ─── 7. Creator Spotlight Section ────────────────────────────────── */}
         <section className="fm-section fm-creators-spotlight-section" id="creators">
           <div className="fm-container">
             <div className="fm-section-header">
-              <div className="fm-section-tag">
-                <Users size={13} /> CREATOR IDENTITY
-              </div>
+              <div className="fm-section-tag">PROFILES</div>
               <h2 className="fm-section-title">
-                Your identity is <br />
-                <span className="fm-gradient-text">more than a profile.</span>
+                Your profile should <br />
+                <span className="fm-gradient-text">feel like yours.</span>
               </h2>
               <p className="fm-section-description">
-                Showcase your creative body of work, share 24h moments, and build an authentic audience with verified creator status and curated media galleries.
+                Show your work, pin your favorite posts, and give people a clear sense of what you make.
               </p>
             </div>
 
             <div className="fm-creator-portfolio-card glass-card">
               <div className="fm-creator-banner">
                 <div className="fm-banner-gradient" />
-                <div className="fm-banner-badge">Featured Creator Spotlight</div>
+                <div className="fm-banner-badge">Featured Profile</div>
               </div>
 
               <div className="fm-creator-profile-row">
@@ -1021,7 +1197,7 @@ const Landing = () => {
                     <span className="fm-c-handle">@ariasterling</span>
                   </div>
                   <p className="fm-c-bio">
-                    Generative Visual Artist & Interactive Media Designer. Exploring shader curves, computational typography, and ambient sonic textures.
+                    Digital artist exploring motion, generative visuals, and interactive experiments.
                   </p>
 
                   <div className="fm-c-metrics-row">
@@ -1032,34 +1208,42 @@ const Landing = () => {
                       <strong>428</strong> <span>Following</span>
                     </div>
                     <div className="fm-c-metric">
-                      <strong>92</strong> <span>Media Drops</span>
+                      <strong>92</strong> <span>Posts</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="fm-creator-actions-box">
-                  <button className="fm-btn-primary fm-btn-follow">Follow Creator</button>
-                  <button className="fm-btn-secondary fm-btn-msg-icon"><MessageCircleMore size={18} /></button>
+                  <button className="fm-btn-primary fm-btn-follow" onClick={() => openModal("signup")}>
+                    Follow Creator
+                  </button>
+                  <button
+                    className="fm-btn-secondary fm-btn-msg-icon"
+                    onClick={() => openModal("login")}
+                    aria-label="Message Aria"
+                  >
+                    <MessageCircleMore size={18} />
+                  </button>
                 </div>
               </div>
 
-              {/* Creator Media Grid Showcase */}
+              {/* Creator Media Grid */}
               <div className="fm-creator-media-gallery">
-                <div className="fm-gallery-item">
+                <div className="fm-gallery-item" onClick={() => openModal("login")}>
                   <img src={PostPic1} alt="Drop 1" />
                   <div className="fm-gallery-overlay">
                     <span>❤️ 1.4k</span>
                     <span>💬 84</span>
                   </div>
                 </div>
-                <div className="fm-gallery-item">
+                <div className="fm-gallery-item" onClick={() => openModal("login")}>
                   <img src={PostPic2} alt="Drop 2" />
                   <div className="fm-gallery-overlay">
                     <span>❤️ 980</span>
                     <span>💬 46</span>
                   </div>
                 </div>
-                <div className="fm-gallery-item">
+                <div className="fm-gallery-item" onClick={() => openModal("login")}>
                   <img src={PostPic3} alt="Drop 3" />
                   <div className="fm-gallery-overlay">
                     <span>❤️ 2.1k</span>
@@ -1071,20 +1255,17 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 8. Communities Ecosystem ────────────────────────────────────── */}
+        {/* ─── 8. Communities Section ──────────────────────────────────────── */}
         <section className="fm-section" id="communities">
           <div className="fm-container">
             <div className="fm-section-header">
-              <div className="fm-section-tag">
-                <Users size={13} /> COMMUNITY SPACES
-              </div>
+              <div className="fm-section-tag">COMMUNITIES</div>
               <h2 className="fm-section-title">
-                People aren't just posting here. <br />
-                <span className="fm-gradient-text">They're finding their people.</span>
+                Find people who are <br />
+                <span className="fm-gradient-text">into the same things.</span>
               </h2>
               <p className="fm-section-description">
-                From niche visual arts to emerging tech, music production, and indie game dev —
-                gather in communities where shared passion drives every interaction.
+                Spaces organized around photography, generative art, design systems, and creative projects.
               </p>
             </div>
 
@@ -1098,7 +1279,7 @@ const Landing = () => {
                 </div>
                 <h3 className="fm-comm-name">Generative Art & Shaders</h3>
                 <p className="fm-comm-desc">
-                  A gathering space for digital artists, GLSL shader coders, and creative technologists sharing daily algorithms and renders.
+                  People sharing experiments, techniques, and things made with code.
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
@@ -1124,7 +1305,7 @@ const Landing = () => {
                 </div>
                 <h3 className="fm-comm-name">Independent Photographers</h3>
                 <p className="fm-comm-desc">
-                  Curated street, documentary, and portrait photography. Weekly photo essays, critique sessions, and gear explorations.
+                  Share recent work, talk gear, and find people shooting in the same direction.
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
@@ -1150,7 +1331,7 @@ const Landing = () => {
                 </div>
                 <h3 className="fm-comm-name">Design Systems & UI Engineering</h3>
                 <p className="fm-comm-desc">
-                  Exploring high-craft interfaces, interactive micro-interactions, responsive design systems, and frontend performance.
+                  Patterns, components, accessibility, and the details behind good interfaces.
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
@@ -1170,19 +1351,17 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 9. Editorial Creator Perspectives ──────────────────────────── */}
+        {/* ─── 9. Perspectives / Social Proof ─────────────────────────────── */}
         <section className="fm-section fm-creators-section">
           <div className="fm-container">
             <div className="fm-section-header">
-              <div className="fm-section-tag">
-                <Sparkles size={13} /> CREATOR PERSPECTIVES
-              </div>
+              <div className="fm-section-tag">PERSPECTIVES</div>
               <h2 className="fm-section-title">
-                Your audience. Your voice. <br />
-                <span className="fm-gradient-text">Your authentic space.</span>
+                How people use <br />
+                <span className="fm-gradient-text">FutureMedia.</span>
               </h2>
               <p className="fm-section-description">
-                Designed to reward creative substance over empty metrics. Here's why leading creators call FutureMedia home.
+                A few notes from creators and community members on why they post here.
               </p>
             </div>
 
@@ -1190,14 +1369,13 @@ const Landing = () => {
               <div className="fm-quote-card">
                 <div className="fm-quote-mark">“</div>
                 <p className="fm-quote-text">
-                  FutureMedia feels like the internet we fell in love with: rich visual quality,
-                  real discussions in the comment threads, and zero algorithmic noise drowning out genuine craft.
+                  I wanted somewhere I could post the work without having to turn every post into an advertisement.
                 </p>
                 <div className="fm-quote-author">
                   <img src={ProfileImage} alt="Aria Sterling" className="fm-quote-avatar" />
                   <div>
                     <div className="fm-quote-name">Aria Sterling</div>
-                    <div className="fm-quote-role">Generative Visual Artist & Director</div>
+                    <div className="fm-quote-role">Generative Visual Artist</div>
                   </div>
                 </div>
               </div>
@@ -1205,14 +1383,13 @@ const Landing = () => {
               <div className="fm-quote-card">
                 <div className="fm-quote-mark">“</div>
                 <p className="fm-quote-text">
-                  The combination of 24h temporary stories and rich photo carousels lets me share both
-                  spontaneous daily thoughts and polished project milestones without cluttering my grid.
+                  The mix of 24h stories and full photo posts lets me share daily process without cluttering my grid.
                 </p>
                 <div className="fm-quote-author">
                   <img src={PostPic1} alt="Marcus Vance" className="fm-quote-avatar" />
                   <div>
                     <div className="fm-quote-name">Marcus Vance</div>
-                    <div className="fm-quote-role">Editorial Photographer & Writer</div>
+                    <div className="fm-quote-role">Photographer & Writer</div>
                   </div>
                 </div>
               </div>
@@ -1220,14 +1397,13 @@ const Landing = () => {
               <div className="fm-quote-card">
                 <div className="fm-quote-mark">“</div>
                 <p className="fm-quote-text">
-                  The community discovery actually works. Our design guild grew organically because
-                  the explore engine values meaningful engagement over spam velocity.
+                  Most of my conversations start with something someone shared in one of the community feeds.
                 </p>
                 <div className="fm-quote-author">
                   <img src={PostPic2} alt="Maya Lin" className="fm-quote-avatar" />
                   <div>
                     <div className="fm-quote-name">Maya Lin</div>
-                    <div className="fm-quote-role">Lead Creative Technologist</div>
+                    <div className="fm-quote-role">Creative Technologist</div>
                   </div>
                 </div>
               </div>
@@ -1235,41 +1411,38 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 10. Final Grand CTA Section ─────────────────────────────────── */}
+        {/* ─── 10. Final CTA Section ───────────────────────────────────────── */}
         <section className="fm-cta-section">
           <div className="fm-container">
             <div className="fm-cta-panel">
               <div className="fm-cta-glow" />
               <div className="fm-cta-content">
-                <div className="fm-section-tag center">
-                  <Sparkles size={13} /> JOIN THE FUTURE
-                </div>
                 <h2 className="fm-cta-title">
-                  Your media deserves <br />
-                  <span className="fm-gradient-text">a place to live.</span>
+                  Come see what's <br />
+                  <span className="fm-gradient-text">happening.</span>
                 </h2>
                 <p className="fm-cta-desc">
-                  Create. Share. Connect. Discover what's next. Join thousands of creators and communities building the next generation of social media.
+                  Share something, find people, and see what your feed looks like.
                 </p>
 
                 <div className="fm-cta-buttons">
-                  <Link to="/signup" className="fm-btn-primary fm-btn-large">
-                    Start Your Journey <ArrowRight size={18} />
-                  </Link>
+                  <button className="fm-btn-primary fm-btn-large" onClick={() => openModal("signup")}>
+                    Create Account <ArrowRight size={18} />
+                  </button>
                   <button
                     className="fm-btn-secondary fm-btn-large"
                     onClick={() => scrollToSection("features")}
                   >
-                    Explore FutureMedia
+                    Explore Platform
                   </button>
                 </div>
 
                 <div className="fm-cta-subtext">
-                  <span>✦ Free forever for creators</span>
+                  <span>Free to join</span>
                   <span>•</span>
-                  <span>✦ No credit card required</span>
+                  <span>No invite needed</span>
                   <span>•</span>
-                  <span>✦ Real-time community access</span>
+                  <span>Open to everyone</span>
                 </div>
               </div>
             </div>
@@ -1277,7 +1450,7 @@ const Landing = () => {
         </section>
       </main>
 
-      {/* ─── 11. Polished Multi-Column Footer ──────────────────────────────── */}
+      {/* ─── 11. Multi-Column Footer ──────────────────────────────────────── */}
       <footer className="fm-footer">
         <div className="fm-footer-container">
           <div className="fm-footer-top">
@@ -1287,10 +1460,10 @@ const Landing = () => {
                 <span className="fm-brand-name">FutureMedia</span>
               </div>
               <p className="fm-footer-bio">
-                The modern social media platform connecting creators, communities, and real-time conversations.
+                A social media platform for sharing work, stories, and conversations.
               </p>
               <div className="fm-footer-tagline">
-                Connect. Share. Inspire.
+                Connect. Share. Grow Together.
               </div>
             </div>
 
@@ -1299,30 +1472,29 @@ const Landing = () => {
                 <h4 className="fm-footer-head">Platform</h4>
                 <ul className="fm-footer-list">
                   <li><button onClick={() => scrollToSection("features")}>Features</button></li>
-                  <li><button onClick={() => scrollToSection("stories")}>Stories & Moments</button></li>
-                  <li><button onClick={() => scrollToSection("conversations")}>Real-Time Chat</button></li>
+                  <li><button onClick={() => scrollToSection("stories")}>Stories</button></li>
+                  <li><button onClick={() => scrollToSection("conversations")}>Messaging</button></li>
                   <li><button onClick={() => scrollToSection("communities")}>Communities</button></li>
-                  <li><Link to="/explore">Explore Discovery</Link></li>
+                  <li><button onClick={() => scrollToSection("features")}>Explore</button></li>
                 </ul>
               </div>
 
               <div className="fm-footer-col">
                 <h4 className="fm-footer-head">Ecosystem</h4>
                 <ul className="fm-footer-list">
-                  <li><button onClick={() => scrollToSection("creators")}>Creators Studio</button></li>
-                  <li><Link to="/search">Hashtags & Trends</Link></li>
-                  <li><Link to="/signup">Join Community</Link></li>
-                  <li><Link to="/login">Sign In</Link></li>
+                  <li><button onClick={() => scrollToSection("creators")}>Creators</button></li>
+                  <li><button onClick={() => scrollToSection("features")}>Tags & Trends</button></li>
+                  <li><button onClick={() => openModal("signup")}>Join Community</button></li>
+                  <li><button onClick={() => openModal("login")}>Sign In</button></li>
                 </ul>
               </div>
 
               <div className="fm-footer-col">
                 <h4 className="fm-footer-head">Account</h4>
                 <ul className="fm-footer-list">
-                  <li><Link to="/signup">Create Account</Link></li>
-                  <li><Link to="/login">Login</Link></li>
-                  <li><Link to="/forgot-password">Password Reset</Link></li>
-                  <li><Link to="/settings">User Settings</Link></li>
+                  <li><button onClick={() => openModal("signup")}>Create Account</button></li>
+                  <li><button onClick={() => openModal("login")}>Log In</button></li>
+                  <li><button onClick={() => openModal("forgot-password")}>Password Reset</button></li>
                 </ul>
               </div>
 
@@ -1332,7 +1504,7 @@ const Landing = () => {
                   <li><span className="fm-footer-muted">Privacy Policy</span></li>
                   <li><span className="fm-footer-muted">Terms of Service</span></li>
                   <li><span className="fm-footer-muted">Community Guidelines</span></li>
-                  <li><span className="fm-footer-muted">Security Center</span></li>
+                  <li><span className="fm-footer-muted">Security</span></li>
                 </ul>
               </div>
             </div>
@@ -1340,7 +1512,7 @@ const Landing = () => {
 
           <div className="fm-footer-bottom">
             <p className="fm-copyright">
-              © {new Date().getFullYear()} FutureMedia Inc. All rights reserved. Built with craft for the global creative web.
+              © {new Date().getFullYear()} FutureMedia Inc. All rights reserved.
             </p>
             <div className="fm-social-links">
               <span className="fm-social-badge">v2.0 Production</span>
@@ -1348,6 +1520,270 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+
+      {/* ─── 12. Centered Authentication Modal ─────────────────────────────── */}
+      <AnimatePresence>
+        {authModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fm-modal-backdrop"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setAuthModal(null);
+              }
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.24, ease: "easeOut" }}
+              className="fm-modal-card"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="fm-modal-title"
+            >
+              {/* Close Button */}
+              <button
+                className="fm-modal-close"
+                onClick={() => setAuthModal(null)}
+                aria-label="Close modal"
+              >
+                <X size={20} />
+              </button>
+
+              {/* Modal Brand Header */}
+              <div className="fm-modal-header">
+                <Logo size="normal" />
+                <h3 id="fm-modal-title" className="fm-modal-title">
+                  {authModal === "login" && "Log In"}
+                  {authModal === "signup" && "Create Account"}
+                  {authModal === "forgot-password" && "Reset Password"}
+                </h3>
+                <p className="fm-modal-subtitle">
+                  {authModal === "login" && "Log in to continue to your FutureMedia feed."}
+                  {authModal === "signup" && "Build your profile and start sharing in seconds."}
+                  {authModal === "forgot-password" && "Enter your email to receive a password reset link."}
+                </p>
+              </div>
+
+              {/* ── LOGIN FORM ── */}
+              {authModal === "login" && (
+                <form className="fm-modal-form" onSubmit={handleLoginSubmit}>
+                  {unverifiedEmail && (
+                    <div className="fm-modal-alert warning">
+                      <AlertCircle size={18} className="fm-alert-icon" />
+                      <div className="fm-alert-text">
+                        <strong>Email Verification Required</strong>
+                        <p>Your account is registered but not verified yet.</p>
+                        {resendStatus.success ? (
+                          <span className="fm-alert-success">✓ Fresh verification email sent! Check your inbox.</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="fm-alert-btn"
+                            onClick={handleResendFromLogin}
+                            disabled={resendStatus.loading}
+                          >
+                            {resendStatus.loading ? "Sending..." : "Resend Verification Link"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="fm-input-group">
+                    <label htmlFor="modal-login-id">Username or Email</label>
+                    <input
+                      id="modal-login-id"
+                      type="text"
+                      placeholder="@username or email"
+                      className="fm-form-input"
+                      value={loginIdentifier}
+                      onChange={(e) => setLoginIdentifier(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <div className="fm-input-group">
+                    <div className="fm-label-row">
+                      <label htmlFor="modal-login-pw">Password</label>
+                      <button
+                        type="button"
+                        className="fm-text-btn"
+                        onClick={() => setAuthModal("forgot-password")}
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <input
+                      id="modal-login-pw"
+                      type="password"
+                      placeholder="Enter your password"
+                      className="fm-form-input"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="fm-btn-primary full-width fm-modal-submit"
+                    disabled={loginMutation.isPending}
+                  >
+                    {loginMutation.isPending ? "Logging in..." : "Log In"}
+                  </button>
+
+                  <div className="fm-modal-footer">
+                    <span>Don't have an account?</span>
+                    <button
+                      type="button"
+                      className="fm-switch-btn"
+                      onClick={() => setAuthModal("signup")}
+                    >
+                      Sign up for free
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* ── SIGNUP FORM ── */}
+              {authModal === "signup" && (
+                <form className="fm-modal-form" onSubmit={handleSignupSubmit}>
+                  <div className="fm-input-group">
+                    <label htmlFor="modal-signup-email">Email Address</label>
+                    <input
+                      id="modal-signup-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      className="fm-form-input"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                    {signupFieldErrors.email && (
+                      <span className="fm-field-error">{signupFieldErrors.email}</span>
+                    )}
+                  </div>
+
+                  <div className="fm-input-group">
+                    <label htmlFor="modal-signup-username">Username</label>
+                    <input
+                      id="modal-signup-username"
+                      type="text"
+                      placeholder="@username"
+                      className="fm-form-input"
+                      value={signupUsername}
+                      onChange={(e) => setSignupUsername(e.target.value)}
+                      required
+                    />
+                    {signupFieldErrors.username && (
+                      <span className="fm-field-error">{signupFieldErrors.username}</span>
+                    )}
+                  </div>
+
+                  <div className="fm-input-row">
+                    <div className="fm-input-group">
+                      <label htmlFor="modal-signup-pw">Password</label>
+                      <input
+                        id="modal-signup-pw"
+                        type="password"
+                        placeholder="At least 8 chars"
+                        className="fm-form-input"
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
+                        required
+                        minLength={8}
+                      />
+                      {signupFieldErrors.password && (
+                        <span className="fm-field-error">{signupFieldErrors.password}</span>
+                      )}
+                    </div>
+                    <div className="fm-input-group">
+                      <label htmlFor="modal-signup-cpw">Confirm Password</label>
+                      <input
+                        id="modal-signup-cpw"
+                        type="password"
+                        placeholder="Repeat password"
+                        className="fm-form-input"
+                        value={signupConfirmPassword}
+                        onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                        required
+                        minLength={8}
+                      />
+                      {signupFieldErrors.confirmPassword && (
+                        <span className="fm-field-error">{signupFieldErrors.confirmPassword}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="fm-btn-primary full-width fm-modal-submit"
+                    disabled={signupMutation.isPending}
+                  >
+                    {signupMutation.isPending ? "Creating account..." : "Create Account"}
+                  </button>
+
+                  <div className="fm-modal-footer">
+                    <span>Already on FutureMedia?</span>
+                    <button
+                      type="button"
+                      className="fm-switch-btn"
+                      onClick={() => setAuthModal("login")}
+                    >
+                      Log in
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* ── FORGOT PASSWORD FORM ── */}
+              {authModal === "forgot-password" && (
+                <form className="fm-modal-form" onSubmit={handleForgotSubmit}>
+                  <div className="fm-input-group">
+                    <label htmlFor="modal-forgot-email">Email Address</label>
+                    <input
+                      id="modal-forgot-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      className="fm-form-input"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="fm-btn-primary full-width fm-modal-submit"
+                    disabled={forgotMutation.isPending}
+                  >
+                    {forgotMutation.isPending ? "Sending Link..." : "Send Reset Link"}
+                  </button>
+
+                  <div className="fm-modal-footer">
+                    <button
+                      type="button"
+                      className="fm-switch-btn"
+                      onClick={() => setAuthModal("login")}
+                    >
+                      ← Back to Log In
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
