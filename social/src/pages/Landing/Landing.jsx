@@ -15,10 +15,8 @@ import {
   ShieldCheck,
   Zap,
   Clock,
-  Layers,
   Image as ImageIcon,
   Video,
-  Play,
   Menu,
   X,
   ChevronRight,
@@ -28,12 +26,7 @@ import {
   Lock,
   Eye,
   Send,
-  Plus,
-  SlidersHorizontal,
   BadgeCheck,
-  Camera,
-  Music,
-  Radio,
   Grid
 } from "lucide-react";
 import Logo from "../../components/Logo/Logo";
@@ -57,6 +50,33 @@ const Landing = () => {
   const isLoggedIn = Boolean(getSessionUserId());
 
   const heroMediaSlides = [PostPic1, PostPic2, PostPic3];
+
+  const storyDemos = [
+    {
+      name: "Aria Sterling",
+      time: "4h ago",
+      avatar: ProfileImage,
+      quote: '"The best ideas arrive when you give yourself permission to experiment without a final destination in mind."',
+      views: "482 views",
+      reactions: "❤️ 94"
+    },
+    {
+      name: "Julian Ross",
+      time: "2h ago",
+      avatar: PostPic1,
+      quote: '"Exploring texture and golden hour light through the 35mm lens in the old quarters."',
+      views: "312 views",
+      reactions: "🔥 76"
+    },
+    {
+      name: "Maya Lin",
+      time: "1h ago",
+      avatar: PostPic2,
+      quote: '"Generative shader experiment #42 — reactive particle flows responding to ambient audio."',
+      views: "594 views",
+      reactions: "✨ 128"
+    }
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -746,20 +766,29 @@ const Landing = () => {
               <div className="fm-showcase-visual">
                 <div className="fm-story-showcase-card glass-card">
                   <div className="fm-story-tray-demo">
-                    <div className="fm-story-pill active" onClick={() => setActiveStoryIdx(0)}>
-                      <div className="fm-story-ring active">
+                    <div
+                      className={`fm-story-pill ${activeStoryIdx === 0 ? "active" : ""}`}
+                      onClick={() => setActiveStoryIdx(0)}
+                    >
+                      <div className={`fm-story-ring ${activeStoryIdx === 0 ? "active" : ""}`}>
                         <img src={ProfileImage} alt="Aria" />
                       </div>
                       <span>Your Story</span>
                     </div>
-                    <div className="fm-story-pill" onClick={() => setActiveStoryIdx(1)}>
-                      <div className="fm-story-ring">
+                    <div
+                      className={`fm-story-pill ${activeStoryIdx === 1 ? "active" : ""}`}
+                      onClick={() => setActiveStoryIdx(1)}
+                    >
+                      <div className={`fm-story-ring ${activeStoryIdx === 1 ? "active" : ""}`}>
                         <img src={PostPic1} alt="Julian" />
                       </div>
                       <span>Julian</span>
                     </div>
-                    <div className="fm-story-pill" onClick={() => setActiveStoryIdx(2)}>
-                      <div className="fm-story-ring">
+                    <div
+                      className={`fm-story-pill ${activeStoryIdx === 2 ? "active" : ""}`}
+                      onClick={() => setActiveStoryIdx(2)}
+                    >
+                      <div className={`fm-story-ring ${activeStoryIdx === 2 ? "active" : ""}`}>
                         <img src={PostPic2} alt="Maya" />
                       </div>
                       <span>Maya</span>
@@ -776,25 +805,31 @@ const Landing = () => {
 
                     <div className="fm-story-meta">
                       <div className="fm-story-user-row">
-                        <img src={ProfileImage} alt="Author" className="fm-author-sm" />
+                        <img
+                          src={storyDemos[activeStoryIdx].avatar}
+                          alt={storyDemos[activeStoryIdx].name}
+                          className="fm-author-sm"
+                        />
                         <div>
-                          <div className="fm-name-sm">Aria Sterling</div>
-                          <div className="fm-time-sm">4h ago</div>
+                          <div className="fm-name-sm">{storyDemos[activeStoryIdx].name}</div>
+                          <div className="fm-time-sm">{storyDemos[activeStoryIdx].time}</div>
                         </div>
                       </div>
                     </div>
 
                     <div className="fm-story-body-content">
                       <div className="fm-story-quote">
-                        "The best ideas arrive when you give yourself permission to experiment without a final destination in mind."
+                        {storyDemos[activeStoryIdx].quote}
                       </div>
                     </div>
 
                     <div className="fm-story-footer-stats">
                       <div className="fm-viewers-tag">
-                        <Eye size={13} /> 482 views
+                        <Eye size={13} /> {storyDemos[activeStoryIdx].views}
                       </div>
-                      <div className="fm-story-react-bubble">❤️ 94</div>
+                      <div className="fm-story-react-bubble">
+                        {storyDemos[activeStoryIdx].reactions}
+                      </div>
                     </div>
                   </div>
                 </div>

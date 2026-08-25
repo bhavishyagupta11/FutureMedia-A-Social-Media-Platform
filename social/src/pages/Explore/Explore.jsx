@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Explore.css";
 import { motion } from "framer-motion";
 import Masonry from "react-masonry-css";
-import { Heart, MessageCircle, Compass, Hash, Users } from "lucide-react";
+import { Heart, MessageCircle, Compass, Hash, Users, TrendingUp } from "lucide-react";
 import { apiFetch } from "../../utils/api";
 import ProfileImage from "../../img/profileImg.jpg";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ const Explore = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [trendingTags, setTrendingTags] = useState([]);
 
   const categories = ["All", "Trending", "Photography", "Art", "Technology", "Fashion", "Travel"];
 
@@ -28,14 +29,14 @@ const Explore = () => {
     fetchExplorePosts();
   }, [activeCategory]);
 
-  const fetchExplorePosts = async () => {
+  const fetchExplorePosts = async (skipVal = 0) => {
     setLoading(true);
     try {
-      const res = await apiFetch("/api/v1/posts");
+      const res = await apiFetch(`/api/v1/feed/explore?limit=30&skip=${skipVal}`);
       if (res.ok) {
         const payload = await res.json();
         const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-        setPosts(data.sort(() => 0.5 - Math.random())); 
+        setPosts(prev => skipVal === 0 ? data : [...prev, ...data]);
       }
     } catch (error) {
       console.error("Failed to load explore posts", error);
@@ -43,6 +44,22 @@ const Explore = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const res = await apiFetch('/api/v1/feed/trending/hashtags?limit=10');
+        if (res.ok) {
+          const payload = await res.json();
+          const tags = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
+          setTrendingTags(tags);
+        }
+      } catch (err) {
+        console.error('Failed to load trending tags', err);
+      }
+    };
+    fetchTrending();
+  }, []);
 
   const filteredPosts = posts.filter((post) => 
     post.caption?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -82,6 +99,30 @@ const Explore = () => {
           ))}
         </motion.div>
       </div>
+
+      {trendingTags.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="exploreTrending"
+        >
+          <h3 className="trendingTitle"><TrendingUp size={18} /> Trending</h3>
+          <div className="trendingChips">
+            {trendingTags.map(t => (
+              <button
+                key={t.tag}
+                className="trendingChip"
+                onClick={() => navigate(`/search?q=${encodeURIComponent(t.tag)}`)}
+              >
+                <Hash size={14} />
+                <span className="chipTag">#{t.tag}</span>
+                <span className="chipCount">{t.postCount >= 1000 ? `${(t.postCount / 1000).toFixed(1)}K` : t.postCount} posts</span>
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {loading ? (
         <div className="exploreLoading">Discovering amazing content...</div>
