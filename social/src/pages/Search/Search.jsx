@@ -20,9 +20,9 @@ const Search = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [usersRes, postsRes] = await Promise.all([
+        const [usersRes, trendingRes] = await Promise.all([
           apiFetch("/api/v1/users/suggested"),
-          apiFetch("/api/v1/posts/feed?limit=50")
+          apiFetch("/api/v1/feed/trending/hashtags?limit=5")
         ]);
 
         if (usersRes.ok) {
@@ -31,15 +31,10 @@ const Search = () => {
           setSuggestedUsers(users.map(u => ({ id: u._id, name: u.displayName || u.username, handle: u.username, avatar: u.profilePicture || ProfileImage })));
         }
 
-        if (postsRes.ok) {
-          const payload = await postsRes.json();
-          const posts = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          const tagCount = {};
-          posts.forEach(p => p.hashtags && p.hashtags.forEach(tag => {
-            tagCount[tag] = (tagCount[tag] || 0) + 1;
-          }));
-          const sortedTags = Object.entries(tagCount).sort((a,b) => b[1] - a[1]).slice(0, 5).map(t => t[0]);
-          setTrendingTags(sortedTags.map(t => t.startsWith('#') ? t : `#${t}`));
+        if (trendingRes.ok) {
+          const payload = await trendingRes.json();
+          const tags = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
+          setTrendingTags(tags.map(t => t.tag ? (t.tag.startsWith('#') ? t.tag : `#${t.tag}`) : t));
         }
 
         const savedSearches = JSON.parse(localStorage.getItem("recentSearches") || "[]");

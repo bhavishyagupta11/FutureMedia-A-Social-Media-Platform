@@ -65,7 +65,7 @@ const Posts = ({ singlePostId }) => {
   const fetchPosts = useCallback(async ({ showLoader = false } = {}) => {
     if (showLoader) setLoading(true);
     try {
-      const url = singlePostId ? `/api/v1/posts/${singlePostId}` : "/api/v1/posts/feed";
+      const url = singlePostId ? `/api/v1/posts/${singlePostId}` : "/api/v1/feed/home?limit=20";
       const response = await apiFetch(url);
       if (!response.ok) { setPosts(withDemoFallback([])); return; }
       const payload = await response.json();
@@ -73,7 +73,8 @@ const Posts = ({ singlePostId }) => {
       
       let postsArray = [];
       if (Array.isArray(data)) postsArray = data;
-      else if (data && typeof data === 'object') postsArray = [data];
+      else if (data && Array.isArray(data.posts)) postsArray = data.posts;
+      else if (data && typeof data === 'object' && data._id) postsArray = [data];
 
       if (postsArray.length === 0) { setPosts(withDemoFallback([])); return; }
       setPosts(withDemoFallback(postsArray.map(normalizePost)));

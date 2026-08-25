@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import "./PostShare.css";
-import { ImagePlus as ImageIcon, Video, X, Globe } from "lucide-react";
+import { ImagePlus as ImageIcon, Video, X, Globe, Lock } from "lucide-react";
 import { apiFetch } from "../../utils/api";
 import ProfileImage from "../../img/profileImg.jpg";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +14,11 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState("");
+  const [visibility, setVisibility] = useState('public');
+
+  const toggleVisibility = () => {
+    setVisibility(prev => prev === 'public' ? 'private' : 'public');
+  };
 
   const imageRef = useRef(null);
   const videoRef = useRef(null);
@@ -118,6 +123,7 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
         formData.append("media", video.file);
       }
       formData.append("caption", desc.trim());
+      formData.append("visibility", visibility);
 
       const response = await apiFetch("/api/v1/posts", {
         method: "POST",
@@ -198,10 +204,15 @@ const PostShare = ({ onPostCreated, isCompact = true }) => {
           </div>
 
           <div className="actionGroup">
-            <div className="audienceLabel" title="Visible to everyone" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-text-muted)', fontSize: '0.85rem', fontWeight: 600, cursor: 'default' }}>
-              <Globe size={14} />
-              <span>Public</span>
-            </div>
+            <button
+              type="button"
+              className={`visibilityToggle ${visibility}`}
+              onClick={toggleVisibility}
+              title={visibility === 'public' ? 'Visible to everyone' : 'Only visible to followers'}
+            >
+              {visibility === 'public' ? <Globe size={14} /> : <Lock size={14} />}
+              <span>{visibility === 'public' ? 'Public' : 'Private'}</span>
+            </button>
             <button type="submit" className="button-share" disabled={isSubmitting || (!desc.trim() && !image && !video)}>
               {isSubmitting ? "Posting..." : "Post"}
             </button>
