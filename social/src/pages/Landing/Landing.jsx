@@ -693,7 +693,7 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 4. Capability Summary Cards ─────────────────────────────────── */}
+        {/* ─── 4. Concrete Architecture & Engineering Highlights ──────────────────────── */}
         <section className="fm-trust-section">
           <div className="fm-trust-container">
             <div className="fm-trust-grid">
@@ -701,32 +701,32 @@ const Landing = () => {
                 <div className="fm-trust-icon peach">
                   <Zap size={20} />
                 </div>
-                <div className="fm-trust-num">Live Chat</div>
-                <div className="fm-trust-label">Fast 1-on-1 and group messaging</div>
+                <div className="fm-trust-num">40+ REST APIs</div>
+                <div className="fm-trust-label">Express controllers with unified error handling</div>
               </div>
 
               <div className="fm-trust-card">
                 <div className="fm-trust-icon sage">
                   <Clock size={20} />
                 </div>
-                <div className="fm-trust-num">24h Stories</div>
-                <div className="fm-trust-label">Share moments that expire in a day</div>
+                <div className="fm-trust-num">Socket.IO Engine</div>
+                <div className="fm-trust-label">Real-time chat, typing events, and active presence</div>
               </div>
 
               <div className="fm-trust-card">
                 <div className="fm-trust-icon pink">
                   <TrendingUp size={20} />
                 </div>
-                <div className="fm-trust-num">Explore Feeds</div>
-                <div className="fm-trust-label">Find work and topics you care about</div>
+                <div className="fm-trust-num">6 DB Collections</div>
+                <div className="fm-trust-label">MongoDB social graph, hashtags & story indexing</div>
               </div>
 
               <div className="fm-trust-card">
                 <div className="fm-trust-icon lavender">
                   <ShieldCheck size={20} />
                 </div>
-                <div className="fm-trust-num">Audience Control</div>
-                <div className="fm-trust-label">Choose who sees every post</div>
+                <div className="fm-trust-num">6+ Security Layers</div>
+                <div className="fm-trust-label">JWT auth, RBAC, input sanitization & rate limits</div>
               </div>
             </div>
           </div>

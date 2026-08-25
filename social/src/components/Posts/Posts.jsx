@@ -459,12 +459,22 @@ const PostItem = React.memo(({
       />
 
       {/* Caption & Hashtags */}
-      <div className="detail">
-        <span className="postCaption">
-          <strong>@{post.username} </strong>
-          {renderCaptionWithHashtags(post.desc)}
-        </span>
-      </div>
+      {post.desc && (
+        <div className="detail" style={{ padding: "8px 16px 4px 16px" }}>
+          <div className="postCaption" style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px", fontSize: "0.92rem", lineHeight: "1.5", wordBreak: "break-word" }}>
+            <span
+              className="captionUsername"
+              onClick={() => post.username && navigate(`/profile/${post.username}`)}
+              style={{ fontWeight: 700, cursor: "pointer", color: "var(--fm-text)", display: "inline-block" }}
+            >
+              @{post.username}
+            </span>
+            <span className="captionText" style={{ color: "var(--fm-text)", flex: "1 1 auto" }}>
+              {renderCaptionWithHashtags(post.desc)}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Comments section */}
       {isCommentOpen && (

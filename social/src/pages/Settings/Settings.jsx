@@ -283,7 +283,7 @@ const Settings = () => {
                       id="displayName"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Your name"
+                      placeholder="Enter your display name"
                     />
                   </div>
 
@@ -293,7 +293,7 @@ const Settings = () => {
                       id="bio"
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
-                      placeholder="Tell people about yourself"
+                      placeholder="Tell people a little about yourself"
                       rows={4}
                     />
                   </div>
@@ -304,7 +304,7 @@ const Settings = () => {
                       id="website"
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
-                      placeholder="https://your-site.com"
+                      placeholder="https://yourwebsite.com"
                     />
                   </div>
 

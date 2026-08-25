@@ -1,18 +1,21 @@
 const mongoose = require("mongoose");
+const { MongoMemoryServer } = require("mongodb-memory-server");
 const authService = require("../services/auth.service");
 const User = require("../models/userModel");
-const env = require("../config/env");
+
+let mongoServer;
 
 describe("Email Verification Subsystem Integration Tests", () => {
   beforeAll(async () => {
     process.env.EMAIL_MODE = "mock";
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(env.MONGO_URI);
-    }
+    mongoServer = await MongoMemoryServer.create();
+    await mongoose.connect(mongoServer.getUri());
   }, 30000);
 
   afterAll(async () => {
+    await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
+    await mongoServer.stop();
   }, 30000);
 
   const testEmail = `verify_test_${Date.now()}@test.com`;

@@ -287,6 +287,107 @@
   border-color: var(--fm-primary-soft);
 }
 
+.search-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1.2rem 0 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1.5px solid var(--fm-border);
+}
+
+.search-section-header h4 {
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fm-text-secondary);
+  margin: 0;
+}
+
+.search-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.search-post-card {
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: var(--transition-smooth);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.search-post-card:hover {
+  border-color: var(--fm-primary-soft);
+  box-shadow: var(--shadow-md);
+}
+
+.search-post-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-post-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--fm-border);
+}
+
+.search-post-author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-post-author-info strong {
+  font-size: 0.88rem;
+  color: var(--fm-text);
+  font-weight: 700;
+}
+
+.search-post-author-info span {
+  font-size: 0.78rem;
+  color: var(--fm-text-muted);
+}
+
+.search-post-image {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+}
+
+.search-post-caption {
+  font-size: 0.88rem;
+  color: var(--fm-text);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.search-post-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.82rem;
+  color: var(--fm-text-muted);
+  font-weight: 600;
+}
+
+.search-post-stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 @media (max-width: 768px) {
   .search-page {
     padding: 0 var(--space-2) 6rem;
@@ -295,5 +396,8 @@
   .search-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+  }
+  .search-posts-grid {
+    grid-template-columns: 1fr;
   }
 }

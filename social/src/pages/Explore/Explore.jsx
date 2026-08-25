@@ -65,7 +65,7 @@ const Explore = () => {
     if (activeCategory === "All" || activeCategory === "Trending") return true;
 
     const cat = activeCategory.toLowerCase();
-    const caption = (post.caption || "").toLowerCase();
+    const caption = (post.desc || post.caption || "").toLowerCase();
     const hashtags = Array.isArray(post.hashtags) ? post.hashtags.map(h => h.toLowerCase()) : [];
 
     return caption.includes(cat) || caption.includes(`#${cat}`) || hashtags.includes(cat);

@@ -24,21 +24,26 @@ const getUser = async (identifier) => {
   return user;
 };
 
+const NON_TEST_FILTER = {
+  username: { $not: /^integration_test_|^vuser_|^user_\d+|^test_user|^testuser/i },
+  accountStatus: "active"
+};
+
 const getAllUsers = async () => {
-  return await User.find({ accountStatus: "active" }).select("-password -__v");
+  return await User.find(NON_TEST_FILTER).select("-password -__v");
 };
 
 const getSuggestedUsers = async (userId) => {
   const currentUser = await User.findById(userId).select("following");
   const excludeIds = [...(currentUser?.following || []), userId];
 
-  let suggestions = await User.find({ _id: { $nin: excludeIds }, accountStatus: "active" })
+  let suggestions = await User.find({ _id: { $nin: excludeIds }, ...NON_TEST_FILTER })
     .select("username displayName profilePicture bio profession location isVerified isPrivate followRequests followers settings")
     .sort({ engagementScore: -1 })
     .limit(10);
 
   if (suggestions.length < 5) {
-    suggestions = await User.find({ _id: { $ne: userId }, accountStatus: "active" })
+    suggestions = await User.find({ _id: { $ne: userId }, ...NON_TEST_FILTER })
       .select("username displayName profilePicture bio profession location isVerified isPrivate followRequests followers settings")
       .sort({ engagementScore: -1 })
       .limit(10);

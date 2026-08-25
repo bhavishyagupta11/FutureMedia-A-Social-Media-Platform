@@ -232,7 +232,7 @@ const EditProfile = () => {
               <label>Display Name</label>
               <input
                 type="text"
-                placeholder="e.g. Snehil Khokhar"
+                placeholder="Enter your display name"
                 value={form.displayName}
                 onChange={(e) => setForm({ ...form, displayName: e.target.value })}
                 required
@@ -245,7 +245,7 @@ const EditProfile = () => {
                 <span className="usernamePrefix">@</span>
                 <input
                   type="text"
-                  placeholder="username"
+                  placeholder="Choose a username"
                   value={form.username}
                   onChange={(e) => setForm({ ...form, username: e.target.value.replace(/^@/, '') })}
                   required
@@ -259,7 +259,7 @@ const EditProfile = () => {
               <label>Profession / Title</label>
               <input
                 type="text"
-                placeholder="e.g. Street Photographer & Visual Artist"
+                placeholder="e.g. Software Developer"
                 value={form.profession}
                 onChange={(e) => setForm({ ...form, profession: e.target.value })}
               />
@@ -269,7 +269,7 @@ const EditProfile = () => {
               <label>Location</label>
               <input
                 type="text"
-                placeholder="e.g. Delhi, India"
+                placeholder="e.g. Jaipur, Rajasthan"
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
               />
@@ -282,7 +282,7 @@ const EditProfile = () => {
               <span className="charCounter">{form.bio.length} / 250</span>
             </div>
             <textarea
-              placeholder="Write a short bio describing yourself, your craft, and your interests..."
+              placeholder="Tell people a little about yourself"
               value={form.bio}
               maxLength={250}
               rows={3}
@@ -294,7 +294,7 @@ const EditProfile = () => {
             <label>Website / Portfolio URL</label>
             <input
               type="url"
-              placeholder="https://snehilkhokhar.com"
+              placeholder="https://yourwebsite.com"
               value={form.website}
               onChange={(e) => setForm({ ...form, website: e.target.value })}
             />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search as SearchIcon, Hash, UserPlus, TrendingUp, Clock, X } from 'lucide-react';
+import { Search as SearchIcon, UserPlus, TrendingUp, Clock, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Search.css';
 import ProfileImage from '../../img/profileImg.jpg';
@@ -110,49 +110,56 @@ const Search = () => {
           apiFetch(`/api/v1/posts/search?query=${encodeURIComponent(cleanTerm)}`)
         ]);
 
-        let combined = [];
+        let foundUsers = [];
+        let foundPosts = [];
+        let foundTags = [];
 
         if (userRes.ok) {
           const payload = await userRes.json();
           const users = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          combined = [...combined, ...users.map(u => ({
-            type: 'user',
+          foundUsers = users.map(u => ({
             id: u._id,
             name: u.displayName || u.username,
             handle: u.username,
-            avatar: u.profilePicture || ProfileImage
-          }))];
+            avatar: u.profilePicture || ProfileImage,
+            bio: u.bio || u.profession || ""
+          }));
         }
 
         if (postRes.ok) {
           const payload = await postRes.json();
           const posts = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          const tags = new Set();
+          foundPosts = posts.map(p => ({
+            id: p._id,
+            desc: p.desc || p.caption || "",
+            imageUrl: p.mediaArray?.[0] || p.imageUrl || p.image,
+            mediaArray: p.mediaArray || [],
+            author: p.userId || {},
+            authorName: p.userId?.displayName || p.userId?.username || p.username || "Creator",
+            authorHandle: p.userId?.username || p.username || "",
+            authorAvatar: p.userId?.profilePicture || ProfileImage,
+            likesCount: Array.isArray(p.likes) ? p.likes.length : 0,
+            commentsCount: Array.isArray(p.comments) ? p.comments.length : 0,
+            hashtags: p.hashtags || []
+          }));
+
+          const tagSet = new Set();
           posts.forEach(p => {
             if (Array.isArray(p.hashtags)) {
               p.hashtags.forEach(tag => {
                 if (tag.toLowerCase().includes(cleanTerm.toLowerCase())) {
-                  tags.add(tag.toLowerCase());
+                  tagSet.add(tag.toLowerCase());
                 }
               });
             }
           });
-
-          // Also include the search term itself as a tag if valid
           if (cleanTerm.length >= 2) {
-            tags.add(cleanTerm.toLowerCase());
+            tagSet.add(cleanTerm.toLowerCase());
           }
-
-          combined = [
-            ...Array.from(tags).slice(0, 5).map(t => ({
-              type: 'tag',
-              name: `#${t}`
-            })),
-            ...combined
-          ];
+          foundTags = Array.from(tagSet).slice(0, 6);
         }
 
-        setResults(combined);
+        setResults({ users: foundUsers, posts: foundPosts, tags: foundTags });
         saveRecentSearch(debouncedQuery);
       } catch (err) {
         console.error(err);
@@ -163,6 +170,8 @@ const Search = () => {
 
     fetchSearch();
   }, [debouncedQuery]);
+
+  const hasAnyResults = results.users?.length > 0 || results.posts?.length > 0 || results.tags?.length > 0;
 
   return (
     <motion.div 
@@ -175,7 +184,7 @@ const Search = () => {
           <SearchIcon size={20} color="var(--fm-text-muted)" />
           <input
             type="text"
-            placeholder="Search users, posts, or tags (e.g. Snehil, #photography)..."
+            placeholder="Search people, posts, or hashtags"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="search-input"
@@ -184,7 +193,7 @@ const Search = () => {
           {query && (
             <button
               type="button"
-              onClick={() => { setQuery(''); setDebouncedQuery(''); setResults([]); }}
+              onClick={() => { setQuery(''); setDebouncedQuery(''); setResults({ users: [], posts: [], tags: [] }); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fm-text-muted)', display: 'flex', alignItems: 'center' }}
               aria-label="Clear search"
             >
@@ -216,53 +225,116 @@ const Search = () => {
               ) : (
                 <div className="search-results-list">
                   <h3 className="section-title">Results for "{debouncedQuery}"</h3>
-                  {results.length === 0 ? (
+
+                  {!hasAnyResults ? (
                     <p className="search-meta" style={{ color: "var(--fm-text-muted)", padding: "1.5rem 0" }}>
-                      No users or tags found matching "{debouncedQuery}".
+                      No people, posts, or hashtags found matching "{debouncedQuery}".
                     </p>
                   ) : (
-                    results.map((r, i) => (
-                      <div 
-                        key={i} 
-                        className="search-result-item"
-                        onClick={() => {
-                          if (r.type === 'user') {
-                            navigate(`/profile/${r.handle || r.id}`);
-                          } else if (r.type === 'tag') {
-                            setQuery(r.name.replace('#', ''));
-                          }
-                        }}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        {r.type === 'user' ? (
-                          <>
-                            <img src={r.avatar} alt={r.name} className="result-avatar" onError={(e) => { e.target.src = ProfileImage; }} />
-                            <div className="result-info">
-                              <strong>{r.name}</strong>
-                              <span>@{r.handle}</span>
-                            </div>
-                            <button 
-                              type="button"
-                              className="result-action-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/profile/${r.handle || r.id}`);
-                              }}
+                    <>
+                      {/* Tags Bar */}
+                      {results.tags?.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                          {results.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="tag-chip"
+                              onClick={() => setQuery(`#${tag}`)}
                             >
-                              View Profile
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <div className="result-icon-bg"><Hash size={20} color="var(--fm-primary)" /></div>
-                            <div className="result-info">
-                              <strong>{r.name}</strong>
-                              <span>Hashtag</span>
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Matching Users */}
+                      {results.users?.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div className="search-section-header">
+                            <h4>People</h4>
+                          </div>
+                          {results.users.map((u) => (
+                            <div
+                              key={u.id}
+                              className="search-result-item"
+                              onClick={() => navigate(`/profile/${u.handle || u.id}`)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <img src={u.avatar} alt={u.name} className="result-avatar" onError={(e) => { e.target.src = ProfileImage; }} />
+                              <div className="result-info">
+                                <strong>{u.name}</strong>
+                                <span>@{u.handle}</span>
+                              </div>
+                              <button
+                                type="button"
+                                className="result-action-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/profile/${u.handle || u.id}`);
+                                }}
+                              >
+                                View Profile
+                              </button>
                             </div>
-                          </>
-                        )}
-                      </div>
-                    ))
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Matching Posts */}
+                      {results.posts?.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
+                          <div className="search-section-header">
+                            <h4>Posts</h4>
+                          </div>
+                          <div className="search-posts-grid">
+                            {results.posts.map((post) => (
+                              <div
+                                key={post.id}
+                                className="search-post-card"
+                                onClick={() => post.authorHandle && navigate(`/profile/${post.authorHandle}`)}
+                              >
+                                <div className="search-post-header">
+                                  <img
+                                    src={post.authorAvatar}
+                                    alt={post.authorName}
+                                    className="search-post-avatar"
+                                    onError={(e) => { e.target.src = ProfileImage; }}
+                                  />
+                                  <div className="search-post-author-info">
+                                    <strong>{post.authorName}</strong>
+                                    <span>@{post.authorHandle}</span>
+                                  </div>
+                                </div>
+
+                                {post.imageUrl && (
+                                  <img
+                                    src={post.imageUrl}
+                                    alt="post media"
+                                    className="search-post-image"
+                                    loading="lazy"
+                                  />
+                                )}
+
+                                {post.desc && (
+                                  <p className="search-post-caption">
+                                    {post.desc}
+                                  </p>
+                                )}
+
+                                <div className="search-post-stats">
+                                  <span className="search-post-stat-item">
+                                    ❤️ {post.likesCount}
+                                  </span>
+                                  <span className="search-post-stat-item">
+                                    💬 {post.commentsCount}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}

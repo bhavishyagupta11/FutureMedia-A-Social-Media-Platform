@@ -274,8 +274,29 @@ const seedDatabase = async () => {
   isSeeding = true;
 
   try {
-    // 1. Remove any legacy generated vuser_* or dummy accounts
-    await User.deleteMany({ username: { $regex: /^vuser_|^user_\d+/i } });
+    // 1. Remove all legacy test/synthetic accounts from database
+    const testUsers = await User.find({
+      $or: [
+        { username: { $regex: /^integration_test_|^vuser_|^user_\d+|^test_user|^testuser/i } },
+        { email: { $regex: /^verify_test_|^testuser|^integration_test/i } }
+      ]
+    });
+
+    if (testUsers.length > 0) {
+      const testUserIds = testUsers.map(u => u._id);
+      await Post.deleteMany({ userId: { $in: testUserIds } });
+      await Story.deleteMany({ userId: { $in: testUserIds } });
+      await User.deleteMany({ _id: { $in: testUserIds } });
+      await User.updateMany(
+        {},
+        {
+          $pull: {
+            followers: { $in: testUserIds },
+            following: { $in: testUserIds }
+          }
+        }
+      );
+    }
 
     // 2. Upsert official users
     const defaultHashedPassword = hashPassword("Password123!");
