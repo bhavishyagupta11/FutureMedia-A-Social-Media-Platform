@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Eye, Trash2 } from 'lucide-react';
+import { X, Eye, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import './StoryViewer.css';
 import { apiFetch } from '../../utils/api';
 import { getStoredUserProfile, resolveAvatar } from '../../utils/session';
@@ -16,7 +16,7 @@ const FONT_SIZE_MAP = {
   '2rem': '2.5rem'
 };
 
-const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }) => {
+const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted, onStoryViewed }) => {
   const currentProfile = getStoredUserProfile() || {};
   const currentUserId = currentProfile.userId;
 
@@ -24,35 +24,82 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [videoDuration, setVideoDuration] = useState(5000); // default 5s
+  const [videoDuration, setVideoDuration] = useState(5000);
   const [showViewersModal, setShowViewersModal] = useState(false);
   const [viewersList, setViewersList] = useState([]);
   const [loadingViewers, setLoadingViewers] = useState(false);
 
   const videoRef = useRef(null);
+  const viewedStoriesRef = useRef(new Set());
   const group = storyGroups[currentGroupIndex];
   const story = group?.stories?.[currentStoryIndex];
 
-  // Escape key listener to close viewer
+  const handleNext = useCallback(() => {
+    if (!group) {
+      onClose();
+      return;
+    }
+    if (currentStoryIndex < group.stories.length - 1) {
+      setCurrentStoryIndex(prev => prev + 1);
+      setProgress(0);
+    } else if (currentGroupIndex < storyGroups.length - 1) {
+      setCurrentGroupIndex(prev => prev + 1);
+      setCurrentStoryIndex(0);
+      setProgress(0);
+    } else {
+      onClose();
+    }
+  }, [currentStoryIndex, currentGroupIndex, group, storyGroups.length, onClose]);
+
+  const handlePrev = useCallback(() => {
+    if (currentStoryIndex > 0) {
+      setCurrentStoryIndex(prev => prev - 1);
+      setProgress(0);
+    } else if (currentGroupIndex > 0) {
+      setCurrentGroupIndex(prev => prev - 1);
+      const prevGroupStories = storyGroups[currentGroupIndex - 1].stories;
+      setCurrentStoryIndex(prevGroupStories.length - 1);
+      setProgress(0);
+    }
+  }, [currentStoryIndex, currentGroupIndex, storyGroups]);
+
+  // Keyboard navigation listener (ArrowRight, ArrowLeft, Escape)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         onClose();
+      } else if (e.key === 'ArrowRight') {
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrev();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  }, [onClose, handleNext, handlePrev]);
 
+  // View tracking: send view request exactly ONCE per story
+  useEffect(() => {
+    if (!story || !group) return;
+
+    if (currentUserId && String(group.user?._id) !== String(currentUserId)) {
+      if (!viewedStoriesRef.current.has(story._id)) {
+        viewedStoriesRef.current.add(story._id);
+        apiFetch(`/api/v1/stories/${story._id}/view`, { method: 'PUT' }).catch(() => {
+          apiFetch(`/api/v1/stories/${story._id}/view`, { method: 'POST' }).catch(() => {});
+        });
+        if (onStoryViewed) {
+          onStoryViewed(story._id, group.user?._id || group.user?.username);
+        }
+      }
+    }
+  }, [story?._id, group?.user?._id, currentUserId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Progress timer effect
   useEffect(() => {
     if (!story || !group) {
       onClose();
       return;
-    }
-
-    // Mark as viewed in backend if not self
-    if (currentUserId && String(group.user?._id) !== String(currentUserId)) {
-      apiFetch(`/api/v1/stories/${story._id}/view`, { method: 'PUT' }).catch(console.error);
     }
 
     setProgress(0);
@@ -74,33 +121,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
     }
 
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentGroupIndex, currentStoryIndex, isPaused, showViewersModal, videoDuration, story]);
-
-  const handleNext = () => {
-    if (currentStoryIndex < group.stories.length - 1) {
-      setCurrentStoryIndex(prev => prev + 1);
-      setProgress(0);
-    } else if (currentGroupIndex < storyGroups.length - 1) {
-      setCurrentGroupIndex(prev => prev + 1);
-      setCurrentStoryIndex(0);
-      setProgress(0);
-    } else {
-      onClose();
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentStoryIndex > 0) {
-      setCurrentStoryIndex(prev => prev - 1);
-      setProgress(0);
-    } else if (currentGroupIndex > 0) {
-      setCurrentGroupIndex(prev => prev - 1);
-      const prevGroupStories = storyGroups[currentGroupIndex - 1].stories;
-      setCurrentStoryIndex(prevGroupStories.length - 1);
-      setProgress(0);
-    }
-  };
+  }, [currentGroupIndex, currentStoryIndex, isPaused, showViewersModal, videoDuration, story, group, handleNext, onClose]);
 
   const handleDeleteCurrentStory = async () => {
     if (!story) return;
@@ -155,6 +176,7 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
     : "";
 
   const userAvatarUrl = resolveAvatar(group.user);
+  const hasPrev = currentStoryIndex > 0 || currentGroupIndex > 0;
 
   return (
     <AnimatePresence>
@@ -284,6 +306,29 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
             </div>
           )}
 
+          {/* Visible Floating Navigation Arrows */}
+          {hasPrev && (
+            <button
+              type="button"
+              className="story-arrow-btn left"
+              onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+              aria-label="Previous Story"
+              title="Previous Story (ArrowLeft)"
+            >
+              <ChevronLeft size={24} />
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="story-arrow-btn right"
+            onClick={(e) => { e.stopPropagation(); handleNext(); }}
+            aria-label="Next Story"
+            title="Next Story (ArrowRight)"
+          >
+            <ChevronRight size={24} />
+          </button>
+
           {/* Tap Navigation Areas */}
           <div className="story-nav left" onClick={(e) => { e.stopPropagation(); handlePrev(); }} />
           <div className="story-nav right" onClick={(e) => { e.stopPropagation(); handleNext(); }} />
@@ -308,11 +353,11 @@ const StoryViewer = ({ storyGroups, initialGroupIndex, onClose, onStoryDeleted }
 
               <div className="viewers-list">
                 {loadingViewers ? (
-                  <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                  <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--fm-text-muted)' }}>
                     Loading viewers...
                   </div>
                 ) : viewersList.length === 0 ? (
-                  <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                  <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--fm-text-muted)' }}>
                     No views yet
                   </div>
                 ) : (

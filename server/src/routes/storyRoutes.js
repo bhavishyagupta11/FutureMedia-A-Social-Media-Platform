@@ -9,6 +9,7 @@ router.post("/", protect, upload.single("media"), storyController.createStory);
 router.get("/", protect, storyController.getFeedStories);
 router.get("/user/:userId", protect, storyController.getUserStories);
 router.put("/:id/view", protect, storyController.markStoryAsViewed);
+router.post("/:id/view", protect, storyController.markStoryAsViewed);
 router.get("/:id/viewers", protect, storyController.getStoryViewers);
 router.delete("/:id", protect, storyController.deleteStory);
 

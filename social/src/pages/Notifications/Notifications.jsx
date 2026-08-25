@@ -3,37 +3,9 @@ import "./Notifications.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Heart, MessageCircle, UserPlus, Star, Check, X, ArrowRight } from "lucide-react";
 import ProfileImage from "../../img/profileImg.jpg";
-import { CREATORS } from "../../constants/mediaAssets";
 import { apiFetch } from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
-const DEFAULT_NOTIFICATIONS = [
-  {
-    _id: "notif-1",
-    sender: { displayName: CREATORS.snehil.name, username: CREATORS.snehil.username, profilePicture: CREATORS.snehil.avatar },
-    type: "like",
-    body: "liked your latest photo series.",
-    read: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString()
-  },
-  {
-    _id: "notif-2",
-    sender: { displayName: CREATORS.sahil.name, username: CREATORS.sahil.username, profilePicture: CREATORS.sahil.avatar },
-    type: "comment",
-    body: "commented: 'The motion curves look incredibly fluid!'",
-    read: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString()
-  },
-  {
-    _id: "notif-3",
-    sender: { displayName: CREATORS.priya.name, username: CREATORS.priya.username, profilePicture: CREATORS.priya.avatar },
-    type: "follow",
-    body: "started following you.",
-    read: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString()
-  }
-];
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -50,13 +22,13 @@ const Notifications = () => {
       const response = await apiFetch("/api/v1/notifications");
       if (response.ok) {
         const payload = await response.json();
-        const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-        setNotifications(data.length > 0 ? data : DEFAULT_NOTIFICATIONS);
+        const data = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+        setNotifications(data);
       } else {
-        setNotifications(DEFAULT_NOTIFICATIONS);
+        setNotifications([]);
       }
     } catch (e) {
-      setNotifications(DEFAULT_NOTIFICATIONS);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
@@ -90,14 +62,6 @@ const Notifications = () => {
     const senderId = notif.sender?._id || notif.sender;
     if (!senderId) return;
 
-    if (String(notif._id).startsWith("notif-")) {
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === notif._id ? { ...n, isAccepted: true } : n))
-      );
-      toast.success("Follow request accepted!");
-      return;
-    }
-
     try {
       setActionLoading((prev) => ({ ...prev, [notif._id]: true }));
       const response = await apiFetch(`/api/v1/users/${senderId}/accept-follow`, {
@@ -123,12 +87,6 @@ const Notifications = () => {
   const handleRejectRequest = async (notif) => {
     const senderId = notif.sender?._id || notif.sender;
     if (!senderId) return;
-
-    if (String(notif._id).startsWith("notif-")) {
-      setNotifications((prev) => prev.filter((n) => n._id !== notif._id));
-      toast.info("Follow request rejected");
-      return;
-    }
 
     try {
       setActionLoading((prev) => ({ ...prev, [notif._id]: true }));
@@ -161,7 +119,7 @@ const Notifications = () => {
   };
 
   const handleNotificationClick = async (notif) => {
-    if (!notif.read && !String(notif._id).startsWith("notif-")) {
+    if (!notif.read) {
       try {
         await apiFetch(`/api/v1/notifications/${notif._id}/read`, { method: "PUT" });
         setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, read: true } : n));
@@ -243,7 +201,7 @@ const Notifications = () => {
                       style={{ cursor: "pointer" }}
                       onClick={() => navigate(`/profile/${senderHandle}`)}
                     >
-                      <img src={avatar} alt={senderName} className="notificationAvatar" />
+                      <img src={avatar} alt={senderName} className="notificationAvatar" onError={(e) => { e.target.src = ProfileImage; }} />
                       <div className="notificationTypeBadge" style={{ backgroundColor: getIconColor(type) }}>
                         {getIconForType(type)}
                       </div>

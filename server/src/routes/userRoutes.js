@@ -29,8 +29,8 @@ router.get("/me", protect, getProfile);
 router.route("/:id")
   .get(getProfile);
   
-router.put("/:id/profile", protect, upload.single("profilePicture"), updateProfile);
-router.put("/:id", protect, upload.single("profilePicture"), updateProfile);
+router.put("/:id/profile", protect, upload.fields([{ name: "profilePicture", maxCount: 1 }, { name: "coverImage", maxCount: 1 }]), updateProfile);
+router.put("/:id", protect, upload.fields([{ name: "profilePicture", maxCount: 1 }, { name: "coverImage", maxCount: 1 }]), updateProfile);
   
 router.post("/:id/follow", protect, followUser);
 router.post("/:id/unfollow", protect, unfollowUser);

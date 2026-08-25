@@ -5,11 +5,9 @@ import ProfileImage from "../../img/profileImg.jpg";
 import { apiFetch } from "../../utils/api";
 import { getSessionUserId } from "../../utils/session";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import { Heart, Pencil, Trash2 } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Heart, Pencil, Trash2, Globe, Lock } from "lucide-react";
 import ActionBar from "../Actions/ActionBar";
-
-import { CREATORS, POST_MEDIA } from "../../constants/mediaAssets";
 
 const normalizePost = (post) => {
   const source = post || {};
@@ -30,6 +28,8 @@ const normalizePost = (post) => {
     name,
     username,
     desc: source.caption || source.desc || "",
+    hashtags: Array.isArray(source.hashtags) ? source.hashtags : [],
+    visibility: source.visibility || "public",
     likes: Array.isArray(source.likes) ? source.likes : [],
     comments: Array.isArray(source.comments) ? source.comments : [],
     format: primaryMedia ? primaryMedia.type : source.format || "image",
@@ -43,83 +43,30 @@ const normalizePost = (post) => {
         : rawImageUrl
       : "",
     avatar,
-    isDemo: Boolean(source.isDemo),
     createdAt: source.createdAt || new Date().toISOString(),
   };
 };
 
-const DEFAULT_FEED_POSTS = [
-  {
-    _id: "demo-bhavishya-1",
-    ownerId: "bhavishya-gupta-id",
-    name: CREATORS.bhavishya.name,
-    username: CREATORS.bhavishya.username,
-    avatar: CREATORS.bhavishya.avatar,
-    desc: "Working on generative shader transitions and clean editorial typography for the new update. What do you all think? ✨ #FutureMedia #GenerativeDesign #BuildInPublic",
-    likes: ["demo1", "demo2", "demo3", "demo4"],
-    comments: [
-      {
-        _id: "local-c1",
-        userId: "sahil-id",
-        userName: CREATORS.sahil.name,
-        text: "The motion curves look incredibly fluid! Loving this direction.",
-      },
-      {
-        _id: "local-c2",
-        userId: "ananya-id",
-        userName: CREATORS.ananya.name,
-        text: "Great work with the WebGL palette. Truly inspiring.",
-      }
-    ],
-    format: "image",
-    mediaArray: [POST_MEDIA.creativeCoding],
-    imageUrl: POST_MEDIA.creativeCoding,
-    isDemo: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-  },
-  {
-    _id: "demo-snehil-1",
-    ownerId: "snehil-khokhar-id",
-    name: CREATORS.snehil.name,
-    username: CREATORS.snehil.username,
-    avatar: CREATORS.snehil.avatar,
-    desc: "Evening street lights and golden shadows. Captured on 35mm prime. #StreetPhotography #35mm #LightAndShadow",
-    likes: ["demo1", "demo2", "demo3"],
-    comments: [
-      {
-        _id: "local-c3",
-        userId: "priya-id",
-        userName: CREATORS.priya.name,
-        text: "That shadow roll-off is pure art!",
-      }
-    ],
-    format: "image",
-    mediaArray: [POST_MEDIA.streetPhoto],
-    imageUrl: POST_MEDIA.streetPhoto,
-    isDemo: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-  },
-  {
-    _id: "demo-sahil-1",
-    ownerId: "sahil-singh-id",
-    name: CREATORS.sahil.name,
-    username: CREATORS.sahil.username,
-    avatar: CREATORS.sahil.avatar,
-    desc: "Desk setup check. Organizing design tokens and physical sketches for our spatial UI architecture. #ProductDesign #Workspace #DesignCraft",
-    likes: ["demo1", "demo2"],
-    comments: [],
-    format: "image",
-    mediaArray: [POST_MEDIA.designWorkspace],
-    imageUrl: POST_MEDIA.designWorkspace,
-    isDemo: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-  }
-];
-
-const withDemoFallback = (realPosts) => {
-  const normalized = Array.isArray(realPosts) ? realPosts : [];
-  if (normalized.length === 0) return DEFAULT_FEED_POSTS;
-  return normalized;
+const renderCaptionWithHashtags = (caption) => {
+  if (!caption) return null;
+  const parts = caption.split(/(#[a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF]+)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith('#')) {
+      const tagClean = part.replace('#', '');
+      return (
+        <Link
+          key={idx}
+          to={`/search?q=%23${encodeURIComponent(tagClean)}`}
+          className="postHashtagLink"
+          onClick={(e) => e.stopPropagation()}
+          style={{ color: 'var(--fm-primary)', fontWeight: 600, textDecoration: 'none' }}
+        >
+          {part}
+        </Link>
+      );
+    }
+    return part;
+  });
 };
 
 const Posts = ({ singlePostId }) => {
@@ -138,183 +85,210 @@ const Posts = ({ singlePostId }) => {
     try {
       const url = singlePostId ? `/api/v1/posts/${singlePostId}` : "/api/v1/feed/home?limit=20";
       const response = await apiFetch(url);
-      if (!response.ok) { setPosts(withDemoFallback([])); return; }
-      const payload = await response.json();
-      const data = payload.data || payload;
-      
-      let postsArray = [];
-      if (Array.isArray(data)) postsArray = data;
-      else if (data && Array.isArray(data.posts)) postsArray = data.posts;
-      else if (data && typeof data === 'object' && data._id) postsArray = [data];
+      if (!response.ok) {
+        // Fallback to /api/v1/posts
+        const fallbackRes = await apiFetch("/api/v1/posts?limit=20");
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          const items = Array.isArray(fallbackData.data) ? fallbackData.data : Array.isArray(fallbackData) ? fallbackData : [];
+          setPosts(items.map(normalizePost));
+        } else {
+          setPosts([]);
+        }
+        return;
+      }
 
-      if (postsArray.length === 0) { setPosts(withDemoFallback([])); return; }
-      setPosts(withDemoFallback(postsArray.map(normalizePost)));
+      const payload = await response.json();
+      let rawList = [];
+
+      if (singlePostId) {
+        const item = payload.data || payload;
+        rawList = item && item._id ? [item] : [];
+      } else {
+        const data = payload.data || payload;
+        rawList = Array.isArray(data) ? data : Array.isArray(data?.posts) ? data.posts : [];
+      }
+
+      setPosts(rawList.map(normalizePost));
     } catch {
-      setPosts(withDemoFallback([]));
+      setPosts([]);
     } finally {
-      if (showLoader) setLoading(false);
+      setLoading(false);
     }
   }, [singlePostId]);
 
-  useEffect(() => { fetchPosts({ showLoader: true }); }, [fetchPosts]);
-
   useEffect(() => {
-    const handlePostCreated = (event) => {
-      const created = event?.detail?.post;
-      if (created?._id) {
-        const n = normalizePost(created);
-        setPosts((cur) => [n, ...cur.filter((p) => p._id !== n._id)]);
-      } else {
-        fetchPosts();
-      }
-    };
-    window.addEventListener("post:created", handlePostCreated);
-    return () => window.removeEventListener("post:created", handlePostCreated);
+    fetchPosts({ showLoader: true });
   }, [fetchPosts]);
 
+  const timeAgo = (isoDate) => {
+    if (!isoDate) return "";
+    const diff = (Date.now() - new Date(isoDate).getTime()) / 1000;
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+    return new Date(isoDate).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+
   const handleLikes = async (post) => {
-    if (post.isDemo || String(post._id).startsWith("demo-")) {
-      setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, likes: [...p.likes, "demo"] } : p));
+    if (!currentUserId) {
+      toast.error("Please login to like posts");
       return;
     }
+
+    const postId = post._id;
+    const isLiked = Array.isArray(post.likes) && post.likes.some((id) => String(typeof id === 'object' ? id?._id || id : id) === String(currentUserId));
+
+    // Optimistic Update
+    setPosts((cur) =>
+      cur.map((p) => {
+        if (p._id !== postId) return p;
+        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
+        const nextLikes = isLiked
+          ? currentLikes.filter((id) => String(typeof id === 'object' ? id?._id || id : id) !== String(currentUserId))
+          : [...currentLikes, currentUserId];
+        return { ...p, likes: nextLikes };
+      })
+    );
+
     try {
-      setPendingActionId(`like-${post._id}`);
-      const response = await apiFetch(`/api/v1/posts/${post._id}/like`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
-      if (response.ok) {
-        const payload = await response.json();
-        const data = payload.data || payload;
-        const msg = data.message || payload.message || "";
-        const isLiked = msg === "Post liked" || (msg.includes("liked") && !msg.includes("unliked") && msg !== "Post liked/unliked");
-        
-        setPosts((cur) => cur.map((p) => {
-          if (String(p._id) !== String(post._id)) return p;
-          
-          const newLikes = isLiked
-            ? [...p.likes.filter((id) => String(typeof id === 'object' ? id?._id || id : id) !== String(currentUserId)), currentUserId]
-            : p.likes.filter((id) => String(typeof id === 'object' ? id?._id || id : id) !== String(currentUserId));
-            
-          return { ...p, likes: newLikes };
-        }));
-        toast(isLiked ? "❤️ Post liked!" : "Post unliked", { autoClose: 1000 });
+      const response = await apiFetch(`/api/v1/posts/${postId}/like`, { method: "POST" });
+      if (!response.ok) {
+        fetchPosts();
       }
-    } catch { toast.error("Failed to update like"); }
-    finally { setPendingActionId(""); }
+    } catch {
+      fetchPosts();
+    }
   };
 
   const handleDeletePost = async (post) => {
-    if (post.isDemo || String(post._id).startsWith("demo-")) return;
-    if (!window.confirm("Delete this post?")) return;
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    const postId = post._id;
+    setPendingActionId(`delete-${postId}`);
+
     try {
-      setPendingActionId(`delete-${post._id}`);
-      const response = await apiFetch(`/api/v1/posts/${post._id}`, { method: "DELETE" });
-      if (response.ok) {
-        setPosts((cur) => cur.filter((p) => p._id !== post._id));
-        toast.success("Post deleted");
-      } else {
+      const response = await apiFetch(`/api/v1/posts/${postId}`, { method: "DELETE" });
+      if (!response.ok) {
         toast.error("Could not delete post");
+        return;
       }
-    } catch { toast.error("Failed to delete post"); }
-    finally { setPendingActionId(""); }
+      setPosts((cur) => cur.filter((p) => p._id !== postId));
+      toast.success("Post deleted");
+    } catch {
+      toast.error("Failed to delete post");
+    } finally {
+      setPendingActionId("");
+    }
   };
 
-  const handleCommentSubmit = async (post) => {
-    const text = (commentDrafts[post._id] || "").trim();
-    if (!text) { toast.warn("Write something first!"); return; }
-
-    if (post.isDemo || String(post._id).startsWith("demo-")) {
-      setPosts((cur) => cur.map((p) => p._id === post._id
-        ? { ...p, comments: [...p.comments, { _id: `local-${Date.now()}`, userId: currentUserId, text }] }
-        : p));
-      setCommentDrafts((cur) => ({ ...cur, [post._id]: "" }));
-      setOpenComments((cur) => ({ ...cur, [post._id]: true }));
+  const handleCommentSubmit = async (e, post) => {
+    e.preventDefault();
+    if (!currentUserId) {
+      toast.error("Please login to comment");
       return;
     }
 
+    const text = (commentDrafts[post._id] || "").trim();
+    if (!text) return;
+
     try {
-      setPendingActionId(`comment-${post._id}`);
       const response = await apiFetch(`/api/v1/posts/${post._id}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!response.ok) { 
-        const errData = await response.json();
-        toast.error(errData?.message || "Could not post comment"); 
-        return; 
+
+      if (!response.ok) {
+        toast.error("Failed to post comment");
+        return;
       }
+
       const payload = await response.json();
       const newComment = payload.data || payload;
-      setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, comments: [...p.comments, newComment] } : p));
-      setCommentDrafts((cur) => ({ ...cur, [post._id]: "" }));
-      setOpenComments((cur) => ({ ...cur, [post._id]: true }));
-      toast.success("Comment posted");
-    } catch { toast.error("Failed to post comment"); }
-    finally { setPendingActionId(""); }
+
+      setPosts((cur) =>
+        cur.map((p) => {
+          if (p._id !== post._id) return p;
+          return { ...p, comments: [...(p.comments || []), newComment] };
+        })
+      );
+
+      setCommentDrafts((prev) => ({ ...prev, [post._id]: "" }));
+    } catch {
+      toast.error("Network error while submitting comment");
+    }
   };
 
-  const handleCommentDelete = async (post, comment) => {
-    if (!comment?._id) return;
-    if (String(comment._id).startsWith("local-")) {
-      setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, comments: p.comments.filter((c) => c._id !== comment._id) } : p));
-      return;
-    }
+  const handleCommentDelete = async (postId, commentId) => {
     try {
-      setPendingActionId(`del-comment-${comment._id}`);
-      const response = await apiFetch(`/api/v1/posts/comment/${post._id}/${comment._id}`, { method: "DELETE" });
-      if (!response.ok) { 
-        const errData = await response.json();
-        toast.error(errData?.message || "Could not remove comment"); 
-        return; 
+      const res = await apiFetch(`/api/v1/posts/${postId}/comment/${commentId}`, { method: "DELETE" });
+      if (res.ok) {
+        setPosts((cur) =>
+          cur.map((p) => {
+            if (p._id !== postId) return p;
+            return { ...p, comments: (p.comments || []).filter((c) => c._id !== commentId) };
+          })
+        );
+        toast.success("Comment deleted");
       }
-      const payload = await response.json();
-      const updated = payload.data || payload;
-      setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, comments: updated.comments || p.comments } : p));
-      toast("Comment removed", { autoClose: 1200 });
-    } catch { toast.error("Failed to remove comment"); }
-    finally { setPendingActionId(""); }
+    } catch {
+      toast.error("Could not delete comment");
+    }
   };
 
   const handleShare = async (post) => {
-    const text = `Check out @${post.username}'s post on FSM: ${post.desc || "New post"}`;
-    try {
-      if (navigator.share) await navigator.share({ title: `${post.name} on FSM`, text });
-      else if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
-      toast("Link copied!", { autoClose: 1200 });
-    } catch { /* user cancelled */ }
-  };
-
-  const timeAgo = (dateStr) => {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
+    const postUrl = `${window.location.origin}/post/${post._id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Post by ${post.name}`,
+          text: post.desc,
+          url: postUrl,
+        });
+      } catch {}
+    } else {
+      navigator.clipboard.writeText(postUrl);
+      toast.success("Link copied to clipboard! 📋");
+    }
   };
 
   if (loading) {
     return (
       <div className="Posts">
-        {[1, 2, 3].map(n => (
-          <div className="Post" key={n} style={{ padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', marginBottom: '1rem' }}>
+        {[1, 2, 3].map((n) => (
+          <div className="Post" key={n} style={{ padding: '1.5rem', background: 'var(--fm-surface)', border: '1px solid var(--fm-border)', borderRadius: 'var(--radius-card)', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.1)', animation: 'pulse 1.5s infinite' }} />
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--fm-surface-soft)' }} />
               <div style={{ flex: 1 }}>
-                <div style={{ width: '120px', height: '14px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px', marginBottom: '0.5rem', animation: 'pulse 1.5s infinite' }} />
-                <div style={{ width: '80px', height: '10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', animation: 'pulse 1.5s infinite' }} />
+                <div style={{ width: '120px', height: '14px', background: 'var(--fm-surface-soft)', borderRadius: '4px', marginBottom: '0.5rem' }} />
+                <div style={{ width: '80px', height: '10px', background: 'var(--fm-surface-soft)', borderRadius: '4px' }} />
               </div>
             </div>
-            <div style={{ width: '100%', height: '300px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '8px', animation: 'pulse 1.5s infinite' }} />
+            <div style={{ width: '100%', height: '280px', background: 'var(--fm-surface-soft)', borderRadius: 'var(--radius-md)' }} />
           </div>
         ))}
-        <style>{`
-          @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-          }
-        `}</style>
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="Posts">
+        <div className="Post" style={{ padding: '3rem 1.5rem', textAlign: 'center', background: 'var(--fm-surface)', borderRadius: 'var(--radius-card)', border: '1px solid var(--fm-border)' }}>
+          <h3 style={{ color: 'var(--fm-text)', margin: '0 0 0.5rem' }}>No posts in your feed yet</h3>
+          <p style={{ color: 'var(--fm-text-muted)', margin: '0 0 1.5rem', fontSize: '0.92rem' }}>
+            Follow creators or share your first photo to get started!
+          </p>
+          <button
+            type="button"
+            className="saveBtn"
+            onClick={() => navigate('/explore')}
+            style={{ padding: '8px 20px', fontSize: '0.88rem' }}
+          >
+            Explore Creators
+          </button>
+        </div>
       </div>
     );
   }
@@ -352,7 +326,6 @@ const Posts = ({ singlePostId }) => {
   );
 };
 
-
 const PostItem = React.memo(({ 
   post, currentUserId, openComments, commentDrafts, brokenMediaIds, 
   pendingActionId, doubleClickLikeId, handleLikes, handleDeletePost, 
@@ -360,252 +333,201 @@ const PostItem = React.memo(({
   setCommentDrafts, setOpenComments, setDoubleClickLikeId, setBrokenMediaIds, 
   timeAgo, navigate, ProfileImage, toast, apiFetch 
 }) => {
-  
-        const isLiked = Array.isArray(post.likes) && post.likes.some((id) => String(typeof id === 'object' ? id?._id || id : id) === String(currentUserId));
-        const isCommentOpen = Boolean(openComments[post._id]);
-        const commentCount = post.comments?.length || 0;
-        const isOwner = String(post.ownerId) === String(currentUserId);
-        const hasBrokenMedia = Boolean(brokenMediaIds[post._id]);
-        const isDeleting = pendingActionId === `delete-${post._id}`;
+  const isLiked = Array.isArray(post.likes) && post.likes.some((id) => String(typeof id === 'object' ? id?._id || id : id) === String(currentUserId));
+  const isCommentOpen = Boolean(openComments[post._id]);
+  const commentCount = post.comments?.length || 0;
+  const isOwner = String(post.ownerId) === String(currentUserId);
+  const hasBrokenMedia = Boolean(brokenMediaIds[post._id]);
+  const isDeleting = pendingActionId === `delete-${post._id}`;
 
-        return (
-          <div className="Post" key={post._id}>
-            {/* Header */}
-            <div className="postHeader">
-              <img
-                src={post.avatar || ProfileImage}
-                alt={post.name}
-                className="postAvatar"
-                onClick={() => post.ownerId && navigate(`/profile/${post.ownerId}`)}
-                style={{ cursor: post.ownerId ? "pointer" : "default" }}
-              />
-              <div className="postHeaderInfo">
-                <div className="postHeaderTitleRow">
-                  <span
-                    className="postName"
-                    onClick={() => post.ownerId && navigate(`/profile/${post.ownerId}`)}
-                    style={{ cursor: post.ownerId ? "pointer" : "default" }}
-                  >
-                    {post.username}
-                  </span>
-                  <span className="postDot">•</span>
-                  <span className="postTime">{timeAgo(post.createdAt)}</span>
-                </div>
-              </div>
-              {isOwner && !post.isDemo && (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    className="postDeleteBtn"
-                    title="Edit post"
-                    onClick={async () => {
-                      const newCaption = window.prompt("Edit your caption:", post.desc);
-                      if (newCaption !== null) {
-                        try {
-                          const response = await apiFetch(`/api/v1/posts/${post._id}`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ caption: newCaption }),
-                          });
-                          if (response.ok) {
-                            const updated = await response.json();
-                            setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, desc: updated.caption || newCaption } : p));
-                            toast.success("Post updated!");
-                          } else { toast.error("Could not update post"); }
-                        } catch { toast.error("Failed to update post"); }
-                      }
-                    }}
-                  >
-                    <Pencil size={18} />
-                  </button>
-                  <button
-                    className="postDeleteBtn"
-                    title="Delete post"
-                    disabled={isDeleting}
-                    onClick={() => handleDeletePost(post)}
-                  >
-                    {isDeleting ? "…" : <Trash2 size={18} />}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Media */}
-            {(post.mediaArray && post.mediaArray.length > 0 ? post.mediaArray : (post.imageUrl ? [post.imageUrl] : [])).length > 0 && !hasBrokenMedia && (
-              <div 
-                className="postImageContainer" 
-                style={{ display: "flex", overflowX: "auto", scrollSnapType: "x mandatory", gap: "2px" }}
-                onDoubleClick={() => {
-                  if (!isLiked) handleLikes(post);
-                  setDoubleClickLikeId(post._id);
-                  setTimeout(() => setDoubleClickLikeId(null), 1000);
-                }}
-              >
-                {(post.mediaArray && post.mediaArray.length > 0 ? post.mediaArray : (post.imageUrl ? [post.imageUrl] : [])).map((url, idx) => (
-                  <div key={idx} style={{ flex: "0 0 100%", scrollSnapAlign: "center", position: "relative" }}>
-                    {url.match(/\.(mp4|webm|ogg)$/i) || post.format === 'video' ? (
-                      <video src={url} controls className="postImage" style={{ width: "100%", maxHeight: "500px", objectFit: "contain", backgroundColor: "#000" }} />
-                    ) : (
-                      <img
-                        src={url}
-                        alt="post media"
-                        className="postImage"
-                        style={{ width: "100%", objectFit: "cover" }}
-                        onError={() => setBrokenMediaIds((cur) => ({ ...cur, [post._id]: true }))}
-                        loading="lazy"
-                      />
-                    )}
-                    {doubleClickLikeId === post._id && (
-                      <div className="heartOverlay">
-                        <Heart size={80} fill="white" color="white" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {(post.imageUrl || (post.mediaArray && post.mediaArray.length > 0)) && hasBrokenMedia && (
-              <div className="postMediaFallback">Media could not be loaded.</div>
-            )}
-
-            <div className="postReact" style={{ padding: "0 1rem" }}>
-              <ActionBar 
-                isLiked={isLiked}
-                onLike={() => handleLikes(post)}
-                onCommentToggle={() => setOpenComments((cur) => ({ ...cur, [post._id]: !isCommentOpen }))}
-                onShare={() => handleShare(post)}
-                isSaved={false}
-                onSave={async () => {
+  return (
+    <div className="Post" key={post._id}>
+      {/* Header */}
+      <div className="postHeader">
+        <img
+          src={post.avatar || ProfileImage}
+          alt={post.name}
+          className="postAvatar"
+          onClick={() => post.username && navigate(`/profile/${post.username}`)}
+          style={{ cursor: "pointer" }}
+          onError={(e) => { e.target.src = ProfileImage; }}
+        />
+        <div className="postHeaderInfo">
+          <div className="postHeaderTitleRow">
+            <span
+              className="postName"
+              onClick={() => post.username && navigate(`/profile/${post.username}`)}
+              style={{ cursor: "pointer" }}
+            >
+              {post.name || post.username}
+            </span>
+            <span className="postDot">•</span>
+            <span className="postTime">{timeAgo(post.createdAt)}</span>
+            <span className="postDot">•</span>
+            <span className="postVisibilityBadge" title={post.visibility === 'private' ? 'Private' : 'Public'} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.75rem', color: 'var(--fm-text-muted)' }}>
+              {post.visibility === 'private' ? <Lock size={12} /> : <Globe size={12} />}
+              {post.visibility === 'private' ? 'Private' : 'Public'}
+            </span>
+          </div>
+          <span className="postHandle" style={{ fontSize: '0.8rem', color: 'var(--fm-text-muted)' }}>@{post.username}</span>
+        </div>
+        {isOwner && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              className="postDeleteBtn"
+              title="Edit post"
+              onClick={async () => {
+                const newCaption = window.prompt("Edit your caption:", post.desc);
+                if (newCaption !== null) {
                   try {
-                    const res = await apiFetch(`/api/v1/posts/${post._id}/save`, { method: "PUT" });
-                    if (res.ok) toast.success("Post saved!");
-                  } catch { toast.error("Failed to save post"); }
-                }}
-              />
+                    const response = await apiFetch(`/api/v1/posts/${post._id}`, {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ caption: newCaption }),
+                    });
+                    if (response.ok) {
+                      const updated = await response.json();
+                      setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, desc: updated.caption || newCaption } : p));
+                      toast.success("Post updated!");
+                    } else { toast.error("Could not update post"); }
+                  } catch { toast.error("Failed to update post"); }
+                }
+              }}
+            >
+              <Pencil size={18} />
+            </button>
+            <button
+              type="button"
+              className="postDeleteBtn"
+              title="Delete post"
+              disabled={isDeleting}
+              onClick={() => handleDeletePost(post)}
+            >
+              {isDeleting ? "…" : <Trash2 size={18} />}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Media */}
+      {(post.mediaArray && post.mediaArray.length > 0 ? post.mediaArray : (post.imageUrl ? [post.imageUrl] : [])).length > 0 && !hasBrokenMedia && (
+        <div
+          className="postImageContainer"
+          style={{ display: "flex", overflowX: "auto", scrollSnapType: "x mandatory", gap: "2px", position: "relative" }}
+          onDoubleClick={() => {
+            if (!isLiked) handleLikes(post);
+            setDoubleClickLikeId(post._id);
+            setTimeout(() => setDoubleClickLikeId(null), 1000);
+          }}
+        >
+          {(post.mediaArray && post.mediaArray.length > 0 ? post.mediaArray : (post.imageUrl ? [post.imageUrl] : [])).map((url, idx) => (
+            <div key={idx} style={{ flex: "0 0 100%", scrollSnapAlign: "center", position: "relative" }}>
+              {url.match(/\.(mp4|webm|ogg)$/i) || post.format === 'video' ? (
+                <video src={url} controls className="postImage" style={{ width: "100%", maxHeight: "500px", objectFit: "contain", backgroundColor: "#000" }} />
+              ) : (
+                <img
+                  src={url}
+                  alt="post media"
+                  className="postImage"
+                  loading="lazy"
+                  onError={() => setBrokenMediaIds((prev) => ({ ...prev, [post._id]: true }))}
+                />
+              )}
             </div>
+          ))}
 
-            {/* Content & Caption */}
-            <div className="postContentWrapper">
-              {post.likes.length > 0 && (
-                <div className="postLikesCount">{post.likes.length} {post.likes.length === 1 ? 'like' : 'likes'}</div>
-              )}
-              
-              {post.desc && (
-                <div className="postCaption">
-                  <span 
-                    className="captionUsername"
-                    onClick={() => post.ownerId && navigate(`/profile/${post.ownerId}`)}
-                    style={{ cursor: post.ownerId ? "pointer" : "default" }}
-                  >
-                    {post.name}
-                  </span>
-                  <span className="captionText">{post.desc}</span>
-                </div>
-              )}
-
-              {commentCount > 0 && !isCommentOpen && (
-                <div 
-                  className="viewAllComments" 
-                  onClick={() => setOpenComments((cur) => ({ ...cur, [post._id]: true }))}
-                >
-                  View all {commentCount} comments
-                </div>
-              )}
+          {doubleClickLikeId === post._id && (
+            <div className="doubleClickHeart">
+              <Heart size={64} fill="#FF8A4C" color="#FF8A4C" />
             </div>
+          )}
+        </div>
+      )}
 
-            {isCommentOpen && (
-              <div className="postComments">
-                <div className="commentComposer">
-                  <input
-                    type="text"
-                    value={commentDrafts[post._id] || ""}
-                    onChange={(e) => setCommentDrafts((cur) => ({ ...cur, [post._id]: e.target.value }))}
-                    placeholder="Write a comment..."
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCommentSubmit(post); } }}
-                  />
-                  <button
-                    type="button"
-                    className="button commentButton"
-                    disabled={pendingActionId === `comment-${post._id}`}
-                    onClick={() => handleCommentSubmit(post)}
-                  >
-                    {pendingActionId === `comment-${post._id}` ? "Posting..." : "Post"}
-                  </button>
-                </div>
-                {commentCount > 0 ? (
-                  <div className="commentList">
-                    {post.comments.map((comment) => {
-                      const commenter = comment.userId || {};
-                      const commenterName = commenter.displayName || commenter.username || comment.userName || "User";
-                      const commenterAvatar = commenter.profilePicture || ProfileImage;
-                      const commenterId = commenter._id || comment.userId || "";
-                      const canDelete = String(commenterId) === String(currentUserId) || String(comment._id).startsWith("local-");
+      {/* Action Bar */}
+      <ActionBar
+        postId={post._id}
+        isLiked={isLiked}
+        likeCount={post.likes?.length || 0}
+        commentCount={commentCount}
+        onLikeToggle={() => handleLikes(post)}
+        onCommentClick={() =>
+          setOpenComments((prev) => ({ ...prev, [post._id]: !prev[post._id] }))
+        }
+        onShareClick={() => handleShare(post)}
+      />
 
-                      return (
-                        <div className="commentItem" key={comment._id}>
-                          <img
-                            src={commenterAvatar}
-                            alt={commenterName}
-                            className="commentAvatar"
-                            onClick={() => commenterId && navigate(`/profile/${commenterId}`)}
-                            style={{ cursor: commenterId ? "pointer" : "default" }}
-                          />
-                          <div className="commentBody">
-                            <strong
-                              onClick={() => commenterId && navigate(`/profile/${commenterId}`)}
-                              style={{ cursor: commenterId ? "pointer" : "default" }}
-                            >
-                              {commenterName}
-                            </strong>
-                            <span>{comment.text}</span>
-                          </div>
-                          <div style={{ display: "flex", gap: "4px" }}>
-                            {canDelete && (
-                              <button
-                                className="commentDeleteButton"
-                                title="Edit comment"
-                                onClick={async () => {
-                                  const newText = window.prompt("Edit your comment:", comment.text);
-                                  if (newText && newText !== comment.text) {
-                                    try {
-                                      const res = await apiFetch(`/api/v1/posts/${post._id}/comment/${comment._id}`, {
-                                        method: "PUT",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ text: newText })
-                                      });
-                                      if (res.ok) {
-                                        const updated = await res.json();
-                                        setPosts((cur) => cur.map((p) => p._id === post._id ? { ...p, comments: updated.comments || p.comments } : p));
-                                        toast.success("Comment updated");
-                                      }
-                                    } catch { toast.error("Failed to update comment"); }
-                                  }
-                                }}
-                              >
-                                ✏️
-                              </button>
-                            )}
-                            {canDelete && (
-                              <button
-                                className="commentDeleteButton"
-                                disabled={pendingActionId === `del-comment-${comment._id}`}
-                                onClick={() => handleCommentDelete(post, comment)}
-                              >
-                                ×
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+      {/* Caption & Hashtags */}
+      <div className="detail">
+        <span className="postCaption">
+          <strong>@{post.username} </strong>
+          {renderCaptionWithHashtags(post.desc)}
+        </span>
+      </div>
+
+      {/* Comments section */}
+      {isCommentOpen && (
+        <div className="commentsSection">
+          <div className="commentsList">
+            {post.comments?.length === 0 ? (
+              <p className="noComments">No comments yet. Be the first to comment!</p>
+            ) : (
+              post.comments?.map((comment, idx) => {
+                const author = comment.userId || {};
+                const authorName = author.displayName || author.username || comment.userName || "User";
+                const isCommentAuthor = String(author._id || author) === String(currentUserId);
+
+                return (
+                  <div key={comment._id || idx} className="commentItem">
+                    <img
+                      src={author.profilePicture || ProfileImage}
+                      alt={authorName}
+                      className="commentAvatar"
+                      onError={(e) => { e.target.src = ProfileImage; }}
+                    />
+                    <div className="commentBubble">
+                      <strong>{authorName}</strong>
+                      <p>{comment.text}</p>
+                    </div>
+                    {isCommentAuthor && (
+                      <button
+                        type="button"
+                        className="commentDeleteBtn"
+                        onClick={() => handleCommentDelete(post._id, comment._id)}
+                        title="Delete comment"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
-                ) : (
-                  <div className="emptyComments">No comments yet. Start the conversation.</div>
-                )}
-              </div>
+                );
+              })
             )}
           </div>
-        );
-      
+
+          <form onSubmit={(e) => handleCommentSubmit(e, post)} className="commentForm">
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              value={commentDrafts[post._id] || ""}
+              onChange={(e) =>
+                setCommentDrafts((prev) => ({ ...prev, [post._id]: e.target.value }))
+              }
+              className="commentInput"
+            />
+            <button
+              type="submit"
+              disabled={!(commentDrafts[post._id] || "").trim()}
+              className="commentSubmitBtn"
+            >
+              Post
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
 });
 
-export default React.memo(Posts);
+export default Posts;

@@ -246,6 +246,41 @@
   transform: translateX(-50%) scale(1.05);
 }
 
+/* Visible Arrow Navigation Buttons */
+.story-arrow-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1118;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.story-arrow-btn:hover {
+  background: var(--fm-primary);
+  border-color: var(--fm-primary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.story-arrow-btn.left {
+  left: 12px;
+}
+
+.story-arrow-btn.right {
+  right: 12px;
+}
+
 /* Tap Navigation Regions */
 .story-nav {
   position: absolute;

@@ -16,7 +16,7 @@ describe("Email Verification Subsystem Integration Tests", () => {
   }, 30000);
 
   const testEmail = `verify_test_${Date.now()}@test.com`;
-  const testUser = `vuser_${Date.now()}`;
+  const testUser = `integration_test_user_${Date.now()}`;
   const testPassword = "Password123!";
 
   test("1. Registration creates user with SHA-256 hashed token and isEmailVerified=false", async () => {

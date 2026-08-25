@@ -32,10 +32,17 @@ const getSuggestedUsers = async (userId) => {
   const currentUser = await User.findById(userId).select("following");
   const excludeIds = [...(currentUser?.following || []), userId];
 
-  const suggestions = await User.find({ _id: { $nin: excludeIds }, accountStatus: "active" })
+  let suggestions = await User.find({ _id: { $nin: excludeIds }, accountStatus: "active" })
     .select("username displayName profilePicture bio profession location isVerified isPrivate followRequests followers settings")
     .sort({ engagementScore: -1 })
     .limit(10);
+
+  if (suggestions.length < 5) {
+    suggestions = await User.find({ _id: { $ne: userId }, accountStatus: "active" })
+      .select("username displayName profilePicture bio profession location isVerified isPrivate followRequests followers settings")
+      .sort({ engagementScore: -1 })
+      .limit(10);
+  }
 
   return suggestions.map((user) => {
     const isPrivate = user.isPrivate === true || user.settings?.privacy?.profileVisibility === "private";
@@ -68,7 +75,7 @@ const calculateProfileCompletion = (userObj) => {
 };
 
 const ALLOWED_PROFILE_FIELDS = [
-  'displayName', 'bio', 'website', 'location', 'profession', 'education',
+  'displayName', 'username', 'bio', 'website', 'location', 'profession', 'education',
   'skills', 'socialLinks', 'gender', 'pronouns', 'coverImage', 'profilePicture',
   'isPrivate'
 ];
@@ -77,9 +84,31 @@ const updateProfile = async (id, data) => {
   const user = await User.findById(id);
   if (!user) throw new Error("User not found");
 
+  if (data.username) {
+    const cleanUsername = data.username.trim().replace(/^@/, '');
+    if (cleanUsername !== user.username) {
+      if (!/^[a-zA-Z0-9_.]+$/.test(cleanUsername)) {
+        const err = new Error("Username can only contain alphanumeric characters, dots, and underscores");
+        err.status = 400;
+        throw err;
+      }
+      const existing = await User.findOne({
+        usernameLower: cleanUsername.toLowerCase(),
+        _id: { $ne: id }
+      });
+      if (existing) {
+        const err = new Error("Username is already taken");
+        err.status = 400;
+        throw err;
+      }
+      user.username = cleanUsername;
+      user.usernameLower = cleanUsername.toLowerCase();
+    }
+  }
+
   // Whitelist fields to prevent mass-assignment of role, isVerified, accountStatus, etc.
   const sanitized = Object.fromEntries(
-    Object.entries(data).filter(([key]) => ALLOWED_PROFILE_FIELDS.includes(key))
+    Object.entries(data).filter(([key]) => key !== 'username' && ALLOWED_PROFILE_FIELDS.includes(key))
   );
   Object.assign(user, sanitized);
   user.profileCompletion = calculateProfileCompletion(user);

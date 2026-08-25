@@ -119,10 +119,10 @@ const Landing = () => {
       accent: "#A8C98F"
     },
     {
-      name: CREATORS.ananya.name,
+      name: CREATORS.garvit.name,
       time: "1h ago",
-      avatar: CREATORS.ananya.avatar,
-      quote: '"Testing particle physics and kinetic math art at 60fps in the browser."',
+      avatar: CREATORS.garvit.avatar,
+      quote: '"Working late on a new visual identity. Sometimes the simplest direction is the strongest."',
       image: POST_MEDIA.creativeCoding,
       views: "594 views",
       reactions: "✨ 128",
@@ -1327,7 +1327,7 @@ const Landing = () => {
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
-                    <img src={CREATORS.ananya.avatar} alt={CREATORS.ananya.name} />
+                    <img src={CREATORS.mayank.avatar} alt={CREATORS.mayank.name} />
                     <img src={CREATORS.vipul.avatar} alt={CREATORS.vipul.name} />
                   </div>
                   <span className="fm-active-indicator">+142 active today</span>
@@ -1352,7 +1352,7 @@ const Landing = () => {
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
                     <img src={CREATORS.snehil.avatar} alt={CREATORS.snehil.name} />
-                    <img src={CREATORS.priya.avatar} alt={CREATORS.priya.name} />
+                    <img src={CREATORS.darsh.avatar} alt={CREATORS.darsh.name} />
                   </div>
                   <span className="fm-active-indicator">+98 active today</span>
                 </div>
@@ -1438,10 +1438,10 @@ const Landing = () => {
                   Most of my collaborations start with something someone shared in one of the creative coding or shader feeds.
                 </p>
                 <div className="fm-quote-author">
-                  <img src={CREATORS.ananya.avatar} alt={CREATORS.ananya.name} className="fm-quote-avatar" />
+                  <img src={CREATORS.darsh.avatar} alt={CREATORS.darsh.name} className="fm-quote-avatar" />
                   <div>
-                    <div className="fm-quote-name">{CREATORS.ananya.name}</div>
-                    <div className="fm-quote-role">Generative Artist & Creative Coder</div>
+                    <div className="fm-quote-name">{CREATORS.darsh.name}</div>
+                    <div className="fm-quote-role">Creative Technologist & UI Specialist</div>
                   </div>
                 </div>
               </div>

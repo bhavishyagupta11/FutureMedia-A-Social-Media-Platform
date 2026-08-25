@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../utils/api';
 import ProfileImage from '../../img/profileImg.jpg';
-import { CREATORS } from '../../constants/mediaAssets';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import './SuggestedUsers.css';
-
-const DEFAULT_SUGGESTIONS = [
-  { _id: 'snehil-default', username: CREATORS.snehil.username, displayName: CREATORS.snehil.name, profilePicture: CREATORS.snehil.avatar },
-  { _id: 'sahil-default', username: CREATORS.sahil.username, displayName: CREATORS.sahil.name, profilePicture: CREATORS.sahil.avatar },
-  { _id: 'garvit-default', username: CREATORS.garvit.username, displayName: CREATORS.garvit.name, profilePicture: CREATORS.garvit.avatar },
-  { _id: 'vipul-default', username: CREATORS.vipul.username, displayName: CREATORS.vipul.name, profilePicture: CREATORS.vipul.avatar },
-  { _id: 'priya-default', username: CREATORS.priya.username, displayName: CREATORS.priya.name, profilePicture: CREATORS.priya.avatar },
-];
 
 const SuggestedUsers = () => {
   const [users, setUsers] = useState([]);
@@ -27,7 +18,7 @@ const SuggestedUsers = () => {
         if (res.ok) {
           const payload = await res.json();
           const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          const finalUsers = data.length > 0 ? data.slice(0, 5) : DEFAULT_SUGGESTIONS;
+          const finalUsers = data.slice(0, 5);
           setUsers(finalUsers);
 
           const initialStatusMap = {};
@@ -36,10 +27,10 @@ const SuggestedUsers = () => {
           });
           setStatusMap(initialStatusMap);
         } else {
-          setUsers(DEFAULT_SUGGESTIONS);
+          setUsers([]);
         }
       } catch (err) {
-        setUsers(DEFAULT_SUGGESTIONS);
+        setUsers([]);
       } finally {
         setLoading(false);
       }
@@ -50,13 +41,6 @@ const SuggestedUsers = () => {
   const handleFollowToggle = async (user) => {
     const userId = user._id;
     const currentStatus = statusMap[userId] || "none";
-
-    if (String(userId).endsWith("-default")) {
-      const nextStatus = currentStatus === "following" ? "none" : "following";
-      setStatusMap((prev) => ({ ...prev, [userId]: nextStatus }));
-      toast.success(nextStatus === "following" ? `Following @${user.username}!` : `Unfollowed @${user.username}`, { autoClose: 1500 });
-      return;
-    }
 
     try {
       setLoadingFollow((prev) => ({ ...prev, [userId]: true }));
@@ -93,14 +77,23 @@ const SuggestedUsers = () => {
     }
   };
 
-  if (loading) return <div className="SuggestedUsers suggested-loading">Loading suggestions...</div>;
+  if (loading) {
+    return (
+      <div className="SuggestedUsers suggested-loading">
+        <h3>Suggested for you</h3>
+        <p style={{ color: 'var(--fm-text-muted)', fontSize: '0.85rem' }}>Loading creators...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="SuggestedUsers">
       <h3>Suggested for you</h3>
       <div className="suggestions-list">
         {users.length === 0 ? (
-          <p className="no-suggestions">No suggestions right now.</p>
+          <p className="no-suggestions" style={{ color: 'var(--fm-text-muted)', fontSize: '0.85rem', padding: '0.5rem 0' }}>
+            No new suggestions right now.
+          </p>
         ) : (
           users.map((user) => {
             const status = statusMap[user._id] || "none";

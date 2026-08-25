@@ -1,32 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search as SearchIcon, Hash, UserPlus, TrendingUp, Clock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Search as SearchIcon, Hash, UserPlus, TrendingUp, Clock, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Search.css';
 import ProfileImage from '../../img/profileImg.jpg';
-import { CREATORS } from '../../constants/mediaAssets';
 import { apiFetch } from '../../utils/api';
-
-const DEFAULT_SEARCH_USERS = [
-  { id: 'bhavishya', name: CREATORS.bhavishya.name, handle: CREATORS.bhavishya.username, avatar: CREATORS.bhavishya.avatar },
-  { id: 'snehil', name: CREATORS.snehil.name, handle: CREATORS.snehil.username, avatar: CREATORS.snehil.avatar },
-  { id: 'sahil', name: CREATORS.sahil.name, handle: CREATORS.sahil.username, avatar: CREATORS.sahil.avatar },
-  { id: 'garvit', name: CREATORS.garvit.name, handle: CREATORS.garvit.username, avatar: CREATORS.garvit.avatar },
-  { id: 'vipul', name: CREATORS.vipul.name, handle: CREATORS.vipul.username, avatar: CREATORS.vipul.avatar },
-];
-
-const DEFAULT_TRENDING_TAGS = [
-  '#creativecoding',
-  '#35mm',
-  '#streetphotography',
-  '#designsystems',
-  '#futuremedia'
-];
 
 const Search = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+  const initialQuery = queryParams.get('q') || '';
+
+  const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState([]);
 
@@ -34,77 +22,92 @@ const Search = () => {
   const [trendingTags, setTrendingTags] = useState([]);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
 
+  const abortControllerRef = useRef(null);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get('q') || '';
+    if (q) {
+      setQuery(q);
+      setDebouncedQuery(q);
+    }
+  }, [location.search]);
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const [usersRes, trendingRes] = await Promise.all([
           apiFetch("/api/v1/users/suggested"),
-          apiFetch("/api/v1/feed/trending/hashtags?limit=5")
+          apiFetch("/api/v1/feed/trending/hashtags?limit=6")
         ]);
 
         if (usersRes.ok) {
           const payload = await usersRes.json();
           const users = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          if (users.length > 0) {
-            setSuggestedUsers(users.map(u => ({ id: u._id, name: u.displayName || u.username, handle: u.username, avatar: u.profilePicture || ProfileImage })));
-          } else {
-            setSuggestedUsers(DEFAULT_SEARCH_USERS);
-          }
-        } else {
-          setSuggestedUsers(DEFAULT_SEARCH_USERS);
+          setSuggestedUsers(users.map(u => ({
+            id: u._id,
+            name: u.displayName || u.username,
+            handle: u.username,
+            avatar: u.profilePicture || ProfileImage
+          })));
         }
 
         if (trendingRes.ok) {
           const payload = await trendingRes.json();
           const tags = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          if (tags.length > 0) {
-            setTrendingTags(tags.map(t => t.tag ? (t.tag.startsWith('#') ? t.tag : `#${t.tag}`) : t));
-          } else {
-            setTrendingTags(DEFAULT_TRENDING_TAGS);
-          }
-        } else {
-          setTrendingTags(DEFAULT_TRENDING_TAGS);
+          setTrendingTags(tags.map(t => {
+            const tagName = typeof t === 'string' ? t : (t.tag || '');
+            return tagName.startsWith('#') ? tagName : `#${tagName}`;
+          }).filter(Boolean));
         }
 
-        const savedSearches = JSON.parse(localStorage.getItem("recentSearches") || '["photography", "shaders", "bhavishyagupta"]');
+        const savedSearches = JSON.parse(localStorage.getItem("recentSearches") || '["photography", "design", "creativecoding"]');
         setRecentSearches(savedSearches);
       } catch (err) {
-        setSuggestedUsers(DEFAULT_SEARCH_USERS);
-        setTrendingTags(DEFAULT_TRENDING_TAGS);
+        console.error(err);
       }
     };
     fetchInitialData();
   }, []);
 
   const saveRecentSearch = (queryStr) => {
+    if (!queryStr || queryStr.trim().length < 2) return;
+    const clean = queryStr.trim();
     const saved = JSON.parse(localStorage.getItem("recentSearches") || "[]");
-    const updated = [queryStr, ...saved.filter(s => s !== queryStr)].slice(0, 5);
+    const updated = [clean, ...saved.filter(s => s.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
     localStorage.setItem("recentSearches", JSON.stringify(updated));
     setRecentSearches(updated);
   };
 
-  // Debounce effect
+  // Debounce query (300ms)
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 400);
+      setDebouncedQuery(query.trim());
+    }, 300);
     return () => clearTimeout(handler);
   }, [query]);
 
-  // Search effect
+  // Execute Search
   useEffect(() => {
     if (!debouncedQuery) {
       setResults([]);
+      setIsSearching(false);
       return;
     }
-    
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setIsSearching(true);
-    
+
+    const cleanTerm = debouncedQuery.replace(/^#|^@/, '').trim();
+
     const fetchSearch = async () => {
       try {
         const [userRes, postRes] = await Promise.all([
-          apiFetch(`/api/v1/users/search?query=${encodeURIComponent(debouncedQuery)}`),
-          apiFetch(`/api/v1/posts/search?query=${encodeURIComponent(debouncedQuery)}`)
+          apiFetch(`/api/v1/users/search?query=${encodeURIComponent(cleanTerm)}`),
+          apiFetch(`/api/v1/posts/search?query=${encodeURIComponent(cleanTerm)}`)
         ]);
 
         let combined = [];
@@ -113,35 +116,40 @@ const Search = () => {
           const payload = await userRes.json();
           const users = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
           combined = [...combined, ...users.map(u => ({
-            type: 'user', id: u._id, name: u.displayName || u.username, handle: u.username, avatar: u.profilePicture || ProfileImage
+            type: 'user',
+            id: u._id,
+            name: u.displayName || u.username,
+            handle: u.username,
+            avatar: u.profilePicture || ProfileImage
           }))];
         }
-
-        // Search in local Indian creators as well
-        Object.values(CREATORS).forEach(c => {
-          if (c.name.toLowerCase().includes(debouncedQuery.toLowerCase()) || c.username.toLowerCase().includes(debouncedQuery.toLowerCase())) {
-            if (!combined.some(u => u.handle === c.username)) {
-              combined.push({ type: 'user', id: c.username, name: c.name, handle: c.username, avatar: c.avatar });
-            }
-          }
-        });
 
         if (postRes.ok) {
           const payload = await postRes.json();
           const posts = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
           const tags = new Set();
           posts.forEach(p => {
-            if (p.hashtags) {
+            if (Array.isArray(p.hashtags)) {
               p.hashtags.forEach(tag => {
-                if (tag.toLowerCase().includes(debouncedQuery.toLowerCase())) {
-                  tags.add(tag);
+                if (tag.toLowerCase().includes(cleanTerm.toLowerCase())) {
+                  tags.add(tag.toLowerCase());
                 }
               });
             }
           });
-          combined = [...combined, ...Array.from(tags).slice(0, 5).map(t => ({
-            type: 'tag', name: t.startsWith('#') ? t : `#${t}`
-          }))];
+
+          // Also include the search term itself as a tag if valid
+          if (cleanTerm.length >= 2) {
+            tags.add(cleanTerm.toLowerCase());
+          }
+
+          combined = [
+            ...Array.from(tags).slice(0, 5).map(t => ({
+              type: 'tag',
+              name: `#${t}`
+            })),
+            ...combined
+          ];
         }
 
         setResults(combined);
@@ -154,7 +162,6 @@ const Search = () => {
     };
 
     fetchSearch();
-    
   }, [debouncedQuery]);
 
   return (
@@ -166,14 +173,24 @@ const Search = () => {
       <div className="search-header">
         <div className="search-input-container">
           <SearchIcon size={20} color="var(--fm-text-muted)" />
-          <input 
-            type="text" 
-            placeholder="Search users, posts, or tags..." 
+          <input
+            type="text"
+            placeholder="Search users, posts, or tags (e.g. Snehil, #photography)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="search-input"
             autoFocus
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => { setQuery(''); setDebouncedQuery(''); setResults([]); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fm-text-muted)', display: 'flex', alignItems: 'center' }}
+              aria-label="Clear search"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -200,23 +217,32 @@ const Search = () => {
                 <div className="search-results-list">
                   <h3 className="section-title">Results for "{debouncedQuery}"</h3>
                   {results.length === 0 ? (
-                    <p className="search-meta" style={{ color: "var(--fm-text-muted)", padding: "1rem 0" }}>No results found.</p>
+                    <p className="search-meta" style={{ color: "var(--fm-text-muted)", padding: "1.5rem 0" }}>
+                      No users or tags found matching "{debouncedQuery}".
+                    </p>
                   ) : (
                     results.map((r, i) => (
                       <div 
                         key={i} 
                         className="search-result-item"
-                        onClick={() => r.type === 'user' && navigate(`/profile/${r.handle || r.id}`)}
-                        style={{ cursor: r.type === 'user' ? 'pointer' : 'default' }}
+                        onClick={() => {
+                          if (r.type === 'user') {
+                            navigate(`/profile/${r.handle || r.id}`);
+                          } else if (r.type === 'tag') {
+                            setQuery(r.name.replace('#', ''));
+                          }
+                        }}
+                        style={{ cursor: 'pointer' }}
                       >
                         {r.type === 'user' ? (
                           <>
-                            <img src={r.avatar} alt={r.name} className="result-avatar" />
+                            <img src={r.avatar} alt={r.name} className="result-avatar" onError={(e) => { e.target.src = ProfileImage; }} />
                             <div className="result-info">
                               <strong>{r.name}</strong>
                               <span>@{r.handle}</span>
                             </div>
                             <button 
+                              type="button"
                               className="result-action-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -231,7 +257,7 @@ const Search = () => {
                             <div className="result-icon-bg"><Hash size={20} color="var(--fm-primary)" /></div>
                             <div className="result-info">
                               <strong>{r.name}</strong>
-                              <span>Trending Tag</span>
+                              <span>Hashtag</span>
                             </div>
                           </>
                         )}
@@ -262,40 +288,49 @@ const Search = () => {
 
                   <h3 className="section-title" style={{ marginTop: '24px' }}><TrendingUp size={18} /> Trending Tags</h3>
                   <div className="trending-tags">
-                    {trendingTags.map((tag, i) => (
-                      <span key={i} className="tag-chip" onClick={() => setQuery(tag.replace('#', ''))}>
-                        {tag}
-                      </span>
-                    ))}
+                    {trendingTags.length === 0 ? (
+                      <span style={{ color: "var(--fm-text-muted)", fontSize: "0.85rem" }}>Loading trending tags...</span>
+                    ) : (
+                      trendingTags.map((tag, i) => (
+                        <span key={i} className="tag-chip" onClick={() => setQuery(tag.replace('#', ''))}>
+                          {tag}
+                        </span>
+                      ))
+                    )}
                   </div>
                 </div>
 
                 <div className="search-column">
-                  <h3 className="section-title"><UserPlus size={18} /> Suggested for you</h3>
+                  <h3 className="section-title"><UserPlus size={18} /> Suggested Creators</h3>
                   <div className="suggested-users">
-                    {suggestedUsers.map(user => (
-                      <div 
-                        key={user.id} 
-                        className="suggested-user-card"
-                        onClick={() => navigate(`/profile/${user.handle || user.id}`)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <img src={user.avatar} alt={user.name} />
-                        <div className="suggested-user-info">
-                          <strong>{user.name}</strong>
-                          <span>@{user.handle}</span>
-                        </div>
-                        <button 
-                          className="follow-sm-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/profile/${user.handle || user.id}`);
-                          }}
+                    {suggestedUsers.length === 0 ? (
+                      <span style={{ color: "var(--fm-text-muted)", fontSize: "0.85rem" }}>No suggestions right now.</span>
+                    ) : (
+                      suggestedUsers.map(user => (
+                        <div
+                          key={user.id}
+                          className="suggested-user-card"
+                          onClick={() => navigate(`/profile/${user.handle || user.id}`)}
+                          style={{ cursor: 'pointer' }}
                         >
-                          View Profile
-                        </button>
-                      </div>
-                    ))}
+                          <img src={user.avatar} alt={user.name} onError={(e) => { e.target.src = ProfileImage; }} />
+                          <div className="suggested-user-info">
+                            <strong>{user.name}</strong>
+                            <span>@{user.handle}</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="follow-sm-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/profile/${user.handle || user.id}`);
+                            }}
+                          >
+                            View
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>

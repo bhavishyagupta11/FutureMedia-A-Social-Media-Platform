@@ -1,87 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Stories.css';
 import { Plus } from 'lucide-react';
 import { getStoredUserProfile, resolveAvatar } from '../../utils/session';
-import { CREATORS, POST_MEDIA } from '../../constants/mediaAssets';
 import { apiFetch } from '../../utils/api';
 import StoryViewer from './StoryViewer';
 import CreateStoryModal from './CreateStoryModal';
 import ProfileImage from '../../img/profileImg.jpg';
-
-const DEFAULT_STORIES = [
-  {
-    user: {
-      _id: 'snehil-story-id',
-      username: CREATORS.snehil.username,
-      displayName: CREATORS.snehil.name,
-      profilePicture: CREATORS.snehil.avatar
-    },
-    stories: [
-      {
-        _id: 'st-1',
-        mediaUrl: POST_MEDIA.streetPhoto,
-        mediaType: 'image',
-        caption: 'Evening street light test on 35mm f/1.4',
-        createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-        seenBy: []
-      }
-    ]
-  },
-  {
-    user: {
-      _id: 'sahil-story-id',
-      username: CREATORS.sahil.username,
-      displayName: CREATORS.sahil.name,
-      profilePicture: CREATORS.sahil.avatar
-    },
-    stories: [
-      {
-        _id: 'st-2',
-        mediaUrl: POST_MEDIA.designWorkspace,
-        mediaType: 'image',
-        caption: 'Reviewing physical layout & design tokens',
-        createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-        seenBy: []
-      }
-    ]
-  },
-  {
-    user: {
-      _id: 'ananya-story-id',
-      username: CREATORS.ananya.username,
-      displayName: CREATORS.ananya.name,
-      profilePicture: CREATORS.ananya.avatar
-    },
-    stories: [
-      {
-        _id: 'st-3',
-        mediaUrl: POST_MEDIA.creativeCoding,
-        mediaType: 'image',
-        caption: 'Testing 60fps kinetic particle simulations',
-        createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-        seenBy: []
-      }
-    ]
-  },
-  {
-    user: {
-      _id: 'priya-story-id',
-      username: CREATORS.priya.username,
-      displayName: CREATORS.priya.name,
-      profilePicture: CREATORS.priya.avatar
-    },
-    stories: [
-      {
-        _id: 'st-4',
-        mediaUrl: POST_MEDIA.architecture,
-        mediaType: 'image',
-        caption: 'Minimalist architecture study in morning mist',
-        createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-        seenBy: []
-      }
-    ]
-  }
-];
 
 const Stories = () => {
   const [profile, setProfile] = useState(getStoredUserProfile() || {});
@@ -90,11 +14,65 @@ const Stories = () => {
   const [viewerIndex, setViewerIndex] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  const currentUserId = profile.userId;
+  const userAvatar = resolveAvatar(profile);
+
+  const sortStoryGroups = useCallback((groups, myId) => {
+    if (!Array.isArray(groups)) return [];
+
+    let myGroup = null;
+    const unseenGroups = [];
+    const seenGroups = [];
+
+    groups.forEach((group) => {
+      const uid = String(group.user?._id || group.user?.id || group.user?.username);
+      const isMyGroup = myId && uid === String(myId);
+
+      if (isMyGroup) {
+        myGroup = group;
+      } else {
+        const isFullySeen = group.stories && group.stories.length > 0 && group.stories.every(s =>
+          s.seenBy?.some(v => String(v.user?._id || v.user || v) === String(myId))
+        );
+
+        if (isFullySeen) {
+          seenGroups.push(group);
+        } else {
+          unseenGroups.push(group);
+        }
+      }
+    });
+
+    return [
+      ...(myGroup ? [myGroup] : []),
+      ...unseenGroups,
+      ...seenGroups
+    ];
+  }, []);
+
+  const fetchStories = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/v1/stories');
+      if (res.ok) {
+        const payload = await res.json();
+        const data = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+        setStoryGroups(sortStoryGroups(data, currentUserId));
+      } else {
+        setStoryGroups([]);
+      }
+    } catch (e) {
+      setStoryGroups([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUserId, sortStoryGroups]);
+
   useEffect(() => {
     fetchStories();
 
     const handleSessionUpdate = () => {
-      setProfile(getStoredUserProfile() || {});
+      const p = getStoredUserProfile() || {};
+      setProfile(p);
     };
 
     window.addEventListener('session:updated', handleSessionUpdate);
@@ -104,34 +82,40 @@ const Stories = () => {
       window.removeEventListener('session:updated', handleSessionUpdate);
       window.removeEventListener('profile:updated', handleSessionUpdate);
     };
-  }, []);
+  }, [fetchStories]);
 
-  const fetchStories = async () => {
-    try {
-      const res = await apiFetch('/api/v1/stories');
-      if (res.ok) {
-        const payload = await res.json();
-        const data = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
-        setStoryGroups(data.length > 0 ? data : DEFAULT_STORIES);
-      } else {
-        setStoryGroups(DEFAULT_STORIES);
-      }
-    } catch (e) {
-      setStoryGroups(DEFAULT_STORIES);
-    } finally {
-      setLoading(false);
-    }
+  const handleStoryViewed = (storyId, targetUserIdentifier) => {
+    setStoryGroups(prevGroups => {
+      const updated = prevGroups.map(group => {
+        const uid = String(group.user?._id || group.user?.id || group.user?.username);
+        if (uid === String(targetUserIdentifier)) {
+          const updatedStories = group.stories.map(s => {
+            if (String(s._id) === String(storyId)) {
+              const seen = s.seenBy || [];
+              if (!seen.some(v => String(v.user?._id || v.user || v) === String(currentUserId))) {
+                return {
+                  ...s,
+                  seenBy: [...seen, { user: currentUserId, viewedAt: new Date().toISOString() }]
+                };
+              }
+            }
+            return s;
+          });
+          return { ...group, stories: updatedStories };
+        }
+        return group;
+      });
+
+      return sortStoryGroups(updated, currentUserId);
+    });
   };
-
-  const currentUserId = profile.userId;
-  const userAvatar = resolveAvatar(profile);
 
   // Find my story group if I have active stories
   const myGroupIndex = storyGroups.findIndex(g => String(g.user?._id) === String(currentUserId));
   const myStoryGroup = myGroupIndex !== -1 ? storyGroups[myGroupIndex] : null;
 
   // Check if my story group is fully seen
-  const isMyStorySeen = myStoryGroup?.stories.every(s => 
+  const isMyStorySeen = myStoryGroup?.stories?.every(s =>
     s.seenBy?.some(v => String(v.user?._id || v.user || v) === String(currentUserId))
   );
 
@@ -140,7 +124,7 @@ const Stories = () => {
       <div className="stories-container">
         {/* YOUR STORY ITEM */}
         <div className="story-item create-story">
-          <div 
+          <div
             className={`story-avatar-container ${myStoryGroup ? `has-story ${isMyStorySeen ? 'seen' : ''}` : ''}`}
             onClick={() => {
               if (myStoryGroup) {
@@ -150,13 +134,13 @@ const Stories = () => {
               }
             }}
           >
-            <img 
-              src={userAvatar} 
-              alt="Your Story" 
-              className="story-avatar" 
+            <img
+              src={userAvatar}
+              alt="Your Story"
+              className="story-avatar"
               onError={(e) => { e.target.src = ProfileImage; }}
             />
-            <div 
+            <div
               className="create-story-badge"
               onClick={(e) => {
                 e.stopPropagation();
@@ -174,14 +158,14 @@ const Stories = () => {
         {!loading && storyGroups.map((group, index) => {
           if (String(group.user?._id) === String(currentUserId)) return null;
 
-          const isSeen = group.stories.every(s => 
+          const isSeen = group.stories?.length > 0 && group.stories.every(s =>
             s.seenBy?.some(v => String(v.user?._id || v.user || v) === String(currentUserId))
           );
 
           return (
-            <div 
-              className="story-item" 
-              key={group.user?._id || index} 
+            <div
+              className="story-item"
+              key={group.user?._id || group.user?.username || index}
               onClick={() => setViewerIndex(index)}
             >
               <div className={`story-avatar-container has-story ${isSeen ? 'seen' : ''}`}>
@@ -208,12 +192,13 @@ const Stories = () => {
       />
 
       {/* STORY VIEWER MODAL */}
-      {viewerIndex !== null && (
+      {viewerIndex !== null && storyGroups[viewerIndex] && (
         <StoryViewer 
           storyGroups={storyGroups} 
           initialGroupIndex={viewerIndex} 
           onClose={() => setViewerIndex(null)}
           onStoryDeleted={fetchStories}
+          onStoryViewed={handleStoryViewed}
         />
       )}
     </>

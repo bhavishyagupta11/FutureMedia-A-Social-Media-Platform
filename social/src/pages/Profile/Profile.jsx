@@ -1,68 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Profile.css";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../utils/api";
 import { getStoredUserProfile, resolveAvatar } from "../../utils/session";
 import ProfileImage from "../../img/profileImg.jpg";
-import { CREATORS, POST_MEDIA } from "../../constants/mediaAssets";
 import { toast } from "react-toastify";
 import { Lock, Heart, MessageCircle, Check, X, ShieldAlert, Settings as SettingsIcon } from "lucide-react";
 import StoryViewer from "../../components/Stories/StoryViewer";
-
-const CREATORS_PROFILES_MAP = {
-  bhavishyagupta: {
-    _id: "bhavishya-gupta-id",
-    username: CREATORS.bhavishya.username,
-    displayName: CREATORS.bhavishya.name,
-    profession: "Digital creator • Photography • Technology",
-    bio: "Building ideas for the future. Exploring generative design systems, photography, and creative code.",
-    location: "Bangalore, India",
-    profilePicture: CREATORS.bhavishya.avatar,
-    followers: ["u1", "u2", "u3", "u4"],
-    following: ["u1", "u2"],
-    isPrivate: false,
-    mockPosts: [
-      { _id: "b-p1", imageUrl: POST_MEDIA.creativeCoding, caption: "Kinetic WebGL shaders running at 60fps", likes: [1,2,3,4], comments: [1,2] },
-      { _id: "b-p2", imageUrl: POST_MEDIA.urbanSunset, caption: "City dusk sunset and atmospheric skyline", likes: [1,2,3], comments: [1] },
-      { _id: "b-p3", imageUrl: POST_MEDIA.galleryPhoto3, caption: "Micro shader experiments in real-time", likes: [1,2,3,4,5], comments: [1,2,3] }
-    ]
-  },
-  snehilkhokhar: {
-    _id: "snehil-khokhar-id",
-    username: CREATORS.snehil.username,
-    displayName: CREATORS.snehil.name,
-    profession: "Street & Documentary Photographer",
-    bio: "Chasing evening light, 35mm prime grain, and geometry in urban spaces.",
-    location: "Delhi, India",
-    profilePicture: CREATORS.snehil.avatar,
-    followers: ["u1", "u2", "u3"],
-    following: ["u1"],
-    isPrivate: false,
-    mockPosts: [
-      { _id: "s-p1", imageUrl: POST_MEDIA.streetPhoto, caption: "Street Light Study on 35mm f/1.4", likes: [1,2,3], comments: [1] },
-      { _id: "s-p2", imageUrl: POST_MEDIA.galleryPhoto2, caption: "Dusk Waves & long exposure shadows", likes: [1,2], comments: [] },
-      { _id: "s-p3", imageUrl: POST_MEDIA.cameraLens, caption: "Shadows 02 series", likes: [1,2,3,4], comments: [1,2] }
-    ]
-  },
-  sahilsingh: {
-    _id: "sahil-singh-id",
-    username: CREATORS.sahil.username,
-    displayName: CREATORS.sahil.name,
-    profession: "Spatial UI & Design Systems Architect",
-    bio: "Obsessed with micro-interactions, layout physics, and tactile software.",
-    location: "Mumbai, India",
-    profilePicture: CREATORS.sahil.avatar,
-    followers: ["u1", "u2", "u3", "u4"],
-    following: ["u1", "u2", "u3"],
-    isPrivate: false,
-    mockPosts: [
-      { _id: "sa-p1", imageUrl: POST_MEDIA.designWorkspace, caption: "Design system tokens and workspace setup", likes: [1,2,3], comments: [1] },
-      { _id: "sa-p2", imageUrl: POST_MEDIA.abstractShapes, caption: "Geometric abstraction study", likes: [1,2], comments: [] },
-      { _id: "sa-p3", imageUrl: POST_MEDIA.architecture, caption: "Architectural minimal forms", likes: [1,2,3,4], comments: [1] }
-    ]
-  }
-};
 
 const Profile = () => {
   const { username: profileIdentifier } = useParams();
@@ -81,109 +26,100 @@ const Profile = () => {
   const [userStoriesGroup, setUserStoriesGroup] = useState(null);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
 
-  useEffect(() => {
+  const fetchProfileData = useCallback(async () => {
     setError(false);
     const identifier = profileIdentifier || "me";
-    const normalizedKey = identifier.toLowerCase().replace("@", "");
 
-    apiFetch(`/api/v1/users/${identifier}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Profile not found");
-        return r.json();
-      })
-      .then((payload) => {
-        const userData = payload.data || payload;
-        setUser(userData);
+    try {
+      const r = await apiFetch(`/api/v1/users/${identifier}`);
+      if (!r.ok) {
+        setError(true);
+        return;
+      }
+      const payload = await r.json();
+      const userData = payload.data || payload;
+      setUser(userData);
 
-        if (userData.followers) {
-          setIsFollowing(userData.followers.some((f) => {
-            const fid = f._id || f;
-            return String(fid) === String(currentUserId);
-          }));
-        }
+      if (userData.followers) {
+        setIsFollowing(userData.followers.some((f) => {
+          const fid = f._id || f;
+          return String(fid) === String(currentUserId);
+        }));
+      }
 
-        if (userData.followRequests) {
-          setIsRequested(userData.followRequests.some((r) => {
-            const rid = r._id || r;
-            return String(rid) === String(currentUserId);
-          }));
-        }
+      if (userData.followRequests) {
+        setIsRequested(userData.followRequests.some((r) => {
+          const rid = r._id || r;
+          return String(rid) === String(currentUserId);
+        }));
+      }
 
-        if (currentUserId && String(userData._id) !== String(currentUserId)) {
-          apiFetch(`/api/v1/users/${currentUserId}`)
-            .then(res => res.ok ? res.json() : null)
-            .then(mePayload => {
-              if (mePayload) {
-                const meData = mePayload.data || mePayload;
-                if (meData.followRequests) {
-                  const incoming = meData.followRequests.some(req => String(req._id || req) === String(userData._id));
-                  setHasIncomingRequest(incoming);
-                }
-              }
-            })
-            .catch(console.error);
-        }
-
-        apiFetch(`/api/v1/stories/user/${userData._id}`)
+      if (currentUserId && String(userData._id) !== String(currentUserId)) {
+        apiFetch(`/api/v1/users/${currentUserId}`)
           .then(res => res.ok ? res.json() : null)
-          .then(storiesPayload => {
-            if (storiesPayload && storiesPayload.data && storiesPayload.data.stories?.length > 0) {
-              setUserStoriesGroup(storiesPayload.data);
-            } else {
-              setUserStoriesGroup(null);
+          .then(mePayload => {
+            if (mePayload) {
+              const meData = mePayload.data || mePayload;
+              if (meData.followRequests) {
+                const incoming = meData.followRequests.some(req => String(req._id || req) === String(userData._id));
+                setHasIncomingRequest(incoming);
+              }
             }
           })
-          .catch(() => setUserStoriesGroup(null));
-      })
-      .catch((err) => {
-        console.error(err);
-        if (CREATORS_PROFILES_MAP[normalizedKey]) {
-          const creatorData = CREATORS_PROFILES_MAP[normalizedKey];
-          setUser(creatorData);
-          setPosts(creatorData.mockPosts || []);
-          setError(false);
-        } else {
-          setError(true);
-        }
-      });
+          .catch(console.error);
+      }
 
-    fetchUserPosts(identifier);
+      // Fetch stories
+      apiFetch(`/api/v1/stories/user/${userData._id}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(storiesPayload => {
+          if (storiesPayload && storiesPayload.data && storiesPayload.data.stories?.length > 0) {
+            setUserStoriesGroup(storiesPayload.data);
+          } else {
+            setUserStoriesGroup(null);
+          }
+        })
+        .catch(() => setUserStoriesGroup(null));
+
+      // Fetch user posts
+      const postsRes = await apiFetch(`/api/v1/posts/user/${userData._id}`);
+      if (postsRes.ok) {
+        const postsPayload = await postsRes.json();
+        const postsData = postsPayload.data || postsPayload;
+        setPosts(Array.isArray(postsData) ? postsData : []);
+      } else {
+        setPosts([]);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(true);
+    }
   }, [profileIdentifier, currentUserId]);
 
-  const fetchUserPosts = (identifier) => {
-    const normalizedKey = identifier.toLowerCase().replace("@", "");
-    apiFetch(`/api/v1/posts/user/${identifier}`)
-      .then((r) => r.ok ? r.json() : [])
-      .then((payload) => {
-        const postsData = payload.data || payload;
-        const finalPosts = Array.isArray(postsData) ? postsData : [];
-        if (finalPosts.length > 0) {
-          setPosts(finalPosts);
-        } else if (CREATORS_PROFILES_MAP[normalizedKey]) {
-          setPosts(CREATORS_PROFILES_MAP[normalizedKey].mockPosts || []);
-        }
-      })
-      .catch(() => {
-        if (CREATORS_PROFILES_MAP[normalizedKey]) {
-          setPosts(CREATORS_PROFILES_MAP[normalizedKey].mockPosts || []);
-        }
-      });
-  };
+  useEffect(() => {
+    fetchProfileData();
+
+    const handleProfileUpdate = () => {
+      fetchProfileData();
+    };
+
+    window.addEventListener("profile:updated", handleProfileUpdate);
+    window.addEventListener("session:updated", handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener("profile:updated", handleProfileUpdate);
+      window.removeEventListener("session:updated", handleProfileUpdate);
+    };
+  }, [fetchProfileData]);
 
   const handleFollow = async () => {
     try {
       setLoadingFollow(true);
-      const isMock = String(user?._id).endsWith("-id");
-
-      if (isMock) {
-        setIsFollowing(!isFollowing);
-        toast.success(isFollowing ? "Unfollowed creator" : "Following creator!");
-        return;
-      }
+      const targetId = user?._id || profileIdentifier;
 
       const endpoint = (isFollowing || isRequested)
-        ? `/api/v1/users/${user?._id || profileIdentifier}/unfollow`
-        : `/api/v1/users/${user?._id || profileIdentifier}/follow`;
+        ? `/api/v1/users/${targetId}/unfollow`
+        : `/api/v1/users/${targetId}/follow`;
 
       const response = await apiFetch(endpoint, { method: "POST" });
       if (!response.ok) { 
@@ -258,10 +194,10 @@ const Profile = () => {
   if (error) {
     return (
       <div className="ProfilePage">
-        <div className="emptyState" style={{ background: "var(--fm-surface)", borderRadius: "var(--radius-card)", border: "1px solid var(--fm-border)" }}>
-          <h2>Profile Not Found</h2>
-          <p>The user you are looking for does not exist or has been removed.</p>
-          <button className="primaryCTA" onClick={() => navigate("/home")} style={{ marginTop: "1rem" }}>
+        <div className="emptyState" style={{ background: "var(--fm-surface)", borderRadius: "var(--radius-card)", border: "1px solid var(--fm-border)", padding: "3rem 1.5rem", textAlign: "center" }}>
+          <h2 style={{ color: "var(--fm-text)", margin: "0 0 0.5rem" }}>Profile Not Found</h2>
+          <p style={{ color: "var(--fm-text-muted)", margin: "0 0 1.5rem" }}>The user you are looking for does not exist or has been removed.</p>
+          <button className="saveBtn" onClick={() => navigate("/home")}>
             Back to Home
           </button>
         </div>
@@ -318,7 +254,7 @@ const Profile = () => {
           }}
           title={userStoriesGroup ? "Click to view story" : ""}
         >
-          <img src={avatarUrl} alt={user.username} className="profileAvatar" />
+          <img src={avatarUrl} alt={user.username} className="profileAvatar" onError={(e) => { e.target.src = ProfileImage; }} />
         </motion.div>
 
         <motion.div 
@@ -381,6 +317,11 @@ const Profile = () => {
             {user.profession && <p className="profileProfession">{user.profession}</p>}
             {user.bio && <p className="profileBio">{user.bio}</p>}
             {user.location && <p className="profileLocation">📍 {user.location}</p>}
+            {user.website && (
+              <p className="profileLocation">
+                🔗 <a href={user.website.startsWith("http") ? user.website : `https://${user.website}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--fm-primary)", textDecoration: "none" }}>{user.website}</a>
+              </p>
+            )}
           </div>
         </motion.div>
       </div>
@@ -426,8 +367,8 @@ const Profile = () => {
           <div className="profileTabContent" style={{ marginTop: "1rem" }}>
             {activeTab === "posts" && (
               posts.length === 0 ? (
-                <div className="emptyState">
-                  <p>No posts yet</p>
+                <div className="emptyState" style={{ padding: "3rem 1.5rem", textAlign: "center", background: "var(--fm-surface)", borderRadius: "var(--radius-card)", border: "1px solid var(--fm-border)" }}>
+                  <p style={{ color: "var(--fm-text-muted)" }}>No posts yet</p>
                 </div>
               ) : (
                 <div className="profileGrid">
@@ -469,7 +410,7 @@ const Profile = () => {
             {activeTab === "followers" && (
               <div className="userFollowList">
                 {user.followers?.length === 0 ? (
-                  <div className="emptyState"><p>No followers yet</p></div>
+                  <div className="emptyState" style={{ padding: "2rem", textAlign: "center" }}><p style={{ color: "var(--fm-text-muted)" }}>No followers yet</p></div>
                 ) : (
                   user.followers?.map((follower) => {
                     const fName = follower.displayName || follower.username || "User";
@@ -482,7 +423,7 @@ const Profile = () => {
                         onClick={() => navigate(`/profile/${fHandle}`)}
                         style={{ cursor: "pointer" }}
                       >
-                        <img src={fAvatar} alt={fName} className="userFollowAvatar" />
+                        <img src={fAvatar} alt={fName} className="userFollowAvatar" onError={(e) => { e.target.src = ProfileImage; }} />
                         <div className="userFollowInfo">
                           <strong style={{ color: "var(--fm-text)" }}>{fName}</strong>
                           <span>@{fHandle}</span>
@@ -497,7 +438,7 @@ const Profile = () => {
             {activeTab === "following" && (
               <div className="userFollowList">
                 {user.following?.length === 0 ? (
-                  <div className="emptyState"><p>Not following anyone yet</p></div>
+                  <div className="emptyState" style={{ padding: "2rem", textAlign: "center" }}><p style={{ color: "var(--fm-text-muted)" }}>Not following anyone yet</p></div>
                 ) : (
                   user.following?.map((followed) => {
                     const fName = followed.displayName || followed.username || "User";
@@ -510,7 +451,7 @@ const Profile = () => {
                         onClick={() => navigate(`/profile/${fHandle}`)}
                         style={{ cursor: "pointer" }}
                       >
-                        <img src={fAvatar} alt={fName} className="userFollowAvatar" />
+                        <img src={fAvatar} alt={fName} className="userFollowAvatar" onError={(e) => { e.target.src = ProfileImage; }} />
                         <div className="userFollowInfo">
                           <strong style={{ color: "var(--fm-text)" }}>{fName}</strong>
                           <span>@{fHandle}</span>

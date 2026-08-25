@@ -5,77 +5,17 @@ import Masonry from "react-masonry-css";
 import { Heart, MessageCircle, Compass, TrendingUp } from "lucide-react";
 import { apiFetch } from "../../utils/api";
 import ProfileImage from "../../img/profileImg.jpg";
-import { CREATORS, POST_MEDIA } from "../../constants/mediaAssets";
 import { useNavigate } from "react-router-dom";
-
-const DEFAULT_EXPLORE_POSTS = [
-  {
-    _id: "exp-1",
-    imageUrl: POST_MEDIA.creativeCoding,
-    caption: "Generative particle shaders running at 60fps in WebGL 2.0. #generative #creativecoding #webgl",
-    category: "Technology",
-    userId: { username: CREATORS.ananya.username, displayName: CREATORS.ananya.name, profilePicture: CREATORS.ananya.avatar },
-    likes: ["1", "2", "3", "4", "5"],
-    comments: ["c1", "c2"],
-  },
-  {
-    _id: "exp-2",
-    imageUrl: POST_MEDIA.streetPhoto,
-    caption: "Atmospheric street photography along the central avenue at dusk. #photography #35mm #streetphoto",
-    category: "Photography",
-    userId: { username: CREATORS.snehil.username, displayName: CREATORS.snehil.name, profilePicture: CREATORS.snehil.avatar },
-    likes: ["1", "2", "3", "4"],
-    comments: ["c1"],
-  },
-  {
-    _id: "exp-3",
-    imageUrl: POST_MEDIA.designWorkspace,
-    caption: "Spatial UI architecture and physical workspace design tokens. #art #technology #design",
-    category: "Technology",
-    userId: { username: CREATORS.sahil.username, displayName: CREATORS.sahil.name, profilePicture: CREATORS.sahil.avatar },
-    likes: ["1", "2", "3", "4", "5", "6"],
-    comments: ["c1", "c2", "c3"],
-  },
-  {
-    _id: "exp-4",
-    imageUrl: POST_MEDIA.architecture,
-    caption: "Clean concrete geometry and minimal shadows. #architecture #art #design",
-    category: "Art",
-    userId: { username: CREATORS.priya.username, displayName: CREATORS.priya.name, profilePicture: CREATORS.priya.avatar },
-    likes: ["1", "2", "3"],
-    comments: [],
-  },
-  {
-    _id: "exp-5",
-    imageUrl: POST_MEDIA.urbanSunset,
-    caption: "Dusk skyline and sunset gradient over the city. #travel #photography #goldenhour",
-    category: "Travel",
-    userId: { username: CREATORS.bhavishya.username, displayName: CREATORS.bhavishya.name, profilePicture: CREATORS.bhavishya.avatar },
-    likes: ["1", "2", "3", "4", "5", "6", "7"],
-    comments: ["c1", "c2"],
-  },
-  {
-    _id: "exp-6",
-    imageUrl: POST_MEDIA.abstractShapes,
-    caption: "Exploring color harmony, kinetic typography, and editorial layout. #fashion #art #branding",
-    category: "Fashion",
-    userId: { username: CREATORS.garvit.username, displayName: CREATORS.garvit.name, profilePicture: CREATORS.garvit.avatar },
-    likes: ["1", "2", "3", "4"],
-    comments: ["c1"],
-  }
-];
 
 const Explore = () => {
   const navigate = useNavigate();
-  const [searchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trendingTags, setTrendingTags] = useState([]);
 
-  const categories = ["All", "Trending", "Photography", "Art", "Technology", "Fashion", "Travel"];
+  const categories = ["All", "Trending", "Photography", "Design", "Technology", "Art", "Architecture"];
 
-  // Responsive Masonry breakpoints for Desktop, Tablet, and Mobile
   const breakpointColumnsObj = {
     default: 3,
     1400: 3,
@@ -84,30 +24,26 @@ const Explore = () => {
   };
 
   useEffect(() => {
-    fetchExplorePosts();
-  }, [activeCategory]);
-
-  const fetchExplorePosts = async (skipVal = 0) => {
-    setLoading(true);
-    try {
-      const res = await apiFetch(`/api/v1/feed/explore?limit=30&skip=${skipVal}`);
-      if (res.ok) {
-        const payload = await res.json();
-        const data = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-        if (data.length > 0) {
-          setPosts(prev => skipVal === 0 ? data : [...prev, ...data]);
+    const fetchExplorePosts = async () => {
+      setLoading(true);
+      try {
+        const res = await apiFetch("/api/v1/posts?limit=40");
+        if (res.ok) {
+          const payload = await res.json();
+          const data = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+          setPosts(data);
         } else {
-          setPosts(DEFAULT_EXPLORE_POSTS);
+          setPosts([]);
         }
-      } else {
-        setPosts(DEFAULT_EXPLORE_POSTS);
+      } catch (error) {
+        setPosts([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setPosts(DEFAULT_EXPLORE_POSTS);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchExplorePosts();
+  }, []);
 
   useEffect(() => {
     const fetchTrending = async () => {
@@ -115,52 +51,24 @@ const Explore = () => {
         const res = await apiFetch('/api/v1/feed/trending/hashtags?limit=10');
         if (res.ok) {
           const payload = await res.json();
-          const tags = Array.isArray(payload.data) ? payload.data : Array.isArray(payload) ? payload : [];
-          if (tags.length > 0) {
-            setTrendingTags(tags);
-          } else {
-            setTrendingTags([
-              { tag: "creativecoding", postCount: 2840 },
-              { tag: "35mm", postCount: 1950 },
-              { tag: "streetphotography", postCount: 1420 },
-              { tag: "designsystems", postCount: 1100 },
-              { tag: "futuremedia", postCount: 890 }
-            ]);
-          }
-        } else {
-          setTrendingTags([
-            { tag: "creativecoding", postCount: 2840 },
-            { tag: "35mm", postCount: 1950 },
-            { tag: "streetphotography", postCount: 1420 },
-            { tag: "designsystems", postCount: 1100 },
-            { tag: "futuremedia", postCount: 890 }
-          ]);
+          const tags = Array.isArray(payload.data) ? payload.data : (Array.isArray(payload) ? payload : []);
+          setTrendingTags(tags);
         }
       } catch (err) {
-        setTrendingTags([
-          { tag: "creativecoding", postCount: 2840 },
-          { tag: "35mm", postCount: 1950 },
-          { tag: "streetphotography", postCount: 1420 },
-          { tag: "designsystems", postCount: 1100 },
-          { tag: "futuremedia", postCount: 890 }
-        ]);
+        console.error(err);
       }
     };
     fetchTrending();
   }, []);
 
   const filteredPosts = posts.filter((post) => {
-    const matchesSearch = post.caption?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.userId?.username?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-    if (activeCategory === "All") return true;
-    if (activeCategory === "Trending") return true;
+    if (activeCategory === "All" || activeCategory === "Trending") return true;
 
     const cat = activeCategory.toLowerCase();
     const caption = (post.caption || "").toLowerCase();
-    const postCat = (post.category || "").toLowerCase();
-    return postCat === cat || caption.includes(cat) || caption.includes(`#${cat}`);
+    const hashtags = Array.isArray(post.hashtags) ? post.hashtags.map(h => h.toLowerCase()) : [];
+
+    return caption.includes(cat) || caption.includes(`#${cat}`) || hashtags.includes(cat);
   });
 
   return (
@@ -218,7 +126,9 @@ const Explore = () => {
       )}
 
       {loading ? (
-        <div className="exploreLoading" style={{ textAlign: "center", padding: "3rem", color: "var(--fm-text-muted)" }}>Discovering amazing content...</div>
+        <div className="exploreLoading" style={{ textAlign: "center", padding: "3rem", color: "var(--fm-text-muted)" }}>
+          Discovering creators and photography...
+        </div>
       ) : (
         <Masonry
           breakpointCols={breakpointColumnsObj}
@@ -239,8 +149,8 @@ const Explore = () => {
               
               const isVideo = media ? media.type === "video" : (image && image.match(/\.(mp4|webm|ogg)$/i));
               const url = image ? (image.startsWith("http") ? image : `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"}${image}`) : null;
-              const authorUsername = post.userId?.username || post.user?.username || "user";
-              const authorDisplayName = post.userId?.displayName || post.userId?.username || post.user?.displayName || post.user?.username || "Creator";
+              const authorUsername = post.userId?.username || post.username || "user";
+              const authorDisplayName = post.userId?.displayName || post.userId?.username || post.displayName || "Creator";
               const authorAvatar = post.userId?.profilePicture || ProfileImage;
 
               return (
@@ -269,6 +179,7 @@ const Explore = () => {
                         src={authorAvatar}
                         alt={authorDisplayName}
                         className="masonryAvatar"
+                        onError={(e) => { e.target.src = ProfileImage; }}
                       />
                       <span className="masonryUsername">
                         {authorDisplayName}

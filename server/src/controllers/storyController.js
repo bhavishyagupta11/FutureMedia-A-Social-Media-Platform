@@ -62,17 +62,23 @@ exports.createStory = asyncHandler(async (req, res) => {
 });
 
 exports.getFeedStories = asyncHandler(async (req, res) => {
+  const currentUserId = req.user.id.toString();
   const currentUser = await User.findById(req.user.id).select("following");
   const followingIds = (currentUser?.following || []).map(id => id.toString());
-  if (!followingIds.includes(req.user.id.toString())) {
-    followingIds.push(req.user.id.toString());
+  if (!followingIds.includes(currentUserId)) {
+    followingIds.push(currentUserId);
   }
 
   const now = new Date();
 
-  // Fetch active non-expired stories from followed users & self
+  // Also include public creators if following list is small
+  const publicUsers = await User.find({ isPrivate: false, accountStatus: "active" }).select("_id");
+  const publicIds = publicUsers.map(u => u._id.toString());
+  const targetUserIds = [...new Set([...followingIds, ...publicIds])];
+
+  // Fetch active non-expired stories from followed users & public creators
   const stories = await Story.find({
-    userId: { $in: followingIds },
+    userId: { $in: targetUserIds },
     expiresAt: { $gt: now }
   })
     .populate("userId", "username displayName profilePicture isPrivate")
@@ -92,17 +98,29 @@ exports.getFeedStories = asyncHandler(async (req, res) => {
     groupedStoriesMap[uid].stories.push(story);
   });
 
-  // Put current user's story group first if present
-  const result = [];
-  const myUid = req.user.id.toString();
-  if (groupedStoriesMap[myUid]) {
-    result.push(groupedStoriesMap[myUid]);
-    delete groupedStoriesMap[myUid];
-  }
+  const myGroup = groupedStoriesMap[currentUserId] || null;
+  delete groupedStoriesMap[currentUserId];
+
+  const unseenGroups = [];
+  const seenGroups = [];
 
   Object.values(groupedStoriesMap).forEach(group => {
-    result.push(group);
+    const isFullySeen = group.stories.every(s =>
+      s.seenBy?.some(v => (v.user ? v.user.toString() : v.toString()) === currentUserId)
+    );
+    if (isFullySeen) {
+      seenGroups.push(group);
+    } else {
+      unseenGroups.push(group);
+    }
   });
+
+  // Ordering: Current User Story Group -> Unseen Creator Stories -> Seen Creator Stories
+  const result = [
+    ...(myGroup ? [myGroup] : []),
+    ...unseenGroups,
+    ...seenGroups
+  ];
 
   return successResponse(res, 200, "Stories fetched", result);
 });

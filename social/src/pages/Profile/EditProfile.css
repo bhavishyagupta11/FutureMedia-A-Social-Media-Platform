@@ -1,0 +1,342 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   FutureMedia — Edit Profile Page Styles
+   Warm Cream Canvas with Solid White Card, Peach Accents & Clean Form Controls
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.EditProfilePage {
+  width: 100%;
+  max-width: 780px;
+  margin: clamp(1rem, 2.5vw, 2rem) auto;
+  padding: 0 clamp(0.75rem, 3vw, 1.5rem) 6rem;
+  box-sizing: border-box;
+}
+
+.editProfileCard {
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.editProfileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--fm-divider);
+  padding-bottom: 1rem;
+}
+
+.editProfileTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--fm-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Cover Image Section ─── */
+.editCoverSection {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--fm-surface-soft);
+  border: 1px solid var(--fm-border);
+}
+
+.editCoverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.editCoverPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--fm-primary-pale), var(--fm-surface-soft));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fm-text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.editCoverOverlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(37, 37, 37, 0.75);
+  color: #FFFFFF;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.editCoverOverlay:hover {
+  background: var(--fm-primary);
+  transform: translateY(-1px);
+}
+
+/* ─── Avatar Section (Overlapping Cover) ─── */
+.editAvatarSection {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: -45px;
+  padding-left: 1.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+.editAvatarWrapper {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 4px solid var(--fm-surface);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--fm-surface-soft);
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.editAvatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.editAvatarOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(37, 37, 37, 0.6);
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.editAvatarWrapper:hover .editAvatarOverlay {
+  opacity: 1;
+}
+
+.editAvatarInfo {
+  padding-top: 35px;
+}
+
+.editAvatarInfo h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--fm-text);
+}
+
+.editAvatarInfo p {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--fm-text-muted);
+}
+
+/* ─── Form Fields ─── */
+.editProfileForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.editFormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editField label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--fm-text);
+}
+
+.editField input,
+.editField textarea,
+.editField select {
+  width: 100%;
+  padding: 11px 15px;
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--fm-text);
+  box-sizing: border-box;
+  transition: var(--transition-smooth);
+}
+
+.editField input:focus,
+.editField textarea:focus,
+.editField select:focus {
+  outline: none;
+  border-color: var(--fm-primary);
+  box-shadow: 0 0 0 3px var(--fm-primary-pale);
+}
+
+.editField textarea {
+  resize: vertical;
+  min-height: 85px;
+}
+
+.charCounter {
+  align-self: flex-end;
+  font-size: 0.78rem;
+  color: var(--fm-text-muted);
+}
+
+/* ─── Username Input with @ Prefix ─── */
+.usernameInputContainer {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-md);
+  background: var(--fm-surface);
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.usernameInputContainer:focus-within {
+  border-color: var(--fm-primary);
+  box-shadow: 0 0 0 3px var(--fm-primary-pale);
+}
+
+.usernamePrefix {
+  padding: 11px 0 11px 15px;
+  color: var(--fm-primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.usernameInputContainer input {
+  border: none !important;
+  box-shadow: none !important;
+  padding-left: 4px !important;
+}
+
+/* ─── Toggle Switch Field ─── */
+.editToggleField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--fm-surface-soft);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--fm-border);
+}
+
+.toggleLabelGroup strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--fm-text);
+}
+
+.toggleLabelGroup span {
+  font-size: 0.8rem;
+  color: var(--fm-text-muted);
+}
+
+/* ─── Action Buttons ─── */
+.editProfileActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 1rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--fm-divider);
+}
+
+.cancelBtn {
+  background: var(--fm-surface-soft);
+  color: var(--fm-text);
+  border: 1px solid var(--fm-border);
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.cancelBtn:hover {
+  background: var(--fm-border);
+}
+
+.saveBtn {
+  background: linear-gradient(135deg, var(--fm-primary), var(--fm-primary-hover));
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 26px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 138, 76, 0.35);
+  transition: var(--transition-smooth);
+}
+
+.saveBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 138, 76, 0.45);
+}
+
+.saveBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .editFormRow {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .editCoverSection {
+    height: 120px;
+  }
+
+  .editAvatarWrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .editAvatarSection {
+    margin-top: -35px;
+    padding-left: 0.5rem;
+  }
+}

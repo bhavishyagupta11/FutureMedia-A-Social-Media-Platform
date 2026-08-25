@@ -9,7 +9,16 @@ exports.getProfile = asyncHandler(async (req, res) => {
 });
 
 exports.updateProfile = asyncHandler(async (req, res) => {
-  if (req.file) {
+  if (req.files) {
+    if (req.files.profilePicture && req.files.profilePicture[0]) {
+      const f = req.files.profilePicture[0];
+      req.body.profilePicture = f.path && f.path.startsWith("http") ? f.path : `/uploads/${f.filename}`;
+    }
+    if (req.files.coverImage && req.files.coverImage[0]) {
+      const f = req.files.coverImage[0];
+      req.body.coverImage = f.path && f.path.startsWith("http") ? f.path : `/uploads/${f.filename}`;
+    }
+  } else if (req.file) {
     req.body.profilePicture = req.file.path && req.file.path.startsWith("http") ? req.file.path : `/uploads/${req.file.filename}`;
   }
   const result = await userService.updateProfile(req.user.id, req.body);
