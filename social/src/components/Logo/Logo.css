@@ -1,35 +1,39 @@
 .futuremedia-logo {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
   user-select: none;
+  cursor: pointer;
 }
 
 .futuremedia-logo .fm-brand-img {
-  height: 44px;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.25);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 40px;
+  width: 40px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(255, 138, 76, 0.25);
+  border: 1.5px solid var(--fm-border);
+  transition: transform 0.25s ease;
 }
 
 .futuremedia-logo:hover .fm-brand-img {
-  transform: scale(1.03);
+  transform: scale(1.04);
 }
 
 .futuremedia-logo.small .fm-brand-img {
   height: 32px;
-  border-radius: 8px;
+  width: 32px;
+  border-radius: 9px;
 }
 
 .futuremedia-logo.normal .fm-brand-img {
-  height: 44px;
-  border-radius: 10px;
+  height: 40px;
+  width: 40px;
+  border-radius: 12px;
 }
 
 .futuremedia-logo.large .fm-brand-img {
-  height: 90px;
-  border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+  height: 64px;
+  width: 64px;
+  border-radius: 18px;
 }

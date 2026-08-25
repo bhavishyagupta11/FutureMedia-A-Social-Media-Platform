@@ -6,9 +6,14 @@ import "react-toastify/dist/ReactToastify.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "../components/Navigation/AppLayout";
 
-// Lazy load routes for performance
+// Core routes
 import Landing from "../pages/Landing/Landing";
-import { Auth, SignUp, ForgotPassword, ResetPassword } from "../pages/Auth/Auth";
+
+// Lazy-loaded routes for optimal initial page load performance
+const Auth = lazy(() => import("../pages/Auth/Auth").then(m => ({ default: m.Auth })));
+const SignUp = lazy(() => import("../pages/Auth/Auth").then(m => ({ default: m.SignUp })));
+const ForgotPassword = lazy(() => import("../pages/Auth/Auth").then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import("../pages/Auth/Auth").then(m => ({ default: m.ResetPassword })));
 const VerifyEmail = lazy(() => import("../pages/Auth/VerifyEmail"));
 const Home = lazy(() => import("../pages/Auth/Home/Home"));
 const Profile = lazy(() => import("../pages/Profile/Profile"));
@@ -20,12 +25,19 @@ const Notifications = lazy(() => import("../pages/Notifications/Notifications"))
 const Search = lazy(() => import("../pages/Search/Search"));
 const SinglePost = lazy(() => import("../pages/SinglePost/SinglePost"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 2, // 2 minutes cache
+    }
+  }
+});
 
-// Simple loading fallback
+// Warm Editorial Page Loader
 const PageLoader = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-    <div className="loader" style={{ width: '40px', height: '40px', border: '3px solid var(--color-border)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+  <div className="fm-page-loader">
+    <div className="fm-spinner" />
   </div>
 );
 
@@ -35,14 +47,14 @@ function App() {
       <BrowserRouter>
         <ToastContainer
           position="bottom-center"
-          autoClose={2500}
+          autoClose={2400}
           hideProgressBar={false}
           newestOnTop
           closeOnClick
           pauseOnFocusLoss={false}
           draggable
-          theme="dark"
-          toastClassName="glass-card"
+          theme="light"
+          toastClassName="fm-toast"
         />
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -52,7 +64,7 @@ function App() {
             <Route path="/verify/:token" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            
+
             <Route path="/home" element={<AppLayout><Home /></AppLayout>} />
             <Route path="/explore" element={<AppLayout><Explore /></AppLayout>} />
             <Route path="/search" element={<AppLayout><Search /></AppLayout>} />
@@ -64,7 +76,7 @@ function App() {
             <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
             <Route path="/messages" element={<AppLayout><Chat /></AppLayout>} />
             <Route path="/chat" element={<Navigate to="/messages" replace />} />
-            
+
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </Suspense>

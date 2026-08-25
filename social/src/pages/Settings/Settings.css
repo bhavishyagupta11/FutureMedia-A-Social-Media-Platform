@@ -1,4 +1,8 @@
-/* ─── Settings Page ──────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   FutureMedia — Settings Page Responsive Styles
+   Warm Cream Canvas with Solid White Navigation and Content Panels, Peach Toggles
+   ════════════════════════════════════════════════════════════════════════════ */
+
 .SettingsPage {
   padding: clamp(1rem, 3vw, 2rem);
   max-width: 1200px;
@@ -15,17 +19,18 @@
 .settingsHeader h1 {
   font-size: clamp(1.4rem, 3vw, 2rem);
   font-weight: 800;
-  color: var(--color-text, #ffffff);
+  color: var(--fm-text);
   margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
 }
 
 .settingsHeader p {
-  color: var(--color-text-muted, #a1a1aa);
+  color: var(--fm-text-secondary);
   font-size: 0.95rem;
   margin: 0;
 }
 
-/* ─── Layout: Sidebar + Content ──────────────────────────────────────── */
+/* ─── Layout: Sidebar + Content ─── */
 .settingsLayout {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -33,25 +38,21 @@
   align-items: start;
 }
 
-/* ─── Sidebar Navigation ─────────────────────────────────────────────── */
+/* ─── Sidebar Navigation ─── */
 .settingsSidebar {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  background: var(--color-surface, #18181B);
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
-  border-radius: var(--radius-card, 20px);
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
   padding: 0.75rem;
   height: fit-content;
   position: sticky;
   top: 1rem;
+  box-shadow: var(--shadow-card);
 }
 
-/* ─── Unified Settings Tab Button ─────────────────────────────────────
-   Every navigation item MUST use this single class.
-   Width, padding, gap, min-height, icon sizing are identical.
-   Only color/background differ for special states.
-──────────────────────────────────────────────────────────────────────── */
 .settingsTab {
   display: flex;
   align-items: center;
@@ -61,432 +62,221 @@
   padding: 0.65rem 1rem;
   background: transparent;
   border: none;
-  border-radius: var(--radius-button, 14px);
-  color: var(--color-text-muted, #a1a1aa);
-  font-size: 0.95rem;
+  border-radius: var(--radius-button);
+  color: var(--fm-text-secondary);
+  font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
   text-align: left;
   box-sizing: border-box;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-/* Icon container: fixed width so all labels start at same X position */
 .settingsTab svg {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
+  color: var(--fm-text-muted);
 }
 
 .settingsTab:hover {
-  color: var(--color-text, #ffffff);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--fm-text);
+  background: var(--fm-surface-soft);
 }
 
 .settingsTab.active {
-  color: #ffffff;
-  background: var(--color-primary, #4F46E5);
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  color: var(--fm-primary);
+  background: var(--fm-primary-pale);
+  font-weight: 700;
 }
 
-/* Danger Zone tab: red tint */
+.settingsTab.active svg {
+  color: var(--fm-primary);
+}
+
 .settingsTab.dangerTab:hover,
 .settingsTab.dangerTab.active {
-  background: rgba(239, 68, 68, 0.15);
-  color: #EF4444;
-  box-shadow: none;
+  background: var(--fm-error-soft);
+  color: var(--fm-error);
 }
 
-/* Log Out tab: red text, same geometry */
+.settingsTab.dangerTab:hover svg,
+.settingsTab.dangerTab.active svg {
+  color: var(--fm-error);
+}
+
 .settingsTab.logoutTab {
-  color: #EF4444;
+  color: var(--fm-error);
+}
+
+.settingsTab.logoutTab svg {
+  color: var(--fm-error);
 }
 
 .settingsTab.logoutTab:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #EF4444;
+  background: var(--fm-error-soft);
 }
 
-/* ─── Content Panel ──────────────────────────────────────────────────── */
+/* ─── Content Panel ─── */
 .settingsContent {
-  background: var(--color-surface, #18181B);
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
-  border-radius: var(--radius-card, 20px);
-  padding: clamp(1.25rem, 3vw, 2rem);
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
   min-height: 480px;
   min-width: 0;
+  box-shadow: var(--shadow-card);
 }
 
-/* ─── Section Headings ───────────────────────────────────────────────── */
-.settingsSection h2 {
-  font-size: clamp(1.1rem, 2vw, 1.3rem);
-  font-weight: 700;
-  color: var(--color-text, #ffffff);
-  margin: 0 0 1.5rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* ─── Form Layout ────────────────────────────────────────────────────── */
-.settingsForm {
+.settingsPanel {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  max-width: 580px;
-  width: 100%;
+  gap: 2rem;
 }
 
-.settingsField {
+.settingsPanel h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--fm-text);
+  margin: 0 0 0.4rem 0;
+}
+
+.settingsPanel p {
+  color: var(--fm-text-secondary);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--fm-divider);
+}
+
+.settingsSection:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.settingsSection h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--fm-text);
+  margin: 0;
+}
+
+/* ─── Form Controls & Inputs ─── */
+.formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.settingsField label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-muted, #a1a1aa);
+.formGroup label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--fm-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.settingsField input,
-.settingsField textarea {
-  width: 100%;
-  background: var(--bg-input, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
-  border-radius: var(--radius-button, 14px);
-  padding: 0.75rem 1rem;
-  color: var(--color-text, #ffffff);
+.formInput {
+  background: var(--fm-surface-soft);
+  border: 1.5px solid var(--fm-border);
+  border-radius: var(--radius-button);
+  padding: 10px 14px;
+  color: var(--fm-text);
   font-size: 0.95rem;
-  font-family: inherit;
   outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.2s ease;
-  resize: vertical;
+  transition: var(--transition-smooth);
 }
 
-.settingsField input:focus,
-.settingsField textarea:focus {
-  border-color: var(--color-primary, #4F46E5);
+.formInput:focus {
+  background: #FFFFFF;
+  border-color: var(--fm-primary);
+  box-shadow: var(--shadow-focus);
 }
 
-/* ─── Save Button ────────────────────────────────────────────────────── */
-.settingsSaveButton {
-  align-self: flex-start;
-  padding: 0.75rem 1.75rem;
-  background: var(--color-primary, #4F46E5);
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-button, 14px);
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
-}
-
-.settingsSaveButton:hover:not(:disabled) {
-  background: var(--color-primary-dark, #4338CA);
-  transform: translateY(-1px);
-}
-
-.settingsSaveButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ─── Status Messages ────────────────────────────────────────────────── */
-.settingsSaved {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-success, #10B981);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.settingsError {
-  color: #EF4444;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-/* ─── Settings Row (Toggle rows) ─────────────────────────────────────── */
-.settingsRow {
+/* ─── Toggle Switch (Peach Active) ─── */
+.settingToggleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1.25rem 0;
-  border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  gap: 1.5rem;
+  padding: 12px 0;
 }
 
-.settingsRowInfo {
+.toggleLabel {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  min-width: 0;
-  flex: 1;
 }
 
-.settingsRowInfo strong {
-  color: var(--color-text, #ffffff);
+.toggleLabel strong {
   font-size: 0.95rem;
+  color: var(--fm-text);
 }
 
-.settingsRowInfo span {
-  color: var(--color-text-muted, #a1a1aa);
-  font-size: 0.85rem;
-  word-wrap: break-word;
+.toggleLabel span {
+  font-size: 0.84rem;
+  color: var(--fm-text-secondary);
 }
 
-/* ─── FAQ Styles ─────────────────────────────────────────────────────── */
-.faqContainer {
-  margin-bottom: 1.5rem;
-}
-
-.faqContainer h3 {
-  color: var(--color-text, #ffffff);
-  font-size: 1.05rem;
-  margin-bottom: 0.75rem;
-}
-
-.faqList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.faqItem {
-  background: var(--bg-input, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.faqQuestionBtn {
-  width: 100%;
-  padding: 0.85rem 1rem;
-  background: transparent;
-  border: none;
-  color: var(--color-text, #ffffff);
-  font-weight: 600;
-  font-size: 0.9rem;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  cursor: pointer;
-  text-align: left;
-  min-height: 44px;
-  box-sizing: border-box;
-}
-
-.faqQuestionBtn span {
-  flex: 1;
-  min-width: 0;
-  word-wrap: break-word;
-  white-space: normal;
-}
-
-.faqAnswer {
-  padding: 0 1rem 0.85rem;
-  color: var(--color-text-muted, #a1a1aa);
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
-/* ─── Danger Zone ────────────────────────────────────────────────────── */
-.dangerZone {
-  margin-top: 2rem;
-  padding: clamp(1rem, 2vw, 1.5rem);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-card, 16px);
-  background: rgba(239, 68, 68, 0.04);
-}
-
-.dangerZone h3 {
-  color: #EF4444;
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-}
-
-.dangerZone p {
-  color: var(--color-text-muted, #a1a1aa);
-  font-size: 0.875rem;
-  margin: 0 0 1rem 0;
-}
-
-.dangerBtn {
-  padding: 0.65rem 1.25rem;
-  background: #EF4444;
-  color: #ffffff;
-  border: none;
-  border-radius: var(--radius-button, 12px);
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  min-height: 44px;
-  box-sizing: border-box;
-}
-
-.dangerBtn:hover:not(:disabled) {
-  background: #DC2626;
-}
-
-.dangerBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ─── Switch Toggle ──────────────────────────────────────────────────── */
-.switch {
+.toggleSwitch {
   position: relative;
-  display: inline-block;
-  width: 46px;
-  height: 26px;
-  flex-shrink: 0;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
+  width: 48px;
+  height: 28px;
+  background: var(--fm-border);
+  border-radius: 14px;
   cursor: pointer;
-  inset: 0;
-  background-color: rgba(255, 255, 255, 0.2);
-  transition: .3s;
-  border-radius: 26px;
+  transition: background 0.25s ease;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
 }
 
-.slider:before {
+.toggleSwitch.on {
+  background: var(--fm-primary);
+}
+
+.toggleSlider {
   position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
+  top: 3px;
   left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .3s;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s ease;
 }
 
-input:checked + .slider {
-  background-color: var(--color-primary, #4F46E5);
-}
-
-input:checked + .slider:before {
+.toggleSwitch.on .toggleSlider {
   transform: translateX(20px);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE — Tablet (769px to 1024px)
-   ═══════════════════════════════════════════════════════════════════════ */
-@media (max-width: 1024px) {
-  .settingsLayout {
-    grid-template-columns: 220px 1fr;
-  }
-
-  .settingsSidebar {
-    position: static;
-  }
-
-  .settingsTab {
-    font-size: 0.9rem;
-    padding: 0.6rem 0.75rem;
-  }
+.saveSettingsBtn {
+  align-self: flex-start;
+  margin-top: 1rem;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE — Mobile (≤768px)
-   Sidebar becomes horizontal scrollable tab bar
-   ═══════════════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .settingsLayout {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
 
   .settingsSidebar {
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-    padding: 0.5rem;
-    gap: 0.25rem;
     position: static;
-  }
-
-  .settingsSidebar::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 6px;
   }
 
   .settingsTab {
-    flex-shrink: 0;
-    width: auto;
-    min-width: fit-content;
-    scroll-snap-align: start;
-    padding: 0.55rem 0.85rem;
+    padding: 8px 12px;
     font-size: 0.85rem;
-    min-height: 40px;
-    border-radius: 12px;
-  }
-
-  .settingsContent {
-    min-height: auto;
-  }
-
-  .settingsForm {
-    max-width: 100%;
-  }
-
-  .settingsRow {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   RESPONSIVE — Small Mobile (≤480px)
-   ═══════════════════════════════════════════════════════════════════════ */
-@media (max-width: 480px) {
-  .SettingsPage {
-    padding: 0.75rem;
-  }
-
-  .settingsTab {
-    padding: 0.5rem 0.7rem;
-    font-size: 0.8rem;
-    gap: 0.5rem;
-  }
-
-  .settingsContent {
-    padding: 1rem;
-    border-radius: 16px;
-  }
-
-  .settingsSidebar {
-    border-radius: 16px;
-  }
-
-  .dangerZone {
-    padding: 1rem;
-  }
-
-  .settingsSaveButton {
-    width: 100%;
-    text-align: center;
-    justify-content: center;
-    display: flex;
   }
 }

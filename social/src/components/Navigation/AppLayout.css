@@ -1,14 +1,22 @@
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background-color: var(--color-bg);
+  background-color: var(--fm-bg);
+  color: var(--fm-text);
+  position: relative;
+}
+
+.app-guest {
+  min-height: 100vh;
+  background-color: var(--fm-bg);
+  color: var(--fm-text);
 }
 
 .app-main-content {
   flex: 1;
-  margin-left: 244px; /* Width of sidebar */
+  margin-left: 250px;
   min-height: 100vh;
-  min-width: 0; /* Prevent flex child from exceeding parent */
+  min-width: 0;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
@@ -17,26 +25,26 @@
 @media (max-width: 1024px) {
   .app-main-content {
     margin-left: 0;
-    padding-bottom: 80px; /* Floating BottomNav space */
+    padding-bottom: 80px;
   }
 }
 
 @media (max-width: 768px) {
   .app-main-content {
     margin-left: 0;
-    padding-bottom: 60px; /* Fixed BottomNav height */
+    padding-bottom: 70px;
   }
 }
 
-/* Modal Placeholder Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(5px);
+  background-color: rgba(37, 37, 37, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -44,8 +52,9 @@
 }
 
 .modal-content {
-  background-color: var(--color-surface);
+  background-color: var(--fm-surface);
   padding: var(--space-4);
   border-radius: var(--radius-card);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--fm-border);
+  box-shadow: var(--shadow-lg);
 }

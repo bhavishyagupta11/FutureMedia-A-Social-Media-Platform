@@ -1,55 +1,64 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   FutureMedia — Sidebar Navigation Styles
+   Warm Cream & White Aesthetic with Soft Peach Active Pill
+   ════════════════════════════════════════════════════════════════════════════ */
+
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  width: 244px;
-  background-color: var(--color-bg);
-  border-right: 1px solid var(--color-border);
+  width: 250px;
+  background-color: var(--fm-surface);
+  border-right: 1px solid var(--fm-border);
   display: flex;
   flex-direction: column;
   padding: var(--space-4) var(--space-3);
   z-index: 100;
+  box-shadow: var(--shadow-sm);
   transition: var(--transition-smooth);
 }
 
 .sidebar-logo {
   margin-bottom: var(--space-4);
-  padding: 0 var(--space-1);
+  padding: 0 var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.sidebar-logo h2 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 22px;
-  color: var(--color-text);
-  letter-spacing: -0.5px;
+.sidebar-brand-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--fm-text);
+  letter-spacing: -0.02em;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 6px;
   flex: 1;
 }
 
 .sidebar-footer {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 6px;
   margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--fm-divider);
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 12px;
-  margin-bottom: 4px;
+  gap: 14px;
+  padding: 11px 16px;
   border-radius: var(--radius-button);
-  color: var(--color-text);
+  color: var(--fm-text-secondary);
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: all 0.2s ease;
   text-decoration: none;
   background: transparent;
   border: none;
@@ -58,47 +67,84 @@
   width: 100%;
 }
 
-.nav-item:hover {
-  background-color: var(--color-card-hover);
-}
-
-.nav-item:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.nav-item:active {
-  transform: scale(0.96);
-  opacity: 0.8;
-}
-
-.nav-item.active {
-  font-weight: 700;
-}
-
-.nav-item.active svg {
-  stroke-width: 2.5;
+.nav-item .nav-icon {
+  color: var(--fm-text-muted);
+  transition: color 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
 }
 
 .nav-label {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: inherit;
+}
+
+.nav-item:hover {
+  background-color: var(--fm-surface-soft);
+  color: var(--fm-text);
+}
+
+.nav-item:hover .nav-icon {
+  color: var(--fm-primary);
+  transform: translateY(-1px);
+}
+
+.nav-item:active {
+  transform: scale(0.98);
+}
+
+/* Active State: Soft Peach background with apricot text */
+.nav-item.active {
+  background: var(--fm-primary-pale);
+  color: var(--fm-primary);
+  font-weight: 700;
+}
+
+.nav-item.active .nav-icon {
+  color: var(--fm-primary);
+  stroke-width: 2.3;
 }
 
 .nav-item.active .nav-label {
   font-weight: 700;
+  color: var(--fm-primary);
 }
 
+/* Create Button Highlight */
+.nav-action-btn {
+  color: var(--fm-primary);
+  font-weight: 700;
+}
+
+.nav-action-btn .nav-icon {
+  color: var(--fm-primary);
+}
+
+.nav-action-btn:hover {
+  background: var(--fm-primary-pale);
+  color: var(--fm-primary-hover);
+}
+
+/* Logout Button */
 .logout-btn {
-  color: var(--color-error);
+  color: var(--fm-error);
+}
+
+.logout-btn .nav-icon {
+  color: var(--fm-error);
 }
 
 .logout-btn:hover {
-  background-color: rgba(var(--color-error-rgb), 0.1);
+  background-color: var(--fm-error-soft);
+  color: var(--fm-error);
+}
+
+.logout-btn:hover .nav-icon {
+  color: var(--fm-error);
 }
 
 @media (max-width: 1024px) {
   .sidebar {
-    display: none; /* Replaced by BottomNav on tablet and mobile */
+    display: none;
   }
 }

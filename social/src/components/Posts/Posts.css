@@ -1,42 +1,46 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   FutureMedia — Posts Feed Styles
+   Solid White Floating Cards with Warm Peach Accents
+   ════════════════════════════════════════════════════════════════════════════ */
+
 .Posts {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .postsLoader {
-  background: var(--color-surface);
+  background: var(--fm-surface);
   border-radius: var(--radius-card);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
+  border: 1px solid var(--fm-border);
+  color: var(--fm-text-muted);
   text-align: center;
   padding: var(--space-4);
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-card);
 }
 
-/* Individual Post Card - Overriding the inline container in Posts.jsx */
 .Post {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  padding: 0 0 var(--space-4) 0;
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
+  padding: 0 0 var(--space-3) 0;
   display: flex;
   flex-direction: column;
-  box-shadow: none;
+  box-shadow: var(--shadow-card);
   transition: var(--transition-smooth);
   overflow: hidden;
-  border-radius: 0;
 }
 
 .Post:hover {
-  /* No border changes on hover for Instagram feel */
+  border-color: var(--fm-border-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .postHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) 0 var(--space-2) 0;
+  gap: 12px;
+  padding: var(--space-3);
 }
 
 .postHeaderInfo {
@@ -46,49 +50,54 @@
 }
 
 .postAvatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  border: 1.5px solid var(--fm-border);
   transition: var(--transition-smooth);
 }
 
-.postAvatar:hover { opacity: 0.85; }
+.postAvatar:hover {
+  opacity: 0.9;
+}
 
 .postName {
   display: block;
   font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--color-text);
+  font-size: 0.94rem;
+  color: var(--fm-text);
   cursor: pointer;
 }
 
-.postName:hover { text-decoration: underline; }
+.postName:hover {
+  color: var(--fm-primary);
+}
 
 .postDot {
-  color: var(--color-text-muted);
+  color: var(--fm-text-muted);
   font-size: 0.8rem;
 }
 
 .postTime {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
+  color: var(--fm-text-muted);
+  font-size: 0.8rem;
 }
 
 .postDeleteBtn {
   background: transparent;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: var(--fm-text-muted);
   padding: 0.3rem 0.5rem;
   border-radius: var(--radius-button);
   transition: var(--transition-smooth);
 }
 
-.postDeleteBtn:hover { 
-  color: var(--color-error); 
-  background: rgba(var(--color-error-rgb), 0.1); 
+.postDeleteBtn:hover {
+  color: var(--fm-error);
+  background: var(--fm-error-soft);
 }
 
 .postImageContainer {
@@ -97,16 +106,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg);
+  background-color: var(--fm-surface-soft);
 }
 
 .postImage {
   width: 100%;
   border-radius: 0;
   object-fit: cover;
-  max-height: 90vh;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
+  max-height: 80vh;
+  display: block;
 }
 
 .heartOverlay {
@@ -114,69 +122,70 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  animation: popHeart 1s ease-out forwards;
+  animation: popHeart 0.9s ease-out forwards;
   pointer-events: none;
 }
 
 .heartOverlay img {
-  width: 120px;
-  height: 120px;
-  opacity: 0.9;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  width: 100px;
+  height: 100px;
+  filter: drop-shadow(0 4px 14px rgba(255, 138, 76, 0.4));
 }
 
 @keyframes popHeart {
   0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-  15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-  30% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  35% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
 }
 
 .postContentWrapper {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3) 0;
 }
 
 .postLikesCount {
   font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--color-text);
+  font-size: 0.9rem;
+  color: var(--fm-text);
 }
 
 .postCaption {
-  font-size: 0.95rem;
-  line-height: 1.4;
-  color: var(--color-text);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--fm-text);
   word-break: break-word;
 }
 
 .captionUsername {
   font-weight: 700;
   margin-right: 6px;
+  color: var(--fm-text);
 }
 
 .captionUsername:hover {
-  text-decoration: underline;
+  color: var(--fm-primary);
 }
 
 .viewAllComments {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
+  color: var(--fm-text-muted);
+  font-size: 0.86rem;
   cursor: pointer;
-  margin-top: 4px;
+  margin-top: 2px;
+  transition: color 0.2s ease;
 }
 
 .viewAllComments:hover {
-  text-decoration: underline;
+  color: var(--fm-primary);
 }
 
 .postReact {
   display: flex;
   gap: var(--space-3);
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
   align-items: center;
 }
 
@@ -185,112 +194,98 @@
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
+  color: var(--fm-text-secondary);
+  font-size: 0.9rem;
   font-weight: 600;
   transition: var(--transition-smooth);
 }
 
-.reactItem:hover { color: var(--color-primary); }
-.reactItem img { width: 1.6rem; height: 1.6rem; transition: var(--transition-smooth); }
-.reactItem:hover img { transform: scale(1.1); }
+.reactItem:hover {
+  color: var(--fm-primary);
+}
+
+.reactItem img {
+  width: 1.5rem;
+  height: 1.5rem;
+  transition: var(--transition-smooth);
+}
+
+.reactItem:hover img {
+  transform: scale(1.1);
+}
 
 .postVideo {
   width: 100%;
-  border-radius: var(--radius-card);
-  background: var(--color-bg);
-}
-
-.postMediaFallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 12rem;
-  border-radius: var(--radius-card);
-  background: var(--bg-input);
-  color: var(--color-text-muted);
-  font-weight: 600;
-  text-align: center;
-  padding: var(--space-3);
-}
-
-.postMetaRow {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-
-.postLikes {
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  font-weight: 600;
+  background: #000000;
 }
 
 .postComments {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--color-border);
-  background: transparent;
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  border-top: 1px solid var(--fm-divider);
 }
 
 .commentComposer {
   display: flex;
   gap: var(--space-2);
+  align-items: center;
 }
 
 .commentComposer input {
   flex: 1;
   min-width: 0;
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  border-radius: 0;
-  padding: 0.8rem 0;
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-button);
+  padding: 8px 12px;
   outline: none;
-  background: transparent;
-  color: var(--color-text);
-  font-size: 0.95rem;
+  background: var(--fm-surface-soft);
+  color: var(--fm-text);
+  font-size: 0.9rem;
   transition: var(--transition-smooth);
 }
 
 .commentComposer input:focus {
-  border-color: var(--color-text-muted);
+  border-color: var(--fm-primary);
+  background: #FFFFFF;
+  box-shadow: var(--shadow-focus);
 }
 
 .commentButton {
-  min-width: 5rem;
-  border-radius: var(--radius-button);
-  background: transparent;
-  color: var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: var(--fm-primary);
+  color: #FFFFFF;
   font-weight: 700;
   cursor: pointer;
   border: none;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  padding: 8px 16px;
   transition: var(--transition-smooth);
 }
+
 .commentButton:hover {
-  color: var(--color-text);
+  background: var(--fm-primary-hover);
 }
 
 .commentList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .commentItem {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
-  background: var(--bg-hover-light);
-  border-radius: var(--radius-card);
-  padding: 0.8rem 1rem;
+  background: var(--fm-surface-soft);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
 }
 
 .commentAvatar {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -301,40 +296,35 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 2px;
 }
 
 .commentBody strong {
-  font-size: 0.9rem;
-  color: var(--color-text);
+  font-size: 0.86rem;
+  color: var(--fm-text);
   cursor: pointer;
 }
 
-.commentBody strong:hover { text-decoration: underline; }
+.commentBody strong:hover {
+  color: var(--fm-primary);
+}
 
 .commentBody span {
-  font-size: 0.95rem;
-  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  color: var(--fm-text-secondary);
 }
 
 .commentDeleteButton {
   border: 0;
   background: transparent;
-  color: var(--color-error);
+  color: var(--fm-error);
   font-weight: 700;
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  font-size: 1.1rem;
+  padding: 2px 6px;
+  font-size: 1rem;
   border-radius: var(--radius-button);
-  transition: var(--transition-smooth);
 }
 
-.commentDeleteButton:hover { background: rgba(var(--color-error-rgb), 0.1); }
-.commentDeleteButton:disabled { cursor: wait; opacity: 0.7; }
-
-.emptyComments {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  text-align: center;
-  padding: var(--space-1) 0;
+.commentDeleteButton:hover {
+  background: var(--fm-error-soft);
 }

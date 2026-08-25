@@ -1,9 +1,14 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   FutureMedia — Stories Tray Styles
+   Warm Rings with Soft Peach, Sage, and Pink Accents
+   ════════════════════════════════════════════════════════════════════════════ */
+
 .stories-container {
   display: flex;
   gap: 1.25rem;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.5rem 0.25rem 1rem;
+  padding: 0.5rem 0.25rem 0.8rem;
   width: 100%;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -41,23 +46,23 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  padding: 2px;
-  background: var(--color-border, rgba(255, 255, 255, 0.12));
+  padding: 2.5px;
+  background: var(--fm-border);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
 }
 
-/* Active / Unseen Story Gradient Ring (Instagram style) */
+/* Active / Unseen Story Gradient Ring (Peach + Pink + Sage) */
 .story-avatar-container.has-story {
-  background: linear-gradient(45deg, #F97316, #EC4899, #8B5CF6, #4F46E5);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  background: linear-gradient(45deg, var(--fm-primary), #FFA270, var(--fm-pink));
+  box-shadow: 0 4px 14px rgba(255, 138, 76, 0.3);
 }
 
 /* Seen / Read Story Ring */
 .story-avatar-container.has-story.seen {
-  background: var(--color-border, rgba(255, 255, 255, 0.2));
+  background: var(--fm-border);
   box-shadow: none;
 }
 
@@ -66,8 +71,8 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--color-bg, #09090B);
-  background: var(--color-surface, #18181B);
+  border: 2px solid var(--fm-surface);
+  background: var(--fm-surface-soft);
 }
 
 /* Plus badge icon on Your Story */
@@ -78,26 +83,26 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--color-primary, #4F46E5);
-  color: #ffffff;
-  border: 2px solid var(--color-bg, #09090B);
+  background: var(--fm-primary);
+  color: #FFFFFF;
+  border: 2px solid var(--fm-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
   z-index: 10;
 }
 
 .story-item:hover .create-story-badge {
-  transform: scale(1.15);
-  background: var(--color-secondary, #7C3AED);
+  transform: scale(1.12);
+  background: var(--fm-primary-hover);
 }
 
 .story-username {
   font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--color-text, #ffffff);
+  font-weight: 600;
+  color: var(--fm-text);
   max-width: 72px;
   white-space: nowrap;
   overflow: hidden;
@@ -105,8 +110,8 @@
 }
 
 .story-item.create-story .story-username {
-  font-weight: 600;
-  color: var(--color-text-muted, #a1a1aa);
+  font-weight: 700;
+  color: var(--fm-text-secondary);
 }
 
 @media (max-width: 480px) {

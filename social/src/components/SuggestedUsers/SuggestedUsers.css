@@ -1,33 +1,45 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   FutureMedia — Suggested Creators Sidebar Widget
+   Solid White Card with Peach Action Buttons
+   ════════════════════════════════════════════════════════════════════════════ */
+
 .SuggestedUsers {
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 14px;
 }
 
 .SuggestedUsers h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--fm-text);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .suggested-loading {
-  padding: 2rem;
+  padding: 1.5rem;
   text-align: center;
-  color: var(--color-text-muted);
+  color: var(--fm-text-muted);
   font-weight: 600;
+  font-size: 0.88rem;
 }
 
 .suggestions-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .suggestion-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .suggestion-avatar {
@@ -35,11 +47,11 @@
 }
 
 .suggestion-avatar img {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid var(--color-border);
+  border: 1.5px solid var(--fm-border);
 }
 
 .suggestion-info {
@@ -51,70 +63,75 @@
 
 .suggestion-info a {
   text-decoration: none;
-  color: var(--color-text);
+  color: var(--fm-text);
 }
 
 .suggestion-info strong {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
 }
 
+.suggestion-info strong:hover {
+  color: var(--fm-primary);
+}
+
 .suggestion-info span {
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  color: var(--fm-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .follow-btn {
-  background: var(--color-primary);
-  color: white;
+  background: var(--fm-primary);
+  color: #FFFFFF;
   border: none;
-  border-radius: 2rem;
-  padding: 0.4rem 1rem;
-  font-weight: 600;
-  font-size: 0.85rem;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 0.82rem;
   cursor: pointer;
   transition: var(--transition-smooth);
+  box-shadow: var(--shadow-sm);
 }
 
 .follow-btn:hover:not(:disabled) {
-  background: var(--color-secondary);
+  background: var(--fm-primary-hover);
+  transform: translateY(-1px);
 }
 
 .follow-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 .follow-btn.following {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text);
+  background: var(--fm-surface-soft);
+  color: var(--fm-text-secondary);
+  border: 1px solid var(--fm-border);
+  box-shadow: none;
 }
 
 .follow-btn.following:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--fm-border);
+  color: var(--fm-text);
 }
 
 .follow-btn.requested {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-}
-
-.follow-btn.requested:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.3);
+  background: var(--fm-warning-soft);
+  color: var(--fm-warning);
+  border: 1px solid #F5D3AC;
+  box-shadow: none;
 }
 
 .no-suggestions {
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
+  color: var(--fm-text-muted);
+  font-size: 0.88rem;
   text-align: center;
-  padding: 1rem 0;
+  padding: 0.8rem 0;
 }

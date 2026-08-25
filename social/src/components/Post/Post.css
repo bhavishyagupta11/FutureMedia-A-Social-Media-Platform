@@ -1,32 +1,48 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   FutureMedia — Post Card Styles
+   Solid White Floating Card with Warm Accents
+   ════════════════════════════════════════════════════════════════════════════ */
+
 .post-card {
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
-  padding: 0 0 var(--space-4) 0;
-  margin-bottom: var(--space-4);
+  background: var(--fm-surface);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--radius-card);
+  padding: 0 0 var(--space-3) 0;
+  margin-bottom: var(--space-3);
   width: 100%;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition-smooth);
+  overflow: hidden;
+}
+
+.post-card:hover {
+  border-color: var(--fm-border-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .post-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
 }
 
 .post-header-user {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 12px;
 }
 
 .post-avatar {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: var(--color-surface);
+  background-color: var(--fm-surface-soft);
+  border: 1.5px solid var(--fm-border);
+  flex-shrink: 0;
 }
 
 .post-avatar img {
@@ -41,17 +57,31 @@
 }
 
 .post-username {
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 0.94rem;
+  color: var(--fm-text);
+}
+
+.post-username:hover {
+  color: var(--fm-primary);
 }
 
 .post-time {
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  color: var(--fm-text-muted);
 }
 
 .post-menu-icon {
   cursor: pointer;
+  color: var(--fm-text-muted);
+  transition: color 0.2s ease;
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.post-menu-icon:hover {
+  color: var(--fm-text);
+  background: var(--fm-surface-soft);
 }
 
 .post-media-container {
@@ -60,16 +90,15 @@
   justify-content: center;
   align-items: center;
   padding: 0;
-  margin: var(--space-2) 0;
+  margin: 0;
+  background: var(--fm-surface-soft);
 }
 
 .post-media {
   width: 100%;
-  max-height: 700px;
+  max-height: 600px;
   object-fit: cover;
-  border-radius: 0;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
+  display: block;
 }
 
 .post-actions-container {
@@ -83,52 +112,74 @@
 .post-actions-left {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 14px;
 }
 
 .action-icon {
   cursor: pointer;
-  transition: transform 0.1s ease;
+  color: var(--fm-text-secondary);
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.action-icon:hover {
+  color: var(--fm-primary);
+  transform: scale(1.08);
 }
 
 .action-icon:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
+}
+
+.action-icon.liked {
+  color: var(--fm-primary);
+}
+
+.action-icon.saved {
+  color: var(--fm-primary);
 }
 
 .post-content {
-  padding: 0 var(--space-3) var(--space-3) var(--space-3);
+  padding: 0 var(--space-3) var(--space-2) var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .post-likes {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--fm-text);
 }
 
 .post-caption-container {
   display: flex;
   gap: 8px;
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--fm-text);
 }
 
 .post-caption-username {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--fm-text);
+  flex-shrink: 0;
 }
 
 .post-comments-preview {
-  color: var(--color-text-muted);
-  font-size: 14px;
-  margin-top: 4px;
+  color: var(--fm-text-muted);
+  font-size: 0.86rem;
+  margin-top: 2px;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.post-comments-preview:hover {
+  color: var(--fm-primary);
 }
 
 .post-add-comment {
-  color: var(--color-text-muted);
-  font-size: 14px;
+  color: var(--fm-text-muted);
+  font-size: 0.86rem;
   margin-top: 4px;
   cursor: text;
 }

@@ -27,15 +27,13 @@ import {
   Send,
   BadgeCheck,
   Grid,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
 import Logo from "../../components/Logo/Logo";
 import ProfileImage from "../../img/profileImg.jpg";
-import PostPic1 from "../../img/postpic1.jpg";
-import PostPic2 from "../../img/postpic2.jpg";
-import PostPic3 from "../../img/postpic3.JPG";
 import { apiFetch } from "../../utils/api";
 import { getSessionUserId, persistUserSession } from "../../utils/session";
 import "./Landing.css";
@@ -70,7 +68,37 @@ const Landing = () => {
   const [forgotEmail, setForgotEmail] = useState("");
 
   const isLoggedIn = Boolean(getSessionUserId());
-  const heroMediaSlides = [PostPic1, PostPic2, PostPic3];
+
+  // Editorial Media Visuals for the Hero Showcase (CSS/SVG based, warm & creative)
+  const heroVisuals = [
+    {
+      id: 1,
+      title: "Generative Shaders & Kinetic Flow",
+      category: "Creative Coding",
+      gradient: "linear-gradient(135deg, #FFE2D2 0%, #FF8A4C 45%, #E6DDF0 100%)",
+      accent: "#FF8A4C",
+      stats: "60 FPS • WebGL 2.0",
+      tag: "#generative"
+    },
+    {
+      id: 2,
+      title: "Atmospheric Dusk & Shadow Roll-off",
+      category: "35mm Photography",
+      gradient: "linear-gradient(135deg, #E6F0E0 0%, #A8C98F 50%, #FFE2D2 100%)",
+      accent: "#648D47",
+      stats: "35mm Prime • f/1.4",
+      tag: "#streetphoto"
+    },
+    {
+      id: 3,
+      title: "Micro-Interactions & Fluid Design",
+      category: "UI Architecture",
+      gradient: "linear-gradient(135deg, #F4F0F8 0%, #F5D8DC 50%, #FFD8B8 100%)",
+      accent: "#D96C6C",
+      stats: "Design Tokens • Tokens Studio",
+      tag: "#designsystems"
+    }
+  ];
 
   const storyDemos = [
     {
@@ -79,30 +107,33 @@ const Landing = () => {
       avatar: ProfileImage,
       quote: '"Working on a new generative shader series today. Trying to keep the geometry clean."',
       views: "482 views",
-      reactions: "❤️ 94"
+      reactions: "❤️ 94",
+      accent: "#FF8A4C"
     },
     {
       name: "Julian Ross",
       time: "2h ago",
-      avatar: PostPic1,
+      avatar: ProfileImage,
       quote: '"Took the 35mm out at dusk to test the new lens coating. Loving the shadow roll-off."',
       views: "312 views",
-      reactions: "🔥 76"
+      reactions: "🔥 76",
+      accent: "#A8C98F"
     },
     {
       name: "Maya Lin",
       time: "1h ago",
-      avatar: PostPic2,
+      avatar: ProfileImage,
       quote: '"Testing particle physics at 60fps in the browser. Code link coming soon in the thread."',
       views: "594 views",
-      reactions: "✨ 128"
+      reactions: "✨ 128",
+      accent: "#E6DDF0"
     }
   ];
 
-  // Scroll listener for sticky navbar glass style
+  // Scroll listener for sticky navbar styling
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 30);
+      setScrolled(window.scrollY > 24);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -304,14 +335,7 @@ const Landing = () => {
 
   return (
     <div className="fm-landing">
-      {/* ─── Ambient Atmospheric Background ───────────────────────────────── */}
-      <div className="fm-ambient-glow glow-1" />
-      <div className="fm-ambient-glow glow-2" />
-      <div className="fm-ambient-glow glow-3" />
-      <div className="fm-ambient-glow glow-4" />
-      <div className="fm-grid-overlay" />
-
-      {/* ─── 1. Sticky Navigation ─────────────────────────────────────────── */}
+      {/* ─── 1. Sticky Editorial Navigation ──────────────────────────────── */}
       <header className={`fm-navbar ${scrolled ? "scrolled" : ""}`}>
         <div className="fm-nav-container">
           <div className="fm-nav-left" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
@@ -360,7 +384,7 @@ const Landing = () => {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
@@ -369,9 +393,9 @@ const Landing = () => {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
               className="fm-mobile-menu"
             >
@@ -416,9 +440,9 @@ const Landing = () => {
         <section className="fm-hero-section">
           <div className="fm-hero-container">
             <motion.h1
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.55 }}
               className="fm-hero-title"
             >
               Connect. <br />
@@ -427,36 +451,36 @@ const Landing = () => {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.55, delay: 0.08 }}
               className="fm-hero-subtitle"
             >
-              A place for the things you make, the people you know, and the conversations you want to keep up with.
+              A warm, creative place for the things you make, the people you know, and the conversations you want to keep up with.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.55, delay: 0.16 }}
               className="fm-hero-actions"
             >
               <button className="fm-btn-primary fm-btn-large" onClick={() => openModal("signup")}>
-                Create Account <ArrowRight size={18} />
+                Create Account <ArrowRight size={17} />
               </button>
               <button
                 className="fm-btn-secondary fm-btn-large"
                 onClick={() => scrollToSection("features")}
               >
-                <Compass size={18} /> Explore Platform
+                <Compass size={17} /> Explore Platform
               </button>
             </motion.div>
 
-            {/* Factual Product Indicators */}
+            {/* Factual Capability Indicators */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.25 }}
+              transition={{ duration: 0.55, delay: 0.22 }}
               className="fm-hero-pillars"
             >
               <div className="fm-pillar-item">
@@ -465,27 +489,27 @@ const Landing = () => {
               </div>
               <div className="fm-pillar-divider" />
               <div className="fm-pillar-item">
-                <div className="fm-pillar-dot" />
+                <div className="fm-pillar-dot sage" />
                 <span>Photos, Video & Stories</span>
               </div>
               <div className="fm-pillar-divider" />
               <div className="fm-pillar-item">
-                <div className="fm-pillar-dot" />
+                <div className="fm-pillar-dot lavender" />
                 <span>Community Spaces</span>
               </div>
             </motion.div>
 
-            {/* ─── 3. Hero Layered Social Ecosystem Visual ────────────────── */}
+            {/* ─── 3. Layered Social Ecosystem Showcase ────────────────────── */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              transition={{ duration: 0.7, delay: 0.26 }}
               className="fm-hero-composition"
             >
-              {/* Floating Layer 1: Top-Left Story Ring */}
+              {/* Floating Layer 1: Top-Left Story Card */}
               <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 5.4, repeat: Infinity, ease: "easeInOut" }}
                 className="fm-float-card fm-float-story"
               >
                 <div className="fm-story-ring-active">
@@ -502,8 +526,8 @@ const Landing = () => {
 
               {/* Floating Layer 2: Top-Right Community Guild */}
               <motion.div
-                animate={{ y: [0, 7, 0] }}
-                transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                animate={{ y: [0, 6, 0] }}
+                transition={{ duration: 6.2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
                 className="fm-float-card fm-float-community"
               >
                 <div className="fm-comm-header">
@@ -521,7 +545,7 @@ const Landing = () => {
                 </div>
               </motion.div>
 
-              {/* Central Living Post Card */}
+              {/* Central White Post Card */}
               <div className="fm-center-post-card">
                 <div className="fm-post-header">
                   <div className="fm-post-author-box">
@@ -529,9 +553,7 @@ const Landing = () => {
                     <div>
                       <div className="fm-author-name-row">
                         <span className="fm-author-name">Aria Sterling</span>
-                        <span className="fm-verified-badge" title="Verified Creator">
-                          ✓
-                        </span>
+                        <span className="fm-verified-badge" title="Verified Creator">✓</span>
                         <span className="fm-post-time">• 18m ago</span>
                       </div>
                       <div className="fm-author-handle">@ariasterling</div>
@@ -548,20 +570,32 @@ const Landing = () => {
                   <span className="fm-caption-hashtags"> #motiondesign #generative #futuremedia</span>
                 </p>
 
-                {/* Media Carousel Showcase */}
+                {/* Editorial Visual Artwork Preview */}
                 <div className="fm-post-media-container">
-                  <img
-                    src={heroMediaSlides[activeMediaSlide]}
-                    alt="Generative Art Showcase"
-                    className="fm-post-image"
-                  />
-                  <div className="fm-media-badge">
-                    <ImageIcon size={13} /> {activeMediaSlide + 1} / {heroMediaSlides.length}
+                  <div
+                    className="fm-post-art-canvas"
+                    style={{ background: heroVisuals[activeMediaSlide].gradient }}
+                  >
+                    <div className="fm-art-inner">
+                      <div className="fm-art-badge-top">
+                        <Sparkles size={13} />
+                        <span>{heroVisuals[activeMediaSlide].category}</span>
+                      </div>
+                      <h4 className="fm-art-title">{heroVisuals[activeMediaSlide].title}</h4>
+                      <div className="fm-art-footer">
+                        <span className="fm-art-tag">{heroVisuals[activeMediaSlide].tag}</span>
+                        <span className="fm-art-stats">{heroVisuals[activeMediaSlide].stats}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Carousel Dots Switcher */}
+                  <div className="fm-media-badge">
+                    <ImageIcon size={13} /> {activeMediaSlide + 1} / {heroVisuals.length}
+                  </div>
+
+                  {/* Carousel Switcher */}
                   <div className="fm-carousel-dots">
-                    {heroMediaSlides.map((_, idx) => (
+                    {heroVisuals.map((_, idx) => (
                       <button
                         key={idx}
                         className={`fm-dot-btn ${activeMediaSlide === idx ? "active" : ""}`}
@@ -581,8 +615,8 @@ const Landing = () => {
                     >
                       <Heart
                         size={17}
-                        fill={likedHeroPost ? "#EF4444" : "none"}
-                        color={likedHeroPost ? "#EF4444" : "currentColor"}
+                        fill={likedHeroPost ? "#FF8A4C" : "none"}
+                        color={likedHeroPost ? "#FF8A4C" : "currentColor"}
                       />
                       <span>{likeCount.toLocaleString()}</span>
                     </button>
@@ -604,13 +638,13 @@ const Landing = () => {
                     onClick={() => setSavedHeroPost(!savedHeroPost)}
                     aria-label="Save post"
                   >
-                    <Bookmark size={17} fill={savedHeroPost ? "var(--color-primary)" : "none"} />
+                    <Bookmark size={17} fill={savedHeroPost ? "var(--fm-primary)" : "none"} />
                   </button>
                 </div>
 
                 {/* Inline Comment Preview */}
                 <div className="fm-post-comment-preview">
-                  <img src={PostPic2} alt="Commenter" className="fm-comment-avatar" />
+                  <img src={ProfileImage} alt="Julian" className="fm-comment-avatar" />
                   <div className="fm-comment-content">
                     <span className="fm-commenter-name">Julian Ross:</span>
                     <span className="fm-comment-text">The motion curves on slide 2 are breathtaking. Absolutely inspiring! 🔥</span>
@@ -620,8 +654,8 @@ const Landing = () => {
 
               {/* Floating Layer 3: Bottom-Left Direct Message */}
               <motion.div
-                animate={{ y: [0, -7, 0] }}
-                transition={{ duration: 5.6, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 5.8, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
                 className="fm-float-card fm-float-chat"
               >
                 <div className="fm-chat-float-head">
@@ -641,12 +675,12 @@ const Landing = () => {
 
               {/* Floating Layer 4: Bottom-Right Trending Tag */}
               <motion.div
-                animate={{ y: [0, 6, 0] }}
-                transition={{ duration: 4.9, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                animate={{ y: [0, 5, 0] }}
+                transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
                 className="fm-float-card fm-float-trending"
               >
                 <div className="fm-trend-float-icon">
-                  <Flame size={17} />
+                  <Flame size={16} />
                 </div>
                 <div>
                   <div className="fm-trend-tag">#creativecoding</div>
@@ -659,37 +693,37 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 4. Product Trust / Capabilities Bar ────────────────────────── */}
+        {/* ─── 4. Capability Summary Cards ─────────────────────────────────── */}
         <section className="fm-trust-section">
           <div className="fm-trust-container">
             <div className="fm-trust-grid">
               <div className="fm-trust-card">
-                <div className="fm-trust-icon">
-                  <Zap size={22} />
+                <div className="fm-trust-icon peach">
+                  <Zap size={20} />
                 </div>
                 <div className="fm-trust-num">Live Chat</div>
                 <div className="fm-trust-label">Fast 1-on-1 and group messaging</div>
               </div>
 
               <div className="fm-trust-card">
-                <div className="fm-trust-icon">
-                  <Clock size={22} />
+                <div className="fm-trust-icon sage">
+                  <Clock size={20} />
                 </div>
                 <div className="fm-trust-num">24h Stories</div>
                 <div className="fm-trust-label">Share moments that expire in a day</div>
               </div>
 
               <div className="fm-trust-card">
-                <div className="fm-trust-icon">
-                  <TrendingUp size={22} />
+                <div className="fm-trust-icon pink">
+                  <TrendingUp size={20} />
                 </div>
                 <div className="fm-trust-num">Explore Feeds</div>
                 <div className="fm-trust-label">Find work and topics you care about</div>
               </div>
 
               <div className="fm-trust-card">
-                <div className="fm-trust-icon">
-                  <ShieldCheck size={22} />
+                <div className="fm-trust-icon lavender">
+                  <ShieldCheck size={20} />
                 </div>
                 <div className="fm-trust-num">Audience Control</div>
                 <div className="fm-trust-label">Choose who sees every post</div>
@@ -715,8 +749,7 @@ const Landing = () => {
             {/* Asymmetrical Bento Grid */}
             <div className="fm-bento-grid">
               {/* Bento 1: Multi-Media Posts */}
-              <div className="fm-bento-card bento-wide bento-highlight">
-                <div className="fm-bento-glow" />
+              <div className="fm-bento-card bento-wide">
                 <div className="fm-bento-content">
                   <div className="fm-bento-top">
                     <div className="fm-bento-badge">Media Posts</div>
@@ -735,17 +768,22 @@ const Landing = () => {
 
                 <div className="fm-bento-visual-preview">
                   <div className="fm-bento-media-stack">
-                    <img src={PostPic1} alt="Media 1" className="stack-img main" />
-                    <img src={PostPic2} alt="Media 2" className="stack-img sub" />
+                    <div className="stack-card main-card" style={{ background: "linear-gradient(135deg, #FFE2D2, #FF8A4C)" }}>
+                      <Sparkles size={20} color="#FFFFFF" />
+                      <span>Interactive Shader 01</span>
+                    </div>
+                    <div className="stack-card sub-card" style={{ background: "linear-gradient(135deg, #E6F0E0, #A8C98F)" }}>
+                      <span>Dusk Palette</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Bento 2: Ephemeral Stories */}
-              <div className="fm-bento-card bento-tall">
+              <div className="fm-bento-card">
                 <div className="fm-bento-top">
-                  <div className="fm-feature-icon-wrap">
-                    <Clock size={20} />
+                  <div className="fm-feature-icon-wrap sage">
+                    <Clock size={18} />
                   </div>
                   <div className="fm-feature-num">02</div>
                 </div>
@@ -770,8 +808,8 @@ const Landing = () => {
               {/* Bento 3: Real-Time Messaging */}
               <div className="fm-bento-card">
                 <div className="fm-bento-top">
-                  <div className="fm-feature-icon-wrap">
-                    <MessageCircleMore size={20} />
+                  <div className="fm-feature-icon-wrap peach">
+                    <MessageCircleMore size={18} />
                   </div>
                   <div className="fm-feature-num">03</div>
                 </div>
@@ -788,8 +826,8 @@ const Landing = () => {
               {/* Bento 4: Dynamic Discovery */}
               <div className="fm-bento-card">
                 <div className="fm-bento-top">
-                  <div className="fm-feature-icon-wrap">
-                    <TrendingUp size={20} />
+                  <div className="fm-feature-icon-wrap lavender">
+                    <TrendingUp size={18} />
                   </div>
                   <div className="fm-feature-num">04</div>
                 </div>
@@ -809,8 +847,8 @@ const Landing = () => {
               <div className="fm-bento-card bento-wide">
                 <div className="fm-bento-content">
                   <div className="fm-bento-top">
-                    <div className="fm-feature-icon-wrap">
-                      <Users size={20} />
+                    <div className="fm-feature-icon-wrap pink">
+                      <Users size={18} />
                     </div>
                     <div className="fm-feature-num">05</div>
                   </div>
@@ -839,8 +877,8 @@ const Landing = () => {
               {/* Bento 6: Privacy Controls */}
               <div className="fm-bento-card">
                 <div className="fm-bento-top">
-                  <div className="fm-feature-icon-wrap">
-                    <Lock size={20} />
+                  <div className="fm-feature-icon-wrap blue">
+                    <Lock size={18} />
                   </div>
                   <div className="fm-feature-num">06</div>
                 </div>
@@ -875,21 +913,21 @@ const Landing = () => {
 
                 <div className="fm-showcase-points">
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Multi-Photo Carousels</strong>
                       <p>Upload and preview multiple photos in a single post.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Audience Switcher</strong>
                       <p>Choose between Public reach and Private followers-only view.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Hashtag Indexing</strong>
                       <p>Tags in your captions connect your post to topic feeds automatically.</p>
@@ -904,7 +942,7 @@ const Landing = () => {
 
               {/* Mockup: Composer UI */}
               <div className="fm-showcase-visual">
-                <div className="fm-composer-mockup glass-card">
+                <div className="fm-composer-mockup">
                   <div className="fm-composer-header">
                     <img src={ProfileImage} alt="User avatar" className="fm-mock-avatar" />
                     <div className="fm-composer-input-sim">
@@ -914,20 +952,20 @@ const Landing = () => {
                   </div>
 
                   <div className="fm-composer-media-grid">
-                    <div className="fm-media-slot main-slot">
-                      <img src={PostPic2} alt="Uploaded preview" />
+                    <div className="fm-media-slot main-slot" style={{ background: "linear-gradient(135deg, #FFE2D2, #FF8A4C)" }}>
                       <div className="fm-slot-badge">Cover Image</div>
+                      <div className="fm-slot-text">Street Light Study</div>
                     </div>
-                    <div className="fm-media-slot sub-slot">
-                      <img src={PostPic1} alt="Second preview" />
+                    <div className="fm-media-slot sub-slot" style={{ background: "linear-gradient(135deg, #E6F0E0, #A8C98F)" }}>
+                      <div className="fm-slot-text">Shadows 02</div>
                     </div>
                   </div>
 
                   <div className="fm-composer-toolbar">
                     <div className="fm-tool-icons">
-                      <button className="fm-tool-btn active" aria-label="Photo upload"><ImageIcon size={17} /></button>
-                      <button className="fm-tool-btn" aria-label="Video upload"><Video size={17} /></button>
-                      <button className="fm-tool-btn" aria-label="Hashtags"><Hash size={17} /></button>
+                      <button className="fm-tool-btn active" aria-label="Photo upload"><ImageIcon size={16} /></button>
+                      <button className="fm-tool-btn" aria-label="Video upload"><Video size={16} /></button>
+                      <button className="fm-tool-btn" aria-label="Hashtags"><Hash size={16} /></button>
                     </div>
                     <div className="fm-composer-actions">
                       <div className="fm-mock-pill"><Globe size={12} /> Public</div>
@@ -946,35 +984,20 @@ const Landing = () => {
             <div className="fm-showcase-grid reverse">
               {/* Visual: Stories UI */}
               <div className="fm-showcase-visual">
-                <div className="fm-story-showcase-card glass-card">
+                <div className="fm-story-showcase-card">
                   <div className="fm-story-tray-demo">
-                    <div
-                      className={`fm-story-pill ${activeStoryIdx === 0 ? "active" : ""}`}
-                      onClick={() => setActiveStoryIdx(0)}
-                    >
-                      <div className={`fm-story-ring ${activeStoryIdx === 0 ? "active" : ""}`}>
-                        <img src={ProfileImage} alt="Aria" />
+                    {storyDemos.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className={`fm-story-pill ${activeStoryIdx === idx ? "active" : ""}`}
+                        onClick={() => setActiveStoryIdx(idx)}
+                      >
+                        <div className={`fm-story-ring ${activeStoryIdx === idx ? "active" : ""}`}>
+                          <img src={s.avatar} alt={s.name} />
+                        </div>
+                        <span>{s.name.split(" ")[0]}</span>
                       </div>
-                      <span>Your Story</span>
-                    </div>
-                    <div
-                      className={`fm-story-pill ${activeStoryIdx === 1 ? "active" : ""}`}
-                      onClick={() => setActiveStoryIdx(1)}
-                    >
-                      <div className={`fm-story-ring ${activeStoryIdx === 1 ? "active" : ""}`}>
-                        <img src={PostPic1} alt="Julian" />
-                      </div>
-                      <span>Julian</span>
-                    </div>
-                    <div
-                      className={`fm-story-pill ${activeStoryIdx === 2 ? "active" : ""}`}
-                      onClick={() => setActiveStoryIdx(2)}
-                    >
-                      <div className={`fm-story-ring ${activeStoryIdx === 2 ? "active" : ""}`}>
-                        <img src={PostPic2} alt="Maya" />
-                      </div>
-                      <span>Maya</span>
-                    </div>
+                    ))}
                   </div>
 
                   {/* Active Story View */}
@@ -1007,7 +1030,7 @@ const Landing = () => {
 
                     <div className="fm-story-footer-stats">
                       <div className="fm-viewers-tag">
-                        <Eye size={13} /> {storyDemos[activeStoryIdx].views}
+                        <Eye size={12} /> {storyDemos[activeStoryIdx].views}
                       </div>
                       <div className="fm-story-react-bubble">
                         {storyDemos[activeStoryIdx].reactions}
@@ -1029,21 +1052,21 @@ const Landing = () => {
 
                 <div className="fm-showcase-points">
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Text & Photo Moments</strong>
                       <p>Share fullscreen typographic thoughts or photo snapshots.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Viewer Lists & Reactions</strong>
                       <p>See who checked out your story with viewer logs and quick reactions.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>24-Hour Expiration</strong>
                       <p>Stories automatically clear out after 24 hours.</p>
@@ -1075,21 +1098,21 @@ const Landing = () => {
 
                 <div className="fm-showcase-points">
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Live Chat</strong>
                       <p>Fast 1-on-1 and group message delivery.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Typing Feedback</strong>
                       <p>See when people are writing back in real time.</p>
                     </div>
                   </div>
                   <div className="fm-point-item">
-                    <CheckCircle2 size={18} className="fm-point-icon" />
+                    <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
                       <strong>Media Previews</strong>
                       <p>Share photos, videos, and links directly in conversation.</p>
@@ -1104,11 +1127,11 @@ const Landing = () => {
 
               {/* Visual: Chat Interface Mockup */}
               <div className="fm-showcase-visual">
-                <div className="fm-chat-mockup glass-card">
+                <div className="fm-chat-mockup">
                   <div className="fm-chat-header">
                     <div className="fm-chat-user-status">
                       <div className="fm-chat-avatar-wrap">
-                        <img src={PostPic1} alt="Marcus" />
+                        <img src={ProfileImage} alt="Marcus" />
                         <div className="fm-online-indicator" />
                       </div>
                       <div>
@@ -1156,7 +1179,7 @@ const Landing = () => {
                       value="Can't wait to see the final community renders!"
                     />
                     <button className="fm-chat-send-btn" onClick={() => openModal("login")} aria-label="Send message">
-                      <Send size={16} />
+                      <Send size={15} />
                     </button>
                   </div>
                 </div>
@@ -1179,9 +1202,8 @@ const Landing = () => {
               </p>
             </div>
 
-            <div className="fm-creator-portfolio-card glass-card">
+            <div className="fm-creator-portfolio-card">
               <div className="fm-creator-banner">
-                <div className="fm-banner-gradient" />
                 <div className="fm-banner-badge">Featured Profile</div>
               </div>
 
@@ -1222,29 +1244,36 @@ const Landing = () => {
                     onClick={() => openModal("login")}
                     aria-label="Message Aria"
                   >
-                    <MessageCircleMore size={18} />
+                    <MessageCircleMore size={17} />
                   </button>
                 </div>
               </div>
 
-              {/* Creator Media Grid */}
+              {/* Creator Editorial Media Gallery */}
               <div className="fm-creator-media-gallery">
-                <div className="fm-gallery-item" onClick={() => openModal("login")}>
-                  <img src={PostPic1} alt="Drop 1" />
+                <div className="fm-gallery-item" style={{ background: "linear-gradient(135deg, #FFE2D2, #FF8A4C)" }} onClick={() => openModal("login")}>
+                  <div className="fm-gallery-inner">
+                    <Sparkles size={20} color="#FFF" />
+                    <span>Kinetic Series</span>
+                  </div>
                   <div className="fm-gallery-overlay">
                     <span>❤️ 1.4k</span>
                     <span>💬 84</span>
                   </div>
                 </div>
-                <div className="fm-gallery-item" onClick={() => openModal("login")}>
-                  <img src={PostPic2} alt="Drop 2" />
+                <div className="fm-gallery-item" style={{ background: "linear-gradient(135deg, #E6F0E0, #A8C98F)" }} onClick={() => openModal("login")}>
+                  <div className="fm-gallery-inner">
+                    <span>Dusk Waves</span>
+                  </div>
                   <div className="fm-gallery-overlay">
                     <span>❤️ 980</span>
                     <span>💬 46</span>
                   </div>
                 </div>
-                <div className="fm-gallery-item" onClick={() => openModal("login")}>
-                  <img src={PostPic3} alt="Drop 3" />
+                <div className="fm-gallery-item" style={{ background: "linear-gradient(135deg, #F4F0F8, #F5D8DC)" }} onClick={() => openModal("login")}>
+                  <div className="fm-gallery-inner">
+                    <span>Micro Shader</span>
+                  </div>
                   <div className="fm-gallery-overlay">
                     <span>❤️ 2.1k</span>
                     <span>💬 112</span>
@@ -1272,7 +1301,7 @@ const Landing = () => {
             <div className="fm-community-grid">
               <div className="fm-comm-card">
                 <div className="fm-comm-card-top">
-                  <div className="fm-comm-badge-cat">Visual Arts</div>
+                  <div className="fm-comm-badge-cat sage">Visual Arts</div>
                   <div className="fm-comm-members-count">
                     <Users size={13} /> 28.6k members
                   </div>
@@ -1284,8 +1313,7 @@ const Landing = () => {
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
                     <img src={ProfileImage} alt="User 1" />
-                    <img src={PostPic1} alt="User 2" />
-                    <img src={PostPic2} alt="User 3" />
+                    <img src={ProfileImage} alt="User 2" />
                   </div>
                   <span className="fm-active-indicator">+142 active today</span>
                 </div>
@@ -1298,7 +1326,7 @@ const Landing = () => {
 
               <div className="fm-comm-card featured">
                 <div className="fm-comm-card-top">
-                  <div className="fm-comm-badge-cat featured">Featured Community</div>
+                  <div className="fm-comm-badge-cat peach">Featured Community</div>
                   <div className="fm-comm-members-count">
                     <Users size={13} /> 41.2k members
                   </div>
@@ -1309,9 +1337,8 @@ const Landing = () => {
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
-                    <img src={PostPic2} alt="User 1" />
+                    <img src={ProfileImage} alt="User 1" />
                     <img src={ProfileImage} alt="User 2" />
-                    <img src={PostPic1} alt="User 3" />
                   </div>
                   <span className="fm-active-indicator">+390 active today</span>
                 </div>
@@ -1324,7 +1351,7 @@ const Landing = () => {
 
               <div className="fm-comm-card">
                 <div className="fm-comm-card-top">
-                  <div className="fm-comm-badge-cat">Design & Tech</div>
+                  <div className="fm-comm-badge-cat lavender">Design & Tech</div>
                   <div className="fm-comm-members-count">
                     <Users size={13} /> 19.8k members
                   </div>
@@ -1335,9 +1362,8 @@ const Landing = () => {
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
-                    <img src={PostPic1} alt="User 1" />
-                    <img src={PostPic2} alt="User 2" />
-                    <img src={ProfileImage} alt="User 3" />
+                    <img src={ProfileImage} alt="User 1" />
+                    <img src={ProfileImage} alt="User 2" />
                   </div>
                   <span className="fm-active-indicator">+88 active today</span>
                 </div>
@@ -1386,7 +1412,7 @@ const Landing = () => {
                   The mix of 24h stories and full photo posts lets me share daily process without cluttering my grid.
                 </p>
                 <div className="fm-quote-author">
-                  <img src={PostPic1} alt="Marcus Vance" className="fm-quote-avatar" />
+                  <img src={ProfileImage} alt="Marcus Vance" className="fm-quote-avatar" />
                   <div>
                     <div className="fm-quote-name">Marcus Vance</div>
                     <div className="fm-quote-role">Photographer & Writer</div>
@@ -1400,7 +1426,7 @@ const Landing = () => {
                   Most of my conversations start with something someone shared in one of the community feeds.
                 </p>
                 <div className="fm-quote-author">
-                  <img src={PostPic2} alt="Maya Lin" className="fm-quote-avatar" />
+                  <img src={ProfileImage} alt="Maya Lin" className="fm-quote-avatar" />
                   <div>
                     <div className="fm-quote-name">Maya Lin</div>
                     <div className="fm-quote-role">Creative Technologist</div>
@@ -1415,7 +1441,6 @@ const Landing = () => {
         <section className="fm-cta-section">
           <div className="fm-container">
             <div className="fm-cta-panel">
-              <div className="fm-cta-glow" />
               <div className="fm-cta-content">
                 <h2 className="fm-cta-title">
                   Come see what's <br />
@@ -1427,7 +1452,7 @@ const Landing = () => {
 
                 <div className="fm-cta-buttons">
                   <button className="fm-btn-primary fm-btn-large" onClick={() => openModal("signup")}>
-                    Create Account <ArrowRight size={18} />
+                    Create Account <ArrowRight size={17} />
                   </button>
                   <button
                     className="fm-btn-secondary fm-btn-large"
@@ -1450,7 +1475,7 @@ const Landing = () => {
         </section>
       </main>
 
-      {/* ─── 11. Multi-Column Footer ──────────────────────────────────────── */}
+      {/* ─── 11. Multi-Column Editorial Footer ────────────────────────────── */}
       <footer className="fm-footer">
         <div className="fm-footer-container">
           <div className="fm-footer-top">
@@ -1460,7 +1485,7 @@ const Landing = () => {
                 <span className="fm-brand-name">FutureMedia</span>
               </div>
               <p className="fm-footer-bio">
-                A social media platform for sharing work, stories, and conversations.
+                A warm social media platform for sharing work, stories, and conversations.
               </p>
               <div className="fm-footer-tagline">
                 Connect. Share. Grow Together.
@@ -1515,20 +1540,16 @@ const Landing = () => {
               © {new Date().getFullYear()} FutureMedia Inc. All rights reserved.
             </p>
             <div className="fm-social-links">
-              <span className="fm-social-badge">v2.0 Production</span>
+              <span className="fm-social-badge">v2.0 Warm Edition</span>
             </div>
           </div>
         </div>
       </footer>
 
-      {/* ─── 12. Centered Authentication Modal ─────────────────────────────── */}
+      {/* ─── 12. In-Page Authentication Modal (Warm Solid White Card) ─────── */}
       <AnimatePresence>
         {authModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+          <div
             className="fm-modal-backdrop"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
@@ -1537,11 +1558,12 @@ const Landing = () => {
             }}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              initial={{ opacity: 0, scale: 0.96, y: 14 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              transition={{ duration: 0.24, ease: "easeOut" }}
+              exit={{ opacity: 0, scale: 0.96, y: 14 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
               className="fm-modal-card"
+              style={{ backgroundColor: "#FFFFFF" }}
               role="dialog"
               aria-modal="true"
               aria-labelledby="fm-modal-title"
@@ -1552,7 +1574,7 @@ const Landing = () => {
                 onClick={() => setAuthModal(null)}
                 aria-label="Close modal"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
 
               {/* Modal Brand Header */}
@@ -1781,7 +1803,7 @@ const Landing = () => {
                 </form>
               )}
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
