@@ -323,7 +323,17 @@ const updateSettings = async (userId, settingsData) => {
     user.isPrivate = settingsData.privacy.profileVisibility === "private";
   }
 
-  user.settings = { ...user.settings?.toObject?.() || {}, ...settingsData };
+  const existing = user.settings?.toObject?.() || {};
+
+  // Deep merge notifications to avoid overwriting one setting with the other
+  if (settingsData.notifications) {
+    settingsData.notifications = {
+      ...(existing.notifications || {}),
+      ...settingsData.notifications
+    };
+  }
+
+  user.settings = { ...existing, ...settingsData };
   delete user.settings.isPrivate;
   await user.save();
 

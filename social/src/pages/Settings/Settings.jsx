@@ -393,7 +393,7 @@ const Settings = () => {
                     <span>Allow others to see when you are online.</span>
                   </div>
                   <label className="switch">
-                    <input type="checkbox" checked={activityStatus} onChange={(e) => setActivityStatus(e.target.checked)} />
+                    <input type="checkbox" checked={activityStatus} onChange={(e) => { setActivityStatus(e.target.checked); toast('Activity status — coming soon', { icon: '🔜' }); }} />
                     <span className="slider"></span>
                   </label>
                 </div>
@@ -417,7 +417,7 @@ const Settings = () => {
                     <span>Receive notifications on your device.</span>
                   </div>
                   <label className="switch">
-                    <input type="checkbox" checked={pushNotifications} onChange={(e) => setPushNotifications(e.target.checked)} />
+                    <input type="checkbox" checked={pushNotifications} onChange={(e) => { const val = e.target.checked; setPushNotifications(val); const userId = profile.userId || localStorage.getItem('userId'); apiFetch(`/api/v1/users/${userId}/settings`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notifications: { push: val } }) }).then(r => { if (r.ok) toast.success('Push notifications ' + (val ? 'enabled' : 'disabled')); }); }} />
                     <span className="slider"></span>
                   </label>
                 </div>
@@ -428,7 +428,7 @@ const Settings = () => {
                     <span>Receive digest emails and important alerts.</span>
                   </div>
                   <label className="switch">
-                    <input type="checkbox" checked={emailNotifications} onChange={(e) => setEmailNotifications(e.target.checked)} />
+                    <input type="checkbox" checked={emailNotifications} onChange={(e) => { const val = e.target.checked; setEmailNotifications(val); const userId = profile.userId || localStorage.getItem('userId'); apiFetch(`/api/v1/users/${userId}/settings`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notifications: { email: val } }) }).then(r => { if (r.ok) toast.success('Email notifications ' + (val ? 'enabled' : 'disabled')); }); }} />
                     <span className="slider"></span>
                   </label>
                 </div>
