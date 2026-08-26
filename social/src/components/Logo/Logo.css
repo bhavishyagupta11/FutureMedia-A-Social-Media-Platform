@@ -1,47 +1,97 @@
+/* ─── FutureMedia Official Brand Logo Component ───────────────────────────── */
+
 .futuremedia-logo {
   display: inline-flex;
   align-items: center;
   user-select: none;
-  cursor: pointer;
   text-decoration: none;
+  cursor: pointer;
+  line-height: 1;
 }
 
-.fm-logo-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #FF8A4C 0%, #F9783A 100%);
-  color: #FFFFFF;
-  font-weight: 900;
-  font-family: "Plus Jakarta Sans", "Inter", -apple-system, sans-serif;
-  letter-spacing: -0.04em;
-  box-shadow: 0 4px 14px rgba(255, 138, 76, 0.35);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.fm-logo-img {
+  display: block;
+  object-fit: contain;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
 }
 
-.futuremedia-logo:hover .fm-logo-badge {
-  transform: scale(1.05);
-  box-shadow: 0 6px 18px rgba(255, 138, 76, 0.45);
+.futuremedia-logo:hover .fm-logo-img {
+  transform: scale(1.025);
 }
 
-.futuremedia-logo.small .fm-logo-badge {
+/* ─── Compact Squircle Mark ────────────────────────────────────────────────── */
+.variant-compact.small .fm-compact-logo {
   height: 32px;
   width: 32px;
   border-radius: 9px;
-  font-size: 0.82rem;
 }
 
-.futuremedia-logo.normal .fm-logo-badge {
+.variant-compact.normal .fm-compact-logo {
   height: 38px;
   width: 38px;
   border-radius: 11px;
-  font-size: 0.98rem;
 }
 
-.futuremedia-logo.large .fm-logo-badge {
+.variant-compact.large .fm-compact-logo {
+  height: 52px;
+  width: 52px;
+  border-radius: 15px;
+}
+
+/* ─── Full Horizontal Wordmark Logo ───────────────────────────────────────── */
+.variant-full.small .fm-full-logo {
+  height: 30px;
+  width: auto;
+  border-radius: 6px;
+}
+
+.variant-full.normal .fm-full-logo {
+  height: 38px;
+  width: auto;
+  border-radius: 8px;
+}
+
+.variant-full.large .fm-full-logo {
   height: 54px;
-  width: 54px;
-  border-radius: 16px;
-  font-size: 1.4rem;
+  width: auto;
+  border-radius: 10px;
+}
+
+.variant-full.hero .fm-full-logo {
+  height: 72px;
+  width: auto;
+  border-radius: 12px;
+}
+
+/* ─── Responsive Adaptive Logo ────────────────────────────────────────────── */
+.variant-responsive .fm-logo-desktop {
+  display: block;
+  height: 38px;
+  width: auto;
+  border-radius: 8px;
+}
+
+.variant-responsive .fm-logo-mobile {
+  display: none;
+  height: 36px;
+  width: 36px;
+  border-radius: 10px;
+}
+
+@media (max-width: 640px) {
+  .variant-responsive .fm-logo-desktop {
+    display: none;
+  }
+  
+  .variant-responsive .fm-logo-mobile {
+    display: block;
+  }
+
+  .variant-full.normal .fm-full-logo {
+    height: 32px;
+  }
+
+  .variant-full.large .fm-full-logo {
+    height: 44px;
+  }
 }
