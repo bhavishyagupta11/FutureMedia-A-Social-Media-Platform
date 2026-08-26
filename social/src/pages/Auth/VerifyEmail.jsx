@@ -90,7 +90,7 @@ export default function VerifyEmail() {
         
         {/* BRANDING */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-          <Logo size="normal" />
+          <Logo variant="full" size="normal" />
         </div>
 
         {/* LOADING STATE */}
