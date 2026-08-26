@@ -337,10 +337,7 @@ const Landing = () => {
       <header className={`fm-navbar ${scrolled ? "scrolled" : ""}`}>
         <div className="fm-nav-container">
           <div className="fm-nav-left" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <Logo size="normal" className="fm-nav-logo" />
-            <span className="fm-brand-name">
-              Future<span className="fm-accent-text">Media</span>
-            </span>
+            <Logo variant="responsive" size="normal" className="fm-nav-logo" />
           </div>
 
           <nav className="fm-nav-center">
@@ -1453,15 +1450,11 @@ const Landing = () => {
           <div className="fm-footer-top">
             <div className="fm-footer-brand-col">
               <div className="fm-footer-logo-row">
-                <Logo size="normal" />
-                <span className="fm-brand-name">FutureMedia</span>
+                <Logo variant="full" size="large" />
               </div>
               <p className="fm-footer-bio">
                 A warm social media platform for sharing work, stories, and conversations.
               </p>
-              <div className="fm-footer-tagline">
-                Connect. Share. Grow Together.
-              </div>
             </div>
 
             <div className="fm-footer-nav-grid">
@@ -1551,7 +1544,7 @@ const Landing = () => {
 
               {/* Modal Brand Header */}
               <div className="fm-modal-header">
-                <Logo size="normal" />
+                <Logo variant="full" size="normal" />
                 <h3 id="fm-modal-title" className="fm-modal-title">
                   {authModal === "login" && "Log In"}
                   {authModal === "signup" && "Create Account"}
