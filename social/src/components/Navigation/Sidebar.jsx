@@ -22,7 +22,7 @@ const Sidebar = ({ onOpenCreateModal }) => {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
+      <div className="sidebar-logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
         <Logo size="normal" />
       </div>
 
