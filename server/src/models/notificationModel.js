@@ -27,4 +27,7 @@ const notificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index for user notification feed queries
+notificationSchema.index({ recipient: 1, createdAt: -1 });
+
 module.exports = mongoose.model("Notification", notificationSchema);

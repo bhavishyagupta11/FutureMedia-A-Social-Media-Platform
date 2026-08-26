@@ -102,6 +102,12 @@ const getAllPosts = async (currentUserId, limit = 20, skip = 0) => {
 
 // ─── Get Post By ID (with privacy enforcement) ─────────────────────────────
 const getPostById = async (id, currentUserId) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    const err = new Error("Post not found");
+    err.status = 404;
+    throw err;
+  }
+
   const post = await Post.findById(id)
     .populate(
       "userId",
@@ -111,7 +117,11 @@ const getPostById = async (id, currentUserId) => {
       "comments.userId",
       "username displayName profilePicture isVerified"
     );
-  if (!post) throw new Error("Post not found");
+  if (!post) {
+    const err = new Error("Post not found");
+    err.status = 404;
+    throw err;
+  }
 
   const isOwner =
     post.userId._id.toString() === currentUserId.toString();

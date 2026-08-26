@@ -13,4 +13,7 @@ const chatSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index for user chat listing queries
+chatSchema.index({ participants: 1, updatedAt: -1 });
+
 module.exports = mongoose.model("Chat", chatSchema);

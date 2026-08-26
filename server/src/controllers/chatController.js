@@ -30,7 +30,7 @@ exports.sendMessage = asyncHandler(async (req, res) => {
 });
 
 exports.getChatMessages = asyncHandler(async (req, res) => {
-  const result = await chatService.getChatMessages(req.params.chatId);
+  const result = await chatService.getChatMessages(req.params.chatId, req.user.id);
   return successResponse(res, 200, "Messages fetched", result);
 });
 

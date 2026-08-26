@@ -22,6 +22,8 @@ router.get("/suggestions", protect, getSuggestedUsers);
 
 router.post("/follow-requests/:requesterId/accept", protect, acceptFollowRequest);
 router.post("/follow-requests/:requesterId/reject", protect, rejectFollowRequest);
+router.post("/:requesterId/accept-follow", protect, acceptFollowRequest);
+router.post("/:requesterId/reject-follow", protect, rejectFollowRequest);
 
 // Ensure /me hits getProfile but is protected
 router.get("/me", protect, getProfile);

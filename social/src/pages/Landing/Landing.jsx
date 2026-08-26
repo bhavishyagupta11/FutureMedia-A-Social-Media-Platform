@@ -11,8 +11,6 @@ import {
   TrendingUp,
   Hash,
   Users,
-  ShieldCheck,
-  Zap,
   Clock,
   Image as ImageIcon,
   Video,
@@ -103,7 +101,7 @@ const Landing = () => {
       time: "2h ago",
       avatar: CREATORS.snehil.avatar,
       quote: '"Took the 35mm out at dusk to test the new lens coating. Loving the shadow roll-off."',
-      image: POST_MEDIA.streetPhoto,
+      image: POST_MEDIA.storySnehil,
       views: "482 views",
       reactions: "❤️ 94",
       accent: "#FF8A4C"
@@ -123,7 +121,7 @@ const Landing = () => {
       time: "1h ago",
       avatar: CREATORS.garvit.avatar,
       quote: '"Working late on a new visual identity. Sometimes the simplest direction is the strongest."',
-      image: POST_MEDIA.creativeCoding,
+      image: POST_MEDIA.storyGarvit,
       views: "594 views",
       reactions: "✨ 128",
       accent: "#E6DDF0"
@@ -693,44 +691,6 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ─── 4. Concrete Architecture & Engineering Highlights ──────────────────────── */}
-        <section className="fm-trust-section">
-          <div className="fm-trust-container">
-            <div className="fm-trust-grid">
-              <div className="fm-trust-card">
-                <div className="fm-trust-icon peach">
-                  <Zap size={20} />
-                </div>
-                <div className="fm-trust-num">40+ REST APIs</div>
-                <div className="fm-trust-label">Express controllers with unified error handling</div>
-              </div>
-
-              <div className="fm-trust-card">
-                <div className="fm-trust-icon sage">
-                  <Clock size={20} />
-                </div>
-                <div className="fm-trust-num">Socket.IO Engine</div>
-                <div className="fm-trust-label">Real-time chat, typing events, and active presence</div>
-              </div>
-
-              <div className="fm-trust-card">
-                <div className="fm-trust-icon pink">
-                  <TrendingUp size={20} />
-                </div>
-                <div className="fm-trust-num">6 DB Collections</div>
-                <div className="fm-trust-label">MongoDB social graph, hashtags & story indexing</div>
-              </div>
-
-              <div className="fm-trust-card">
-                <div className="fm-trust-icon lavender">
-                  <ShieldCheck size={20} />
-                </div>
-                <div className="fm-trust-num">6+ Security Layers</div>
-                <div className="fm-trust-label">JWT auth, RBAC, input sanitization & rate limits</div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* ─── 5. Bento Capabilities Grid ─────────────────────────────────── */}
         <section className="fm-section" id="features">
@@ -776,7 +736,7 @@ const Landing = () => {
                       </div>
                     </div>
                     <div className="stack-card sub-card">
-                      <img src={POST_MEDIA.architecture} alt="Architecture" className="fm-stack-img" />
+                      <img src={POST_MEDIA.architectureStacked} alt="Architecture" className="fm-stack-img" />
                       <div className="fm-stack-overlay">
                         <span>Clean Geometry</span>
                       </div>
@@ -959,7 +919,7 @@ const Landing = () => {
 
                   <div className="fm-composer-media-grid">
                     <div className="fm-media-slot main-slot">
-                      <img src={POST_MEDIA.streetPhoto} alt="Street Light Study" className="fm-composer-slot-img" />
+                      <img src={POST_MEDIA.composerCover} alt="Street Light Study" className="fm-composer-slot-img" />
                       <div className="fm-slot-badge">Cover Image</div>
                       <div className="fm-slot-text">Street Light Study</div>
                     </div>
@@ -1109,7 +1069,7 @@ const Landing = () => {
                   <div className="fm-point-item">
                     <CheckCircle2 size={17} className="fm-point-icon" />
                     <div>
-                      <strong>Live Chat</strong>
+                      <strong>Real-Time Messaging</strong>
                       <p>Fast 1-on-1 and group message delivery.</p>
                     </div>
                   </div>
@@ -1140,12 +1100,12 @@ const Landing = () => {
                   <div className="fm-chat-header">
                     <div className="fm-chat-user-status">
                       <div className="fm-chat-avatar-wrap">
-                        <img src={CREATORS.vipul.avatar} alt="Vipul Agarwal" />
+                        <img src={CREATORS.praneet.avatar} alt={CREATORS.praneet.name} />
                         <div className="fm-online-indicator" />
                       </div>
                       <div>
-                        <div className="fm-chat-user-name">{CREATORS.vipul.name}</div>
-                        <div className="fm-chat-user-sub">Active now in Creative Guild</div>
+                        <div className="fm-chat-user-name">{CREATORS.praneet.name}</div>
+                        <div className="fm-chat-user-sub">Active now • Community Lead</div>
                       </div>
                     </div>
                     <div className="fm-chat-actions">
@@ -1155,18 +1115,18 @@ const Landing = () => {
 
                   <div className="fm-chat-message-list">
                     <div className="fm-chat-msg incoming">
-                      <p>Hey Bhavishya! Did you see the new generative shader topic in the guild?</p>
-                      <span className="fm-msg-time">10:42 AM</span>
+                      <p>Hey team! Great progress on the new feed system. Let's sync up on the next steps.</p>
+                      <span className="fm-msg-time">10:30 AM</span>
                     </div>
 
                     <div className="fm-chat-msg outgoing">
-                      <p>Yes! Just submitted the kinetic interactive preview we worked on last night 🚀</p>
-                      <span className="fm-msg-time">10:44 AM • Read</span>
+                      <p>Sounds good! I'll share the update summary in a bit 🚀</p>
+                      <span className="fm-msg-time">10:32 AM • Read</span>
                     </div>
 
                     <div className="fm-chat-msg incoming">
                       <p>Amazing! The feedback on the Explore page is already exploding 🔥</p>
-                      <span className="fm-msg-time">10:45 AM</span>
+                      <span className="fm-msg-time">10:33 AM</span>
                     </div>
 
                     <div className="fm-chat-typing-row">
@@ -1175,7 +1135,7 @@ const Landing = () => {
                         <span />
                         <span />
                       </div>
-                      <span className="fm-typing-text">{CREATORS.vipul.name} is typing...</span>
+                      <span className="fm-typing-text">{CREATORS.praneet.name} is typing...</span>
                     </div>
                   </div>
 
@@ -1327,8 +1287,8 @@ const Landing = () => {
                 </p>
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
-                    <img src={CREATORS.mayank.avatar} alt={CREATORS.mayank.name} />
-                    <img src={CREATORS.vipul.avatar} alt={CREATORS.vipul.name} />
+                    <img src={CREATORS.praneet.avatar} alt={CREATORS.praneet.name} />
+                    <img src={CREATORS.garvit.avatar} alt={CREATORS.garvit.name} />
                   </div>
                   <span className="fm-active-indicator">+142 active today</span>
                 </div>
@@ -1352,7 +1312,7 @@ const Landing = () => {
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
                     <img src={CREATORS.snehil.avatar} alt={CREATORS.snehil.name} />
-                    <img src={CREATORS.darsh.avatar} alt={CREATORS.darsh.name} />
+                    <img src={CREATORS.divyam.avatar} alt={CREATORS.divyam.name} />
                   </div>
                   <span className="fm-active-indicator">+98 active today</span>
                 </div>
@@ -1376,7 +1336,7 @@ const Landing = () => {
                 <div className="fm-comm-avatars-row">
                   <div className="fm-avatar-stack">
                     <img src={CREATORS.sahil.avatar} alt={CREATORS.sahil.name} />
-                    <img src={CREATORS.garvit.avatar} alt={CREATORS.garvit.name} />
+                    <img src={CREATORS.bhavishya.avatar} alt={CREATORS.bhavishya.name} />
                   </div>
                   <span className="fm-active-indicator">+115 active today</span>
                 </div>
@@ -1427,7 +1387,7 @@ const Landing = () => {
                   <img src={CREATORS.bhavishya.avatar} alt={CREATORS.bhavishya.name} className="fm-quote-avatar" />
                   <div>
                     <div className="fm-quote-name">{CREATORS.bhavishya.name}</div>
-                    <div className="fm-quote-role">Digital Creator & Technologist</div>
+                    <div className="fm-quote-role">Developer • Creator • Dreamer</div>
                   </div>
                 </div>
               </div>
@@ -1435,12 +1395,12 @@ const Landing = () => {
               <div className="fm-quote-card">
                 <div className="fm-quote-mark">“</div>
                 <p className="fm-quote-text">
-                  Most of my collaborations start with something someone shared in one of the creative coding or shader feeds.
+                  FutureMedia is more than a platform — it’s a community that inspires, supports, and builds together.
                 </p>
                 <div className="fm-quote-author">
-                  <img src={CREATORS.darsh.avatar} alt={CREATORS.darsh.name} className="fm-quote-avatar" />
+                  <img src={CREATORS.divyam.avatar} alt={CREATORS.divyam.name} className="fm-quote-avatar" />
                   <div>
-                    <div className="fm-quote-name">{CREATORS.darsh.name}</div>
+                    <div className="fm-quote-name">{CREATORS.divyam.name}</div>
                     <div className="fm-quote-role">Creative Technologist & UI Specialist</div>
                   </div>
                 </div>

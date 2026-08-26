@@ -1,14 +1,36 @@
 /**
  * FutureMedia Official Curated Media Assets & Creator Data
- * High-resolution, stable CDN photographic imagery for avatars, posts, and showcases.
+ * 20 Verified Production Assets (Images & Final 6 Creator Identities)
  */
+
+import creativeCodingHero from "../assets/images/creativeCoding_hero.jpg";
+import streetPhotoHero from "../assets/images/streetPhoto_hero.jpg";
+import architectureHero from "../assets/images/architecture_hero.jpg";
+import abstractShapesBento from "../assets/images/abstractShapes_bento.jpg";
+import architectureStackedBento from "../assets/images/architecture_stacked_bento.png";
+import postComposerCover from "../assets/images/post_composer_cover.jpg";
+import cameraLensSub from "../assets/images/camera_lens_sub.jpg";
+import storySnehilMoment from "../assets/images/story_snehil_moment.jpg";
+import storySahilMoment from "../assets/images/story_sahil_moment.jpg";
+import storyGarvitMoment from "../assets/images/story_garvit_moment.jpg";
+import urbanSunsetBanner from "../assets/images/urban_sunset_banner.png";
+import galleryKineticSeries from "../assets/images/gallery_kinetic_series.jpg";
+import galleryDuskWaves from "../assets/images/gallery_dusk_waves.jpg";
+import galleryMicroShader from "../assets/images/gallery_micro_shader.png";
+
+import avatarSnehil from "../assets/images/avatar_snehil_khokhar.jpg";
+import avatarBhavishya from "../assets/images/avatar_bhavishya_gupta.jpg";
+import avatarSahil from "../assets/images/avatar_sahil_singh.jpg";
+import avatarGarvit from "../assets/images/avatar_garvit_pathak.jpg";
+import avatarPraneet from "../assets/images/avatar_praneet_jha.jpg";
+import avatarDivyam from "../assets/images/avatar_divyam_khandelwal.png";
 
 export const CREATORS = {
   snehil: {
     name: "Snehil Khokhar",
     username: "snehilkhokhar",
     handle: "@snehilkhokhar",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&h=300&q=80",
+    avatar: avatarSnehil,
     role: "Street Photographer & Visual Artist",
     bio: "Spent the evening experimenting with street photography and natural light. 35mm prime.",
     followers: "8.4k",
@@ -16,11 +38,23 @@ export const CREATORS = {
     postsCount: "64",
     verified: true,
   },
+  bhavishya: {
+    name: "Bhavishya Gupta",
+    username: "bhavishyagupta",
+    handle: "@bhavishyagupta",
+    avatar: avatarBhavishya,
+    role: "Developer • Creator • Dreamer",
+    bio: "Building FutureMedia — where creativity meets code and community. Exploring new ways to create products that feel human.",
+    followers: "14.8k",
+    following: "428",
+    postsCount: "92",
+    verified: true,
+  },
   sahil: {
     name: "Sahil Singh",
     username: "sahilsingh",
     handle: "@sahilsingh",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&h=300&q=80",
+    avatar: avatarSahil,
     role: "Product Designer & Technologist",
     bio: "Exploring spatial UI, motion curves, and fluid design systems.",
     followers: "11.2k",
@@ -32,112 +66,53 @@ export const CREATORS = {
     name: "Garvit Pathak",
     username: "garvitpathak",
     handle: "@garvitpathak",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&h=300&q=80",
+    avatar: avatarGarvit,
     role: "Visual Artist & Brand Designer",
-    bio: "Working late on a new visual identity. Sometimes the simplest direction is the strongest.",
+    bio: "Code. Create. Collaborate. That's the FutureMedia way.",
     followers: "9.6k",
     following: "275",
     postsCount: "51",
     verified: true,
   },
-  vipul: {
-    name: "Vipul Agarwal",
-    username: "vipulagarwal",
-    handle: "@vipulagarwal",
-    avatar: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=300&h=300&q=80",
-    role: "Software Architect & Open Source",
-    bio: "Real-time systems, WebSockets, and clean backend engineering.",
+  praneet: {
+    name: "Praneet Jha",
+    username: "praneetjha",
+    handle: "@praneetjha",
+    avatar: avatarPraneet,
+    role: "Community Lead & Software Architect",
+    bio: "Real-time systems, WebSockets, and building vibrant creative communities.",
     followers: "12.1k",
     following: "402",
     postsCount: "83",
     verified: true,
   },
-  mayank: {
-    name: "Mayank Khandelwal",
-    username: "mayankkhandelwal",
-    handle: "@mayankkhandelwal",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=300&q=80",
-    role: "Full Stack Engineer & Tech Lead",
-    bio: "Building resilient web platforms, scalable microservices, and distributed architectures.",
-    followers: "10.5k",
-    following: "310",
-    postsCount: "58",
-    verified: true,
-  },
-  darsh: {
-    name: "Darsh Khandelwal",
-    username: "darshkhandelwal",
-    handle: "@darshkhandelwal",
-    avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&h=300&q=80",
+  divyam: {
+    name: "Divyam Khandelwal",
+    username: "divyamkhandelwal",
+    handle: "@divyamkhandelwal",
+    avatar: avatarDivyam,
     role: "Creative Technologist & UI Specialist",
-    bio: "Crafting fluid front-end animations, interactive WebGL experiences, and design systems.",
+    bio: "FutureMedia is more than a platform — it's a community that inspires, supports, and builds together.",
     followers: "7.9k",
     following: "290",
     postsCount: "47",
     verified: true,
   },
-  piyush: {
-    name: "Piyush Mahipal",
-    username: "piyushmahipal",
-    handle: "@piyushmahipal",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&h=300&q=80",
-    role: "Mobile & Cloud Infrastructure Architect",
-    bio: "Passionate about high-performance cloud architectures, mobile dev, and developer tooling.",
-    followers: "16.3k",
-    following: "510",
-    postsCount: "114",
-    verified: true,
-  },
-  theviralking: {
-    name: "theviralking",
-    username: "theviralking",
-    handle: "@theviralking",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&h=300&q=80",
-    role: "Digital Media Strategist & Content Creator",
-    bio: "Creating viral social narratives, community engagement, and digital trends.",
-    followers: "24.5k",
-    following: "620",
-    postsCount: "142",
-    verified: true,
-  },
-  superrrstarrr: {
-    name: "superrrstarrr",
-    username: "superrrstarrr",
-    handle: "@superrrstarrr",
-    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&h=300&q=80",
-    role: "Visual Artist & Electronic Music Producer",
-    bio: "Synthwave melodies, futuristic art, and creative coding.",
-    followers: "18.2k",
-    following: "430",
-    postsCount: "95",
-    verified: true,
-  },
-  bhavishya: {
-    name: "Bhavishya Gupta",
-    username: "bhavishyagupta",
-    handle: "@bhavishyagupta",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=300&q=80",
-    role: "Digital creator • Photography • Technology",
-    bio: "Building ideas for the future. Exploring new ways to create products that feel human.",
-    followers: "14.8k",
-    following: "428",
-    postsCount: "92",
-    verified: true,
-  },
 };
 
 export const POST_MEDIA = {
-  streetPhoto: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&h=800&q=85",
-  creativeCoding: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&h=800&q=85",
-  designWorkspace: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&h=800&q=85",
-  architecture: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&h=800&q=85",
-  urbanSunset: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&h=800&q=85",
-  minimalInterior: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&h=800&q=85",
-  cameraLens: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&h=800&q=85",
-  abstractShapes: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&h=800&q=85",
-  mountainMist: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&h=800&q=85",
-  typography: "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?auto=format&fit=crop&w=1200&h=800&q=85",
-  galleryPhoto1: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=600&h=600&q=85",
-  galleryPhoto2: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=600&h=600&q=85",
-  galleryPhoto3: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=600&h=600&q=85",
+  creativeCoding: creativeCodingHero,
+  streetPhoto: streetPhotoHero,
+  architecture: architectureHero,
+  abstractShapes: abstractShapesBento,
+  architectureStacked: architectureStackedBento,
+  composerCover: postComposerCover,
+  cameraLens: cameraLensSub,
+  storySnehil: storySnehilMoment,
+  designWorkspace: storySahilMoment,
+  storyGarvit: storyGarvitMoment,
+  urbanSunset: urbanSunsetBanner,
+  galleryPhoto1: galleryKineticSeries,
+  galleryPhoto2: galleryDuskWaves,
+  galleryPhoto3: galleryMicroShader,
 };

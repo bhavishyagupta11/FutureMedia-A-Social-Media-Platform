@@ -48,13 +48,13 @@ const SEED_USERS = [
     role: "user"
   },
   {
-    username: "vipulagarwal",
-    email: "vipulagarwal@gmail.com",
-    displayName: "Vipul Agarwal",
-    profession: "Software Architect & Open Source",
-    bio: "Real-time systems, WebSockets, and clean backend engineering.",
+    username: "praneetjha",
+    email: "praneetjha@gmail.com",
+    displayName: "Praneet Jha",
+    profession: "Community Lead & Software Architect",
+    bio: "Real-time systems, WebSockets, and building vibrant creative communities.",
     location: "Bengaluru, India",
-    website: "https://vipulagarwal.dev",
+    website: "https://praneetjha.dev",
     profilePicture: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=400&h=400&q=80",
     coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&h=400&q=85",
     isVerified: true,
@@ -62,27 +62,13 @@ const SEED_USERS = [
     role: "user"
   },
   {
-    username: "mayankkhandelwal",
-    email: "mayankkhandelwal@gmail.com",
-    displayName: "Mayank Khandelwal",
-    profession: "Full Stack Engineer & Tech Lead",
-    bio: "Building resilient web platforms, scalable microservices, and distributed architectures.",
-    location: "Noida, India",
-    website: "https://mayank.tech",
-    profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=80",
-    coverImage: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&h=400&q=85",
-    isVerified: true,
-    isPrivate: false,
-    role: "user"
-  },
-  {
-    username: "darshkhandelwal",
-    email: "darshkhandelwal@gmail.com",
-    displayName: "Darsh Khandelwal",
+    username: "divyamkhandelwal",
+    email: "divyamkhandelwal@gmail.com",
+    displayName: "Divyam Khandelwal",
     profession: "Creative Technologist & UI Specialist",
-    bio: "Crafting fluid front-end animations, interactive WebGL experiences, and design systems.",
+    bio: "FutureMedia is more than a platform — it's a community that inspires, supports, and builds together.",
     location: "Gurugram, India",
-    website: "https://darshk.dev",
+    website: "https://divyamk.dev",
     profilePicture: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=400&h=400&q=80",
     coverImage: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&h=400&q=85",
     isVerified: true,
@@ -185,7 +171,7 @@ const SEED_POSTS = [
     visibility: "public"
   },
   {
-    username: "vipulagarwal",
+    username: "praneetjha",
     caption: "Optimized the WebSocket connection pool and reduced latency by 40ms across active chat rooms #tech #development #architecture",
     media: [
       { url: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&h=800&q=85", type: "image" }
@@ -194,16 +180,7 @@ const SEED_POSTS = [
     visibility: "public"
   },
   {
-    username: "mayankkhandelwal",
-    caption: "Urban skyline at dusk. Love the atmospheric glow and modern architecture #architecture #cityscape #photography",
-    media: [
-      { url: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1200&h=800&q=85", type: "image" }
-    ],
-    hashtags: ["architecture", "cityscape", "photography"],
-    visibility: "public"
-  },
-  {
-    username: "darshkhandelwal",
+    username: "divyamkhandelwal",
     caption: "Geometric abstraction study with tactile lighting and warm ambient shadows #design #art #creativecoding",
     media: [
       { url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&h=800&q=85", type: "image" }
@@ -254,16 +231,16 @@ const SEED_STORIES = [
     caption: "New font pairings in the studio"
   },
   {
-    username: "vipulagarwal",
+    username: "praneetjha",
     mediaUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&h=1400&q=85",
     mediaType: "image",
     caption: "Camera sensor latency benchmark"
   },
   {
-    username: "mayankkhandelwal",
+    username: "divyamkhandelwal",
     mediaUrl: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=800&h=1400&q=85",
     mediaType: "image",
-    caption: "City dusk from the roof"
+    caption: "City dusk from the studio roof"
   }
 ];
 
@@ -274,11 +251,11 @@ const seedDatabase = async () => {
   isSeeding = true;
 
   try {
-    // 1. Remove all legacy test/synthetic accounts from database
+    // 1. Remove all legacy test/synthetic/removed accounts from database
     const testUsers = await User.find({
       $or: [
-        { username: { $regex: /^integration_test_|^vuser_|^user_\d+|^test_user|^testuser/i } },
-        { email: { $regex: /^verify_test_|^testuser|^integration_test/i } }
+        { username: { $regex: /^integration_test_|^vuser_|^user_\d+|^test_user|^testuser|^vipulagarwal|^darshkhandelwal|^vinitkhandelwal|^mayankkhandelwal/i } },
+        { email: { $regex: /^verify_test_|^testuser|^integration_test|^vipulagarwal|^darshkhandelwal|^vinitkhandelwal|^mayankkhandelwal/i } }
       ]
     });
 

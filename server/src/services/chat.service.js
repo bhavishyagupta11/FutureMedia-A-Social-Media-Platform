@@ -43,6 +43,28 @@ const getUserChats = async (userId) => {
 };
 
 const sendMessage = async (senderId, chatId, content, attachments = []) => {
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
+    const err = new Error("Chat not found");
+    err.status = 404;
+    throw err;
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    const err = new Error("Chat not found");
+    err.status = 404;
+    throw err;
+  }
+
+  const isParticipant = chat.participants.some(
+    (p) => p.toString() === senderId.toString()
+  );
+  if (!isParticipant) {
+    const err = new Error("Unauthorized to send message to this chat");
+    err.status = 403;
+    throw err;
+  }
+
   let message = await Message.create({
     sender: senderId,
     content,
@@ -60,10 +82,9 @@ const sendMessage = async (senderId, chatId, content, attachments = []) => {
   await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
 
   // Create notification for other chat participants
-  const chatObj = await Chat.findById(chatId);
-  if (chatObj && chatObj.participants) {
+  if (chat.participants) {
     const NotificationService = require("./NotificationService");
-    for (const participantId of chatObj.participants) {
+    for (const participantId of chat.participants) {
       if (participantId.toString() !== senderId.toString()) {
         await NotificationService.createNotification({
           recipientId: participantId,
@@ -81,7 +102,31 @@ const sendMessage = async (senderId, chatId, content, attachments = []) => {
   return message;
 };
 
-const getChatMessages = async (chatId) => {
+const getChatMessages = async (chatId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
+    const err = new Error("Chat not found");
+    err.status = 404;
+    throw err;
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    const err = new Error("Chat not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (userId) {
+    const isParticipant = chat.participants.some(
+      (p) => p.toString() === userId.toString()
+    );
+    if (!isParticipant) {
+      const err = new Error("Unauthorized to access messages in this chat");
+      err.status = 403;
+      throw err;
+    }
+  }
+
   return await Message.find({ chat: chatId, isDeleted: false })
     .populate("sender", "username profilePicture email")
     .populate("chat")
@@ -89,6 +134,30 @@ const getChatMessages = async (chatId) => {
 };
 
 const markMessagesAsRead = async (chatId, userId) => {
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
+    const err = new Error("Chat not found");
+    err.status = 404;
+    throw err;
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    const err = new Error("Chat not found");
+    err.status = 404;
+    throw err;
+  }
+
+  if (userId) {
+    const isParticipant = chat.participants.some(
+      (p) => p.toString() === userId.toString()
+    );
+    if (!isParticipant) {
+      const err = new Error("Unauthorized to access this chat");
+      err.status = 403;
+      throw err;
+    }
+  }
+
   await Message.updateMany(
     { chat: chatId, sender: { $ne: userId }, status: { $ne: "read" } },
     { $set: { status: "read" }, $addToSet: { readBy: userId } }

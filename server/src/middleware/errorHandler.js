@@ -15,7 +15,11 @@ const errorHandler = (err, req, res, next) => {
   let finalMessage = err.message || "Internal Server Error";
   let finalStatus = statusCode;
 
-  if (err.name === 'ValidationError') {
+  if (err.name === 'CastError') {
+    finalMessage = "Resource not found";
+    finalStatus = 404;
+    errors = [{ field: err.path || "id", message: `Invalid identifier: ${err.value}` }];
+  } else if (err.name === 'ValidationError') {
     errors = Object.values(err.errors).map(val => ({ field: val.path, message: val.message }));
     finalStatus = 400;
   } else if (err.code === 11000) {

@@ -20,11 +20,17 @@ router.route("/:id")
   .put(protect, postController.updatePost)
   .delete(protect, postController.deletePost);
 
-router.put("/:id/like", protect, postController.likePost);
-router.put("/:id/save", protect, postController.savePost);
+router.route("/:id/like")
+  .put(protect, postController.likePost)
+  .post(protect, postController.likePost);
+
+router.route("/:id/save")
+  .put(protect, postController.savePost)
+  .post(protect, postController.savePost);
 
 router.post("/:id/comment", protect, postController.addComment);
 router.put("/:id/comment/:commentId", protect, postController.editComment);
 router.delete("/comment/:id/:commentId", protect, postController.deleteComment);
+router.delete("/:id/comment/:commentId", protect, postController.deleteComment);
 
 module.exports = router;

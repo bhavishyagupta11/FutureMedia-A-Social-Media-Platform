@@ -470,6 +470,7 @@
   transform: translateX(-50%);
   display: flex;
   gap: 6px;
+  z-index: 4;
 }
 
 .fm-dot-btn {
@@ -477,7 +478,14 @@
   height: 7px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.6);
+  border: none;
+  cursor: pointer;
+  padding: 0;
   transition: all 0.2s ease;
+}
+
+.fm-dot-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .fm-dot-btn.active {
@@ -740,63 +748,6 @@
   gap: 4px;
 }
 
-/* ─── 4. Capability Cards ──────────────────────────────────────────────────── */
-.fm-trust-section {
-  padding: 20px 0 60px;
-}
-
-.fm-trust-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.fm-trust-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.fm-trust-card {
-  background: var(--fm-surface);
-  border: 1px solid var(--fm-border);
-  border-radius: var(--radius-card);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.fm-trust-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.fm-trust-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-
-.fm-trust-icon.peach { background: var(--fm-primary-pale); color: var(--fm-primary); }
-.fm-trust-icon.sage { background: var(--fm-sage-soft); color: var(--fm-sage-dark); }
-.fm-trust-icon.pink { background: var(--fm-pink-soft); color: #B25368; }
-.fm-trust-icon.lavender { background: var(--fm-lavender-soft); color: #7B609E; }
-
-.fm-trust-num {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--fm-text);
-  margin-bottom: 4px;
-}
-
-.fm-trust-label {
-  font-size: 0.88rem;
-  color: var(--fm-text-secondary);
-}
 
 /* ─── 5. Bento Capabilities Grid ───────────────────────────────────────────── */
 .fm-bento-grid {
@@ -2316,10 +2267,6 @@
     grid-template-columns: 1fr;
   }
 
-  .fm-trust-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .fm-showcase-grid,
   .fm-showcase-grid.reverse {
     grid-template-columns: 1fr;
@@ -2348,10 +2295,6 @@
 @media (max-width: 640px) {
   .fm-hero-section {
     padding: 36px 0 50px;
-  }
-
-  .fm-trust-grid {
-    grid-template-columns: 1fr;
   }
 
   .fm-hero-actions {
@@ -2405,5 +2348,14 @@
 
   .fm-input-row {
     grid-template-columns: 1fr;
+  }
+
+  .fm-cta-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .fm-cta-buttons button {
+    width: 100%;
   }
 }

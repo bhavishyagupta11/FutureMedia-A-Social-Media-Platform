@@ -39,4 +39,7 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index for high-throughput chat message history queries
+messageSchema.index({ chat: 1, isDeleted: 1, createdAt: 1 });
+
 module.exports = mongoose.model("Message", messageSchema);
