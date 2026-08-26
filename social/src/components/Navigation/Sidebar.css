@@ -27,6 +27,23 @@
   gap: 12px;
 }
 
+.sidebar-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.sidebar-logo-link:hover {
+  transform: scale(1.04);
+}
+
+.sidebar-logo-link:focus-visible {
+  outline: 2px solid var(--fm-primary);
+  outline-offset: 3px;
+}
+
 .sidebar-brand-name {
   font-size: 1.25rem;
   font-weight: 800;
