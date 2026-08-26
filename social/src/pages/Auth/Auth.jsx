@@ -26,7 +26,7 @@ const AuthBrand = ({ title, subtitle }) => {
       className="authBrandCard"
     >
       <div className="brandTop" style={{ marginBottom: "1rem" }}>
-        <Logo size="large" />
+        <Logo variant="full" size="large" />
       </div>
       <h2>{title}</h2>
       <p className="brandSubtitle">{subtitle}</p>
