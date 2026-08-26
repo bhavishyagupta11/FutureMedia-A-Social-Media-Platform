@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./Settings.css";
 import { apiFetch } from "../../utils/api";
 import { getStoredUserProfile, persistUserSession, clearUserSession } from "../../utils/session";
