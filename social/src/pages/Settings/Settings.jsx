@@ -244,7 +244,9 @@ const Settings = () => {
           <h1>Settings</h1>
           <p>Manage your account settings and preferences.</p>
         </div>
-        <Logo size="normal" />
+        <Link to="/" aria-label="FutureMedia Home" style={{ display: "inline-flex", textDecoration: "none", borderRadius: "12px" }}>
+          <Logo size="normal" />
+        </Link>
       </div>
 
       <div className="settingsLayout">
