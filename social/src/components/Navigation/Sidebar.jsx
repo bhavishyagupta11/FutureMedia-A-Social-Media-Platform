@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { House, Compass, Search, MessageCircleMore, Bell, SquarePlus, User, Settings, LogOut } from 'lucide-react';
 import { getStoredUserProfile, clearUserSession } from '../../utils/session';
 import { apiFetch } from '../../api/axios';
@@ -22,8 +22,10 @@ const Sidebar = ({ onOpenCreateModal }) => {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-        <Logo size="normal" />
+      <div className="sidebar-logo">
+        <Link to="/" className="sidebar-logo-link" aria-label="FutureMedia Home">
+          <Logo size="normal" />
+        </Link>
       </div>
 
       <nav className="sidebar-nav">
