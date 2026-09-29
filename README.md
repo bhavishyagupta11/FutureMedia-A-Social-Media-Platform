@@ -320,11 +320,136 @@ CI=true npm run build
 
 ## Docker Deployment
 
-To launch all containerized services using Docker Compose:
+FutureMedia is fully containerized for both local development and production environments using multi-stage Docker builds and Docker Compose orchestration.
+
+### Architecture Overview
+
+```
+Browser / Client (Port 3000)
+       │
+       ▼
+FutureMedia Frontend Container (Nginx Alpine + React SPA)
+       │ (Reverse Proxy: /api/*, /socket.io/*, /uploads/*)
+       ▼
+FutureMedia Backend Container (Node.js 20 Express API on Port 8080)
+       │
+       ▼
+MongoDB Container (Official Mongo 6 with Persistent Named Volume)
+```
+
+### Prerequisites
+
+- **Docker**: Docker Desktop 20.10+ / Docker 29.x installed and running.
+- **Docker Compose**: Compose v2.x or v5.x (`docker compose` CLI).
+- **Docker Hub Account**: Required only if pushing custom images to a registry.
+
+### Production Environment Variables
+
+Copy the template `.env.example` in the project root to `.env`:
 
 ```bash
-docker-compose up --build -d
+cp .env.example .env
 ```
+
+| Variable Name | Required | Default / Description |
+|---|---|---|
+| `NODE_ENV` | Yes | `production` |
+| `PORT` | Yes | `8080` (Backend container port) |
+| `MONGO_URI` | Yes | `mongodb://mongodb:27017/futuremedia` (or MongoDB Atlas URI) |
+| `JWT_SECRET` | Yes | Strong cryptographic signing secret (min 32 characters) |
+| `CLIENT_ORIGINS` | Yes | Allowed origins: `http://localhost:3000,http://127.0.0.1:3000` |
+| `REACT_APP_API_BASE_URL`| Yes | `http://localhost:8080` (Browser-reachable API address) |
+| `REACT_APP_SOCKET_URL`  | Yes | `http://localhost:8080` (Browser-reachable Socket.IO address) |
+| `CLOUDINARY_*` | Optional | External media cloud storage (falls back to local disk `/uploads`) |
+| `SMTP_*` / `RESEND_*` | Optional | Transactional email provider (falls back to console verification links) |
+
+*(Note: Never commit `.env` or sensitive credentials into Git. All secrets are ignored via `.gitignore` and `.dockerignore`.)*
+
+### Local Docker Deployment
+
+1. **Build Container Images**:
+   ```bash
+   docker compose build
+   ```
+
+2. **Start the Complete Stack**:
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Check Container Status & Health**:
+   ```bash
+   docker compose ps
+   ```
+   All three containers (`futuremedia-mongodb`, `futuremedia-backend`, `futuremedia-frontend`) should display `(healthy)`.
+
+4. **Follow Real-Time Logs**:
+   ```bash
+   docker compose logs -f
+   ```
+   Or inspect individual service logs:
+   ```bash
+   docker compose logs -f backend
+   docker compose logs -f frontend
+   docker compose logs -f mongodb
+   ```
+
+5. **Stop Containers**:
+   ```bash
+   docker compose down
+   ```
+
+6. **Stop and Remove Volumes (Caution)**:
+   ```bash
+   docker compose down -v
+   ```
+   > ⚠️ **WARNING**: Running `docker compose down -v` permanently deletes the `futuremedia_mongodb_data` volume, erasing all stored users, posts, messages, and stories.
+
+7. **Rebuild and Update Stack**:
+   ```bash
+   docker compose up -d --build
+   ```
+
+### Docker Hub Release Workflow
+
+1. **Authenticate to Docker Hub**:
+   ```bash
+   docker login
+   ```
+
+2. **Tag Images for Registry**:
+   ```bash
+   docker tag futuremedia-backend:1.0.0 <your-dockerhub-username>/futuremedia-backend:1.0.0
+   docker tag futuremedia-backend:1.0.0 <your-dockerhub-username>/futuremedia-backend:latest
+
+   docker tag futuremedia-frontend:1.0.0 <your-dockerhub-username>/futuremedia-frontend:1.0.0
+   docker tag futuremedia-frontend:1.0.0 <your-dockerhub-username>/futuremedia-frontend:latest
+   ```
+
+3. **Push to Docker Hub**:
+   ```bash
+   docker push <your-dockerhub-username>/futuremedia-backend:1.0.0
+   docker push <your-dockerhub-username>/futuremedia-backend:latest
+
+   docker push <your-dockerhub-username>/futuremedia-frontend:1.0.0
+   docker push <your-dockerhub-username>/futuremedia-frontend:latest
+   ```
+
+4. **Pull and Deploy from Docker Hub**:
+   ```bash
+   docker pull <your-dockerhub-username>/futuremedia-backend:1.0.0
+   docker pull <your-dockerhub-username>/futuremedia-frontend:1.0.0
+   ```
+
+### Automated Deployment Verification
+
+An end-to-end verification script is provided to test live Docker containers:
+
+```bash
+node verify_docker_deployment.js
+```
+
+This verifies container health, SPA route fallbacks, backend health probes, authentication, posts, comments, likes, stories, notifications, and real-time Socket.IO bi-directional events.
 
 ---
 

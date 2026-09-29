@@ -17,7 +17,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const feedRoutes = require("./routes/feedRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const storyRoutes = require("./routes/storyRoutes");
-const { getHealth } = require("./controllers/healthController");
+const { getHealth, getReady, getLive } = require("./controllers/healthController");
 
 const app = express();
 
@@ -85,8 +85,9 @@ app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/stories", storyRoutes);
 
 app.get("/api/v1/health", getHealth);
-app.get("/api/v1/ready", getHealth);
-app.get("/api/v1/live", getHealth);
+app.get("/health", getHealth);
+app.get("/api/v1/ready", getReady);
+app.get("/api/v1/live", getLive);
 
 app.get("/", (req, res) => res.send("FutureMedia Production API v1 running!"));
 

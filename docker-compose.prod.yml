@@ -1,21 +1,86 @@
-version: '3.8'
 services:
-  server:
-    build: ./server
-    ports: ["5000:5000"]
-    depends_on: [redis, mongodb]
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - MONGO_URI=mongodb://mongodb:27017/FutureMedia
-  intelligence:
-    build: ./intelligence
-    ports: ["8000:8000"]
-  social:
-    build: ./social
-    ports: ["3000:80"]
-  redis:
-    image: redis:alpine
-    ports: ["6379:6379"]
   mongodb:
     image: mongo:6
-    ports: ["27017:27017"]
+    container_name: futuremedia-mongodb-prod
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=futuremedia
+    volumes:
+      - futuremedia_mongodb_prod_data:/data/db
+    networks:
+      - futuremedia-prod-network
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval \"db.adminCommand('ping')\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    image: futuremedia-backend:1.0.0
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: futuremedia-backend-prod
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017/futuremedia}
+      - JWT_SECRET=${JWT_SECRET}
+      - CLIENT_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:80
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - FROM_EMAIL=${FROM_EMAIL:-}
+      - FROM_NAME=${FROM_NAME:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - futuremedia-prod-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8080/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    image: futuremedia-frontend:1.0.0
+    build:
+      context: ./social
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_BASE_URL=http://localhost:8080
+        - REACT_APP_SOCKET_URL=http://localhost:8080
+    container_name: futuremedia-frontend-prod
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - futuremedia-prod-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  futuremedia_mongodb_prod_data:
+    name: futuremedia_mongodb_prod_data
+
+networks:
+  futuremedia-prod-network:
+    name: futuremedia-prod-network
+    driver: bridge
