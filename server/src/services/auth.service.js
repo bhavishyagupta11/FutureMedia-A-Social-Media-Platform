@@ -17,7 +17,23 @@ const generateToken = (id) => {
 };
 
 const getFrontendBaseUrl = () => {
-  return env.CLIENT_ORIGINS.find(o => !o.includes("localhost") && !o.includes("127.0.0.1")) || env.CLIENT_ORIGINS[0] || "http://localhost:3000";
+  if (env.CLIENT_URL) {
+    return env.CLIENT_URL.trim().replace(/\/+$/, "");
+  }
+  // Exclude internal Docker container hostnames (frontend, backend, mongodb)
+  const accessibleOrigins = (env.CLIENT_ORIGINS || []).filter((o) => {
+    try {
+      const url = new URL(o);
+      const host = url.hostname.toLowerCase();
+      return host !== "frontend" && host !== "backend" && host !== "mongodb";
+    } catch {
+      return !o.includes("frontend") && !o.includes("backend") && !o.includes("mongodb");
+    }
+  });
+
+  const externalOrigin = accessibleOrigins.find((o) => !o.includes("localhost") && !o.includes("127.0.0.1"));
+  if (externalOrigin) return externalOrigin;
+  return accessibleOrigins[0] || "http://localhost:3000";
 };
 
 const registerUser = async ({ username, email, password, deviceInfo, ipAddress }) => {
@@ -230,10 +246,16 @@ const resendVerification = async (email) => {
 
   LoggerService.security("Resend verification email initiated", { userId: user._id });
 
-  return {
+  const response = {
     message: "If an account exists with that email, a verification link has been sent.",
     code: "RESEND_SUCCESS"
   };
+
+  if (!env.features.smtp || env.EMAIL_MODE === "console" || process.env.NODE_ENV !== "production") {
+    response.devVerifyUrl = verifyUrl;
+  }
+
+  return response;
 };
 
 const logoutCurrentDevice = async (userId, token) => {
@@ -287,7 +309,16 @@ const forgotPassword = async (email) => {
     LoggerService.error("Background password reset email dispatch error", e);
   });
 
-  return { message: "If an account exists with that email, a password reset link has been sent.", code: "FORGOT_SUCCESS" };
+  const response = {
+    message: "If an account exists with that email, a password reset link has been sent.",
+    code: "FORGOT_SUCCESS"
+  };
+
+  if (!env.features.smtp || env.EMAIL_MODE === "console" || process.env.NODE_ENV !== "production") {
+    response.devResetUrl = resetUrl;
+  }
+
+  return response;
 };
 
 const resetPassword = async (rawToken, newPassword) => {

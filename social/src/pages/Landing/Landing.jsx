@@ -64,6 +64,7 @@ const Landing = () => {
 
   // Forgot password form state
   const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotResult, setForgotResult] = useState(null);
 
   const isLoggedIn = Boolean(getSessionUserId());
 
@@ -315,9 +316,9 @@ const Landing = () => {
       }
       return data;
     },
-    onSuccess: () => {
-      toast.success("Password reset email sent! Check your inbox.");
-      setAuthModal("login");
+    onSuccess: (data) => {
+      setForgotResult(data?.data || {});
+      toast.success(data?.message || "Password reset instructions sent!");
     },
     onError: (error) => toast.error(error.message || "Failed to send reset link"),
   });
@@ -1536,7 +1537,7 @@ const Landing = () => {
               {/* Close Button */}
               <button
                 className="fm-modal-close"
-                onClick={() => setAuthModal(null)}
+                onClick={() => { setAuthModal(null); setForgotResult(null); }}
                 aria-label="Close modal"
               >
                 <X size={18} />
@@ -1729,39 +1730,70 @@ const Landing = () => {
 
               {/* ── FORGOT PASSWORD FORM ── */}
               {authModal === "forgot-password" && (
-                <form className="fm-modal-form" onSubmit={handleForgotSubmit}>
-                  <div className="fm-input-group">
-                    <label htmlFor="modal-forgot-email">Email Address</label>
-                    <input
-                      id="modal-forgot-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      className="fm-form-input"
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="fm-btn-primary full-width fm-modal-submit"
-                    disabled={forgotMutation.isPending}
-                  >
-                    {forgotMutation.isPending ? "Sending Link..." : "Send Reset Link"}
-                  </button>
-
-                  <div className="fm-modal-footer">
+                forgotResult ? (
+                  <div className="fm-modal-success" style={{ textAlign: "center", padding: "1.5rem 0.5rem" }}>
+                    <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>✉️</div>
+                    <h4 style={{ color: "#0f172a", marginBottom: "0.5rem", fontSize: "1.1rem" }}>Instructions Sent</h4>
+                    <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1.25rem" }}>
+                      If an account exists with that email address, a password reset link has been dispatched.
+                    </p>
+                    {forgotResult.devResetUrl && (
+                      <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "10px", marginBottom: "1.25rem", border: "1px solid #e2e8f0" }}>
+                        <p style={{ color: "#d97706", fontSize: "0.85rem", marginBottom: "0.5rem", fontWeight: 600 }}>
+                          Local / Dev Direct Access Link:
+                        </p>
+                        <a
+                          href={forgotResult.devResetUrl}
+                          className="fm-btn-primary"
+                          style={{ display: "inline-block", padding: "0.6rem 1.25rem", fontSize: "0.85rem", textDecoration: "none", color: "#fff" }}
+                        >
+                          Reset Password Now →
+                        </a>
+                      </div>
+                    )}
                     <button
                       type="button"
-                      className="fm-switch-btn"
-                      onClick={() => setAuthModal("login")}
+                      className="fm-btn-secondary full-width"
+                      onClick={() => { setForgotResult(null); setAuthModal("login"); }}
                     >
-                      ← Back to Log In
+                      Back to Log In
                     </button>
                   </div>
-                </form>
+                ) : (
+                  <form className="fm-modal-form" onSubmit={handleForgotSubmit}>
+                    <div className="fm-input-group">
+                      <label htmlFor="modal-forgot-email">Email Address</label>
+                      <input
+                        id="modal-forgot-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        className="fm-form-input"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        required
+                        autoFocus
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="fm-btn-primary full-width fm-modal-submit"
+                      disabled={forgotMutation.isPending}
+                    >
+                      {forgotMutation.isPending ? "Sending Link..." : "Send Reset Link"}
+                    </button>
+
+                    <div className="fm-modal-footer">
+                      <button
+                        type="button"
+                        className="fm-switch-btn"
+                        onClick={() => { setForgotResult(null); setAuthModal("login"); }}
+                      >
+                        ← Back to Log In
+                      </button>
+                    </div>
+                  </form>
+                )
               )}
             </motion.div>
           </div>

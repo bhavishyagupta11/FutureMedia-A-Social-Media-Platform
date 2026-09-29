@@ -25,21 +25,18 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    env_file:
+      - path: ./server/.env
+        required: false
+      - path: ./.env
+        required: false
     environment:
       - NODE_ENV=production
       - PORT=8080
       - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017/futuremedia}
       - JWT_SECRET=${JWT_SECRET:-futuremedia_jwt_secret_prod_key_change_me_in_prod}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost:3000}
       - CLIENT_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:80
-      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-}
-      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-}
-      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-}
-      - SMTP_HOST=${SMTP_HOST:-}
-      - SMTP_PORT=${SMTP_PORT:-}
-      - SMTP_USER=${SMTP_USER:-}
-      - SMTP_PASS=${SMTP_PASS:-}
-      - FROM_EMAIL=${FROM_EMAIL:-}
-      - FROM_NAME=${FROM_NAME:-}
     depends_on:
       mongodb:
         condition: service_healthy

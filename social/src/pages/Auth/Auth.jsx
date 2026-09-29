@@ -360,7 +360,7 @@ function Authenticate() {
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const navigate = useNavigate();
+  const [resetResult, setResetResult] = useState(null);
 
   const forgotMutation = useMutation({
     mutationFn: async (payload) => {
@@ -375,11 +375,11 @@ function ForgotPassword() {
       }
       return data;
     },
-    onSuccess: () => {
-      toast.success("Password reset email sent! Check your inbox.");
-      navigate("/login");
+    onSuccess: (data) => {
+      setResetResult(data?.data || {});
+      toast.success(data?.message || "Password reset instructions sent!");
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => toast.error(error.message || "Failed to send reset link"),
   });
 
   return (
@@ -387,20 +387,46 @@ function ForgotPassword() {
       <div className="authShell">
         <AuthBrand title="Reset Password" subtitle="Get back into your account securely." />
         <motion.div className="a-right" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-          <form className="infoForm authForm" onSubmit={(e) => { e.preventDefault(); forgotMutation.mutate({ email }); }}>
-            <h3>Forgot Password</h3>
-            <p className="authHint">Enter your email address and we'll send you a link to reset your password.</p>
-            <div className="inputGroup">
-              <label>Email</label>
-              <input type="email" className="infoInput" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          {resetResult ? (
+            <div className="infoForm authForm" style={{ textAlign: "center" }}>
+              <h3>Instructions Sent</h3>
+              <p className="authHint">
+                If an account exists with that email address, a password reset link has been dispatched.
+              </p>
+              {resetResult.devResetUrl && (
+                <div style={{ margin: "1rem 0", padding: "1rem", background: "rgba(255, 153, 0, 0.1)", borderRadius: "8px", border: "1px solid rgba(255, 153, 0, 0.3)" }}>
+                  <p style={{ fontSize: "0.85rem", color: "#e67e22", marginBottom: "0.75rem", fontWeight: 600 }}>
+                    Local / Dev Direct Access Link:
+                  </p>
+                  <Link
+                    to={resetResult.devResetUrl.replace(/^https?:\/\/[^/]+/, "")}
+                    className="infoButton"
+                    style={{ display: "inline-block", textDecoration: "none", width: "auto", padding: "0.5rem 1.25rem" }}
+                  >
+                    Reset Password Now →
+                  </Link>
+                </div>
+              )}
+              <div className="authFooterRow" style={{ marginTop: "1.5rem", justifyContent: "center" }}>
+                <span className="switchAuthText"><Link to="/login">← Back to Login</Link></span>
+              </div>
             </div>
-            <div className="authFooterRow" style={{ marginTop: "1rem" }}>
-              <span className="switchAuthText"><Link to="/login">Back to Login</Link></span>
-              <button className="infoButton" disabled={forgotMutation.isPending}>
-                {forgotMutation.isPending ? "Sending..." : "Send Link"}
-              </button>
-            </div>
-          </form>
+          ) : (
+            <form className="infoForm authForm" onSubmit={(e) => { e.preventDefault(); forgotMutation.mutate({ email }); }}>
+              <h3>Forgot Password</h3>
+              <p className="authHint">Enter your email address and we'll send you a link to reset your password.</p>
+              <div className="inputGroup">
+                <label>Email</label>
+                <input type="email" className="infoInput" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              </div>
+              <div className="authFooterRow" style={{ marginTop: "1rem" }}>
+                <span className="switchAuthText"><Link to="/login">Back to Login</Link></span>
+                <button className="infoButton" disabled={forgotMutation.isPending}>
+                  {forgotMutation.isPending ? "Sending..." : "Send Link"}
+                </button>
+              </div>
+            </form>
+          )}
         </motion.div>
       </div>
     </div>

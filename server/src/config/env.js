@@ -45,6 +45,7 @@ module.exports = {
   JWT_SECRET,
   JWT_EXPIRE: process.env.JWT_EXPIRE || "30d",
   CLIENT_ORIGINS: parsedOrigins,
+  CLIENT_URL: process.env.CLIENT_URL ? process.env.CLIENT_URL.trim().replace(/\/+$/, "") : null,
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,

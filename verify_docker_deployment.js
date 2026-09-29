@@ -150,6 +150,8 @@ async function runVerification() {
   const spaRoutes = [
     "/login",
     "/signup",
+    "/forgot-password",
+    "/reset-password/sample-token",
     "/home",
     "/explore",
     "/search",
@@ -226,7 +228,14 @@ async function runVerification() {
   const regRes = await makeRequest(`${BACKEND_URL}/api/v1/auth/register`, { method: "POST" }, regUser);
   assert(regRes.status === 201, `User registration /api/v1/auth/register succeeded (201 Created) for ${regUser.username}`);
 
-  // ── 6. Social Discovery, Posts, Stories & Chats ──
+  // Test Password Reset Endpoint
+  const forgotRes = await makeRequest(`${BACKEND_URL}/api/v1/auth/forgot-password`, { method: "POST" }, {
+    email: "bhavishyagupta@gmail.com"
+  });
+  assert(forgotRes.status === 200 && forgotRes.json?.success === true, "Password reset request /api/v1/auth/forgot-password succeeds (200 OK)");
+  if (forgotRes.json?.data?.devResetUrl) {
+    assert(!forgotRes.json.data.devResetUrl.includes("frontend:80"), "Password reset URL points to host-accessible client origin, not internal Docker hostname");
+  }
   console.log("\n6. Testing Social Platform Core Operations...");
 
   // Suggested Users

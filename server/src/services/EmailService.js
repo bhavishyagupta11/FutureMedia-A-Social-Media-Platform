@@ -117,22 +117,20 @@ class EmailService {
       });
       return { delivered: true, info };
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.log("\n=================================================");
-        console.log("FutureMedia Development Verification Link (Fallback)");
-        console.log("=================================================");
-        console.log("User:            " + maskString(user.email));
-        console.log("Verification URL: " + verifyUrl);
-        console.log("=================================================\n");
+      console.warn(`[EmailService] Verification email delivery failed (${err.message}). Logging fallback link.`);
+      console.log("\n=================================================");
+      console.log("FutureMedia Verification Link (Delivery Fallback)");
+      console.log("=================================================");
+      console.log("User:            " + maskString(user.email));
+      console.log("Verification URL: " + verifyUrl);
+      console.log("=================================================\n");
 
-        return {
-          delivered: false,
-          mode: "console",
-          verifyUrl,
-          warning: "Verification email could not be delivered via cloud API or SMTP."
-        };
-      }
-      throw err;
+      return {
+        delivered: false,
+        mode: "console",
+        verifyUrl,
+        warning: "Verification email could not be delivered via cloud API or SMTP."
+      };
     }
   }
 
@@ -164,16 +162,14 @@ class EmailService {
       });
       return { delivered: true, info };
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.log("\n=================================================");
-        console.log("FutureMedia Development Password Reset Link (Fallback)");
-        console.log("=================================================");
-        console.log("User:            " + maskString(user.email));
-        console.log("Reset URL:       " + resetUrl);
-        console.log("=================================================\n");
-        return { delivered: false, mode: "console", resetUrl };
-      }
-      throw err;
+      console.warn(`[EmailService] Password reset email delivery failed (${err.message}). Logging fallback link.`);
+      console.log("\n=================================================");
+      console.log("FutureMedia Password Reset Link (Delivery Fallback)");
+      console.log("=================================================");
+      console.log("User:            " + maskString(user.email));
+      console.log("Reset URL:       " + resetUrl);
+      console.log("=================================================\n");
+      return { delivered: false, mode: "console", resetUrl, error: err.message };
     }
   }
 }
