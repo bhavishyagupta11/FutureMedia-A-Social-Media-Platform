@@ -4,6 +4,7 @@
  */
 
 const http = require("http");
+const fs = require("fs");
 const { execSync } = require("child_process");
 
 const FRONTEND_URL = "http://localhost:3000";
@@ -123,7 +124,9 @@ async function runVerification() {
   // ── 1. Container Infrastructure Status ──────────
   console.log("1. Checking Docker Containers...");
   try {
-    const psOutput = execSync("docker compose ps --format json", { encoding: "utf8" });
+    const userDocker = `${process.env.LOCALAPPDATA || ""}\\Programs\\DockerDesktop\\resources\\bin\\docker.exe`;
+    const dockerCmd = fs.existsSync(userDocker) ? `"${userDocker}"` : "docker";
+    const psOutput = execSync(`${dockerCmd} compose ps --format json`, { encoding: "utf8" });
     const containers = JSON.parse(`[${psOutput.trim().replace(/\r?\n/g, ",").replace(/,$/, "")}]`);
     
     for (const c of containers) {
